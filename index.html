@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Hub</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4a90e2">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <link rel="icon" href="icon-192.png" type="image/png">
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --primary: #4a90e2;
+      --text: #1f2933;
+      --card-bg: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 16px 20px;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+    #content {
+      padding: 16px;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto 24px auto;
+      flex: 1;
+    }
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .game-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 4px 12px var(--shadow);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .game-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+    .game-icon {
+      width: 100%;
+      padding-top: 56%;
+      border-radius: 12px;
+      background-size: cover;
+      background-position: center;
+      background-color: #e1e7f0;
+      margin-bottom: 10px;
+    }
+    .game-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .game-desc {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      flex: 1;
+    }
+    .game-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .play-btn {
+      border: none;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #fff;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .meta-info {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 8px;
+      text-align: right;
+    }
+    #status {
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Game Hub</h1>
+  <div style="font-size:0.8rem; opacity:0.9;">Tap a game to play</div>
+</header>
+
+<div id="content">
+  <div id="status">Loading games…</div>
+  <div class="games-grid" id="gamesGrid"></div>
+  <div class="meta-info">
+    Add new games by editing <code>games.json</code>.
+  </div>
+</div>
+
+<script>
+  async function loadGames() {
+    const status = document.getElementById('status');
+    const grid = document.getElementById('gamesGrid');
+    status.textContent = 'Loading games…';
+    try {
+      const res = await fetch('games.json');
+      if (!res.ok) throw new Error('Failed to load games.json');
+      const games = await res.json();
+      grid.innerHTML = '';
+      if (!games.length) {
+        status.textContent = 'No games found. Add some entries to games.json.';
+        return;
+      }
+      status.textContent = '';
+      games.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.onclick = () => openGame(game.path);
+
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'game-icon';
+        if (game.icon) {
+          iconDiv.style.backgroundImage = `url(${game.icon})`;
+        }
+
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'game-title';
+        titleDiv.textContent = game.title || 'Untitled Game';
+
+        const descDiv = document.createElement('div');
+        descDiv.className = 'game-desc';
+        descDiv.textContent = game.description || '';
+
+        const footer = document.createElement('div');
+        footer.className = 'game-footer';
+        const playBtn = document.createElement('button');
+        playBtn.className = 'play-btn';
+        playBtn.textContent = 'Play';
+        playBtn.onclick = (e) => {
+          e.stopPropagation();
+          openGame(game.path);
+        };
+        footer.appendChild(playBtn);
+
+        card.appendChild(iconDiv);
+        card.appendChild(titleDiv);
+        card.appendChild(descDiv);
+        card.appendChild(footer);
+
+        grid.appendChild(card);
+      });
+    } catch (err) {
+      console.error(err);
+      status.textContent = 'Error loading games. Check console and games.json.';
+    }
+  }
+
+  function openGame(path) {
+    // Same tab:
+    window.location.href = path;
+
+    // If you prefer new tab:
+    // window.open(path, '_blank');
+  }
+
+  // PWA: service worker registration
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .catch(err => console.error('Service worker registration failed', err));
+    });
+  }
+
+  loadGames();
+</script>
+</body>
+</html>

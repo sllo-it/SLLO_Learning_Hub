@@ -1,0 +1,27 @@
+[
+  {
+    "id": "sudokuex",
+    "title": "SudokuEX",
+    "description": "Sudoku with tutorial and Kinyarwanda support.",
+    "path": "SudokuEX/SudokuEX_V3_KinyaRwanda.html",
+    "icon": "SudokuEX/icon.png"
+  },
+  {
+    "id": "mathsAdventure",
+    "title": "Maths Adventure",
+    "description": "Quick calculations challenge game.",
+    "path": "mathsAdventure/MathsAdventure.html"
+  },
+  {
+    "id": "mathsTheCards",
+    "title": "Maths the Cards",
+    "description": "Equation Matching Card Game.",
+    "path": "MathTheCards/index.html"
+  },
+  {
+    "id": "wordo",
+    "title": "Wordo",
+    "description": "Word puzzle game.",
+    "path": "Wordo/wordo.html"
+  }
+]
