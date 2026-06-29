@@ -193,19 +193,34 @@
       </div>
       <div style="overflow-y: auto; max-height: 500px;" id="admin-games-container"></div>
     </div>
-
+    
     <!-- Rich Editor Form -->
     <form id="game-upload-form" class="admin-section" onsubmit="submitGameForm(event)">
       <input type="hidden" name="id" id="edit-id">
       <!-- Excel Import Form Module -->
-      <div id="excel-import-module" style="background:#f1f3f4; padding:12px; border-radius:10px; margin-bottom:15px; text-align:center;">
-        <label style="font-weight:bold; display:block; margin-bottom:5px;">Bulk Import from Template</label>
-        <input type="file" id="excel-file-input" accept=".csv" style="font-size:0.85rem;">
-        <button class="btn-basic btn-admin" style="padding:4px 12px; margin-top:8px; font-size:0.85rem;" onclick="triggerExcelImport()">Import by Excel</button>
+      <div id="excel-import-module" style="background:#f1f3f4; padding:12px; border-radius:10px; margin-bottom:15px; text-align:center; position:relative;">
+        <button type="button" onclick="openImportHelp()" style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:1.2rem; cursor:pointer;" title="How to use bulk import">ℹ️</button>
+        <label style="font-weight:bold; display:block; margin-bottom:5px;">1. Bulk Import Data (Excel/CSV)</label>
+        <div>
+          <input type="file" id="excel-file-input" accept=".csv" style="font-size:0.85rem;">
+          <div style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
+            <button class="btn-basic btn-admin" style="padding:6px 12px; font-size:0.85rem;" onclick="triggerExcelImport()">Import Data</button>
+            <button class="btn-basic" style="padding:6px 12px; font-size:0.85rem; background:#4caf50; color:white;" onclick="downloadCSVTemplate()">Download Template</button>
+          </div>
+        </div>
       </div>
+      <!-- ZIP Game Files Upload Module -->
+      <div id="zip-upload-module" style="background:#e3f2fd; padding:12px; border-radius:10px; margin-bottom:15px; text-align:center; border: 1px solid #bbdefb; position:relative;">
+        <button type="button" onclick="openImportHelp()" style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:1.2rem; cursor:pointer;" title="How to use bulk import">ℹ️</button>
+        <label style="font-weight:bold; display:block; margin-bottom:5px; color:#1565c0;">2. Bulk Upload Assets (ZIP)</label>
+        <p style="margin: 0 0 10px 0; font-size: 0.75rem; color: #555;">Upload a .zip containing your HTML games(.html), icons(.png), and previews(.png).</p>
+        <input type="file" id="zip-file-input" accept=".zip" style="font-size:0.85rem;">
+        <button class="btn-basic" style="padding:4px 12px; margin-top:8px; background:#1976d2; color:white;" onclick="triggerZipUpload()">Upload & Extract ZIP</button>
+      </div>
+      <!-- Game Details Form -->
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
         <div class="form-group"><label>Title (English)*</label><input type="text" name="title" id="edit-title" required></div>
-        <div class="form-group"><label>Title (Kinyarwanda)</label><input type="text" name="title_rw" id="edit-rw"></div>
+        <div class="form-group"><label>Title (Mongolia)</label><input type="text" name="title_rw" id="edit-rw"></div>
         <div class="form-group"><label>Subject*</label><input type="text" name="subject" id="edit-subject" required></div>
         <div class="form-group"><label>Topic</label><input type="text" name="topic" id="edit-topic"></div>
         <div class="form-group"><label>Grade (e.g., S1)</label><input type="text" name="grade" id="edit-grade"></div>
@@ -241,6 +256,21 @@
         <button class="btn-basic" id="btn-admin-logout" style="background: #e53935; color: white; display: none;" onclick="handleAdminLogout()">Log Out</button>
       </div>
       <button class="btn-basic btn-close" onclick="closeSettingsModal()">Close</button>
+    </div>
+
+    <div class="modal-overlay" id="import-help-modal">
+      <div class="modal-content">
+        <h2 class="modal-title">How to Bulk Import</h2>
+        <div class="modal-meta" style="font-size: 0.95rem;">
+          <p><strong>Step 1: Download the Template</strong><br>Click the green "Download Template" button to get a pre-formatted CSV file.</p>
+          <p style="margin-top:10px;"><strong>Step 2: Fill in your Data</strong><br>Add your resource titles, topics, grades, and the exact filenames of your HTML exercises. For icons, you can type a local filename (e.g., <code>icon.png</code>).</p>
+          <p style="margin-top:10px;"><strong>Step 3: Import the Data</strong><br>Upload your saved CSV/Excel file using the "Import Data" button.</p>
+          <p style="margin-top:10px;"><strong>Step 4: Upload the Assets (ZIP)</strong><br>Highlight your actual HTML files and images on your computer, compress them into a <code>.zip</code> file, and upload them via the "Bulk Upload Assets" tool below. The server will sort everything into the correct folders automatically!</p>
+        </div>
+        <div class="modal-actions" style="justify-content: flex-end;">
+          <button class="btn-basic btn-close" onclick="closeImportHelp()">Got it!</button>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -367,7 +397,9 @@
     switchAdminSection('game-upload-form');
     document.getElementById('file-html').required = !gameId; // Only mandatory for absolute new games
     if(gameId) {
+      document.getElementById('game-upload-form').reset();
       document.getElementById('excel-import-module').style.display = 'none'; // Hide batch excel import when editing existing game to avoid confusion
+      document.getElementById('zip-upload-module').style.display = 'none'; // Hide zip upload module when editing existing game
       const g = allGames.find(x => x.id === gameId);
       document.getElementById('edit-id').value = g.id; document.getElementById('edit-title').value = g.title;
       document.getElementById('edit-rw').value = g.title_rw; document.getElementById('edit-subject').value = g.subject;
@@ -396,6 +428,29 @@
     }
   }
 
+// --- NEW: Template Generator & Help Modal Logic ---
+  function downloadCSVTemplate() {
+    // Create an invisible link pointing to your actual server file
+    const link = document.createElement("a");
+    link.href = "/sources/GamesSummary_Template.csv"; 
+    
+    // You can optionally force a specific download name for the user here
+    link.download = "GamesSummary_Template.csv"; 
+    
+    // Append, click, and remove the link to trigger the browser download silently
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function openImportHelp() {
+    document.getElementById('import-help-modal').classList.add('active');
+  }
+
+  function closeImportHelp() {
+    document.getElementById('import-help-modal').classList.remove('active');
+  }
+
   // Import Spreadsheet handling logic trigger matching system row array profiles
   async function triggerExcelImport() {
     const fileInput = document.getElementById('excel-file-input');
@@ -411,12 +466,48 @@
       if(data.duplicates.length > 0) {
         msg += `\n⚠️ Skipped duplicates:\n- ` + data.duplicates.join('\n- ');
       }
-      alert(msg); await loadGames(); showAdminList();
+      alert(msg); await loadGames(); document.getElementById('settings-footer').style.display = 'flex'; showAdminList();
+    }
+  }
+
+  async function triggerZipUpload() {
+    const fileInput = document.getElementById('zip-file-input');
+    if(fileInput.files.length === 0) { 
+      alert('Please select a .zip file first.'); 
+      return; 
+    }
+    
+    // Optional: Visual feedback so you know it's working
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = "Uploading & Extracting...";
+    btn.disabled = true;
+
+    const formData = new FormData(); 
+    formData.append('zipFile', fileInput.files[0]);
+    
+    try {
+      const res = await fetch('/api/upload-zip', { method: 'POST', body: formData });
+      const data = await res.json();
+      
+      if(data.success) {
+        alert('🎉 Success! ' + data.message);
+        fileInput.value = ''; // Clear the input
+      } else {
+        alert("Extraction failed: " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("A network error occurred while uploading.");
+    } finally {
+      // Restore button state
+      btn.textContent = originalText;
+      btn.disabled = false;
     }
   }
 
   async function deleteGame(id) {
-    if(!confirm('🚨 Warning: This permanently removes the configuration entry and completely deletes the game folder from the server disk. Proceed?')) return;
+    if(!confirm('🚨 Warning: This permanently removes the configuration entry and completely deletes the game from the server disk. Proceed?')) return;
     const res = await fetch(`/api/delete-game/${id}`, { method: 'DELETE' });
     const data = await res.json();
     if(data.success) { alert(data.message); await loadGames(); showAdminList(); }
