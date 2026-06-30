@@ -293,6 +293,8 @@
     const subjects = [...new Set(allGames.map(g => g.subject).filter(Boolean))].sort();
     subjects.forEach(subject => {
       const card = document.createElement('div'); card.className = 'subject-card'; card.textContent = subject;
+      const numGames = allGames.filter(g => g.subject === subject).length;
+      const countBadge = document.createElement('div'); countBadge.style.fontSize = '0.8rem'; countBadge.style.color = '#555'; countBadge.style.marginTop = '8px'; countBadge.textContent = `${numGames} game${numGames !== 1 ? 's' : ''}`; card.appendChild(countBadge);
       card.onclick = () => showGamesForSubject(subject); container.appendChild(card);
     });
   }
