@@ -92,7 +92,7 @@ app.post('/api/save-game-form', upload.fields([
     unit: req.body.unit || '',
     level: req.body.level || 'Beginner',
     outcomes: req.body.outcomes || '',
-    path: `src/games/${gameName}.html`,
+    path: `src/games/${gameName}`,
     icon: req.files['iconFile'] ? `src/pictures/${gameName}_icon.png` : (oldGame ? oldGame.icon : ''),
     preview: req.files['previewFile'] ? `src/pictures/${gameName}_preview.png` : (oldGame ? oldGame.preview : '')
   };
@@ -164,13 +164,13 @@ app.post('/api/import-excel', uploadExcel.single('excelFile'), (req, res) => {
 
     rows.forEach((row) => {
       // Look for the title using broad keywords that match your column exactly
-      const title = getVal(row, ['title of the game', 'game title', 'title']);
+      const title = getVal(row, ['title of the game', 'title of the game (keep within 5 words)', 'game title', 'title']);
       
       // If a row doesn't have a title, or it's just a spacer row, skip it safely
       if (!title || title === "" || title.toLowerCase().includes('date generated')) return; 
 
-      const folderName = toCamelCase(title);
-      const uniqueId = folderName;
+      const folderName = 'src/games/'; // Use a consistent folder structure for the game files
+      const uniqueId = toCamelCase(title);
 
       // Check if this game is already in our system
       const isDuplicate = allGames.some(g => g.title.toLowerCase().trim() === title.toLowerCase().trim());
@@ -196,9 +196,9 @@ app.post('/api/import-excel', uploadExcel.single('excelFile'), (req, res) => {
         unit: getVal(row, ['reb unit', 'unit']) || '',
         level: getVal(row, ['level']) || 'All',
         outcomes: getVal(row, ['learning outcomes', 'outcomes']) || '',
-        path: getVal(row, ['html file name (e.g. maths.html)', 'htmlfile', 'html']) || '',
-        icon: getVal(row, ['iconFile (.png)', 'iconfile']) || '',
-        preview: getVal(row, ['previewfile (.png)', 'previewfile']) || ''
+        path: `src/games/${getVal(row, ['html file name (e.g. maths.html)', 'html file name', 'html file', 'htmlfile']) || ''}`,
+        icon: `src/pictures/${getVal(row, ['iconFile (.png)', 'iconfile', 'icon file', 'icon file name']) || ''}`,
+        preview: `src/pictures/${getVal(row, ['previewfile (.png)', 'previewfile', 'preview file name', 'preview file']) || ''}`
       };
 
       allGames.push(newGame);
