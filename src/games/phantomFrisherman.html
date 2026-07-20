@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phantom Fisherman: Refraction Laser V6</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            border-bottom: 3px solid #34495e;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 28px;
+        }
+        header p {
+            margin: 5px 0 0 0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .stats-bar .stat-item span {
+            color: #f1c40f;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            border-left: 5px solid #3498db;
+            padding-left: 8px;
+        }
+
+        .sub-section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #34495e;
+            margin: 10px 0 6px 0;
+            background: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        /* Left Column Screen Area */
+        .canvas-area {
+            position: relative;
+            background: #cbd5e1;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 4px solid #34495e;
+            cursor: crosshair;
+        }
+        canvas {
+            display: block;
+        }
+
+        .control-tabs-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid #e2e8f0;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #4a5568;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #3498db;
+            color: white;
+        }
+        .upgrade-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .upgrade-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        .upgrade-card.equipped {
+            border-color: #2ecc71;
+            background: #f4fbf7;
+        }
+        .upgrade-info h4 {
+            margin: 0 0 2px 0;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        .upgrade-info p {
+            margin: 0;
+            font-size: 11px;
+            color: #666;
+        }
+        .buy-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .buy-btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        /* Right Column Scientific Dashboard */
+        .physics-panel {
+            background: #2d3748;
+            color: #edf2f7;
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .formula-box {
+            background: #1a202c;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            font-size: 16px;
+            color: #63b3ed;
+            margin-bottom: 15px;
+            font-family: 'Times New Roman', serif;
+            line-height: 1.4;
+        }
+        .formula-box span {
+            font-weight: bold;
+            color: #f1c40f;
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #4a5568;
+            font-size: 13px;
+        }
+        .metric-value {
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .telemetry-alert {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
+            background: #2b6cb0;
+            color: white;
+        }
+        .physics-note {
+            background: #1a202c;
+            border-left: 4px solid #63b3ed;
+            padding: 10px;
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-top: 15px;
+            border-radius: 0 4px 4px 0;
+            line-height: 1.4;
+        }
+        
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .level-btn {
+            padding: 8px;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .level-btn.active {
+            background: #e67e22;
+            box-shadow: 0 0 8px rgba(230,126,34,0.5);
+        }
+        
+        .combo-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            display: none;
+            animation: bounceIn 0.3s ease-out;
+            box-shadow: 0 0 10px rgba(231,76,60,0.5);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <header>
+        <h1>🌊 Phantom Fisherman: Refraction Laser V6</h1>
+        <p>Optical Physics Lab —— Master Snell's Law to hunt randomized aquatic entities across Rwandan ecosystems</p>
+    </header>
+
+    <!-- Top Global Ledger Indicators -->
+    <div class="stats-bar">
+        <div class="stat-item">Wallet Balance: <span id="player-gold">100</span> Coins</div>
+        <div class="stat-item">Active Laser: <span id="player-spear">Basic Ruby 🔴</span></div>
+        <div class="stat-item">Tactical Gear: <span id="player-gear">None ❌</span></div>
+        <div class="stat-item">Total Score: <span id="player-score">0</span></div>
+    </div>
+
+    <!-- Main Workspace Grid -->
+    <div class="main-grid">
+        
+        <!-- Left Column: Canvas Viewport & Armory -->
+        <div>
+            <div class="canvas-area">
+                <div id="combo-display" class="combo-badge">0 COMBO! 🔥</div>
+                <canvas id="gameCanvas" width="750" height="440"></canvas>
+            </div>
+
+            <div class="control-tabs-section">
+                <div class="tabs">
+                    <button id="tab-weapons" class="tab-btn active" onclick="switchTab('weapons')">⚡ Laser Optics Armory</button>
+                    <button id="tab-gadgets" class="tab-btn" onclick="switchTab('gadgets')">👓 Tactical Peripherals</button>
+                </div>
+
+                <!-- Weapons Tab Content -->
+                <div id="content-weapons" class="upgrade-list"></div>
+
+                <!-- Gadgets Tab Content -->
+                <div id="content-gadgets" class="upgrade-list" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Right Column: Telemetry Matrix Monitor -->
+        <div class="physics-panel">
+            <div>
+                <div class="panel-title" style="color: #63b3ed; border-color: #63b3ed;">Optical Telemetry Station</div>
+                
+                <div class="sub-section-title">🗺️ Select Rwandan Deployment Zone</div>
+                <div class="level-grid">
+                    <button id="lvl-1" class="level-btn active" onclick="changeLevel(1)">Lake Kivu</button>
+                    <button id="lvl-2" class="level-btn" onclick="changeLevel(2)">Burera & Ruhondo</button>
+                    <button id="lvl-3" class="level-btn" onclick="changeLevel(3)">Nyabarongo River</button>
+                </div>
+
+                <div class="formula-box" id="live-formula">
+                    Snell's Law:<br>n₁ sin(θ₁) = n₂ sin(θ₂)
+                </div>
+                
+                <div class="metric-row">
+                    <span>Air Refractive Index (n₁):</span>
+                    <span class="metric-value">1.00</span>
+                </div>
+                <div class="metric-row">
+                    <span>Liquid Refractive Index (n₂):</span>
+                    <span class="metric-value" id="val-n2">1.33</span>
+                </div>
+                <div class="metric-row">
+                    <span>Dispersion Coefficient (Laser λ Factor):</span>
+                    <span class="metric-value" id="val-dispersion">1.00</span>
+                </div>
+                <div class="metric-row" style="background: rgba(255,255,255,0.05); padding: 6px 4px;">
+                    <span style="color: #63b3ed;">Angle of Incidence (θ₁ - to Normal):</span>
+                    <span class="metric-value" id="val-theta1">0.0°</span>
+                </div>
+                <div class="metric-row" style="background: rgba(255,255,255,0.05); padding: 6px 4px;">
+                    <span style="color: #f1c40f;">Angle of Refraction (θ₂ - to Normal):</span>
+                    <span class="metric-value" id="val-theta2">0.0°</span>
+                </div>
+                
+                <div style="margin-top: 10px; border-top: 1px dashed #4a5568; padding-top: 8px;">
+                    <div class="metric-row">
+                        <span>Vertical Apparent Depth Ratio (y_app / y_real):</span>
+                        <span class="metric-value" id="val-depth-ratio">1 / 1.33</span>
+                    </div>
+                    <div class="telemetry-alert" id="feedback-box">
+                        💡 Tip: Aim LOWER than the perceived virtual fish image! Refraction forces light downward.
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="physics-note">
+                    👨‍🏫 <b>9th Grade Physics Highlights:</b><br>
+                    1. <b>Layout Blueprint:</b> The left margin features a cliff edge (only 8% width) serving as the land launchpad. The remaining 92% is a completely <b>horizontal water surface</b> interface.<br>
+                    2. <b>Dynamic Random Biodiversity:</b> Organisms are dynamic. When caught, they shuffle from a pool of 8 local species with completely randomized sizes, vertical bands, and swim directions.<br>
+                    3. <b>Anisotropic Swimming Direction:</b> Marine models dynamically flip orientation structures via reflection scales matrix to match their forward direction vector profile!
+                </div>
+                <div style="text-align: center; font-size: 11px; margin-top: 8px; color: #a0aec0;">
+                    Use [W]/[S] keys or [▲]/[▼] arrows to move launcher vertically. Click the water to fire!
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // 1. HARD CODED DATABASES
+    const laserWeapons = [
+        { id: 'red', name: 'Basic Ruby Laser 🔴', cost: 0, mult: 1.0, dispersion: 1.0, stroke: '#ff0000', glow: '#ff6666', desc: 'Standard low-frequency red light beam. Minimal dispersion profile allows easy aiming.' },
+        { id: 'green', name: 'Emerald Pulse Beam 💚', cost: 80, mult: 1.2, dispersion: 1.06, stroke: '#00ff00', glow: '#66ff66', desc: 'Mid-frequency high energy beam. Generates wide electromagnetic paralysis fields upon contact.' },
+        { id: 'violet', name: 'Violet Dispersion Storm ⚡', cost: 220, mult: 1.5, dispersion: 1.18, stroke: '#9b59b6', glow: '#df7eed', desc: 'High-frequency short-wave purple beam. Bends heavily but unlocks multi-bounce Refraction Storm cascading waves!' }
+    ];
+
+    const gadgetPeripherals = [
+        { id: 'goggles', name: 'Refraction Predictor Visor 👓', cost: 100, desc: 'Computes optical vectors to trace a real-time yellow dashed pre-calculation guide path down into the liquid medium.' },
+        { id: 'sonar', name: 'Multi-Boundary Hydro-Sonar 📡', cost: 150, desc: 'Unlocks actual internal containment fields. Missed lasers hitting the horizontal water surface or lakebed reflect cleanly using perfect angle of reflection rules.' }
+    ];
+
+    const environmentLevels = {
+        1: { name: "Lake Kivu", n: 1.33, waveAmp: 0, desc: "Calm, transparent water profiles. Standard refractive index n=1.33." },
+        2: { name: "Burera & Ruhondo (Twin Lakes)", n: 1.44, waveAmp: 12, desc: "Choppy volcanic ripples. Sinusoidal waves periodically disrupt the vertical surface normal lines!" },
+        3: { name: "Nyabarongo River", n: 1.65, waveAmp: 2, desc: "Silt-heavy runoff. A high-density medium elevates index to n=1.65, triggering extreme light refraction." }
+    };
+
+    // --- EXPANDED AQUATIC POOL FOR ENHANCED RANDOMIZED GENERATION ENGINE ---
+    const aquaticPool = [
+        { name: 'Mutated Voltaic Eel 🐍', icon: '🐍', baseScore: 25, baseValue: 15, baseSize: 21, depthPreference: 'mid' },
+        { name: 'Kivu Nile Tilapia 🐟', icon: '🐟', baseScore: 10, baseValue: 8, baseSize: 16, depthPreference: 'shallow' },
+        { name: 'Giant Tigerfish 🦈', icon: '🦈', baseScore: 50, baseValue: 35, baseSize: 30, depthPreference: 'deep' },
+        { name: 'Sharptooth Catfish 🐡', icon: '🐡', baseScore: 20, baseValue: 12, baseSize: 20, depthPreference: 'deep' },
+        { name: 'Burera Golden Cichlid 🐠', icon: '🐠', baseScore: 15, baseValue: 10, baseSize: 14, depthPreference: 'shallow' },
+        { name: 'Electric Elephantfish 🐙', icon: '🐙', baseScore: 30, baseValue: 20, baseSize: 18, depthPreference: 'mid' },
+        { name: 'Sunken Relic Chest 🧰', icon: '🧰', baseScore: 40, baseValue: 30, baseSize: 24, depthPreference: 'bottom' },
+        { name: 'Golden Intore Mask 👑', icon: '👑', baseScore: 100, baseValue: 75, baseSize: 25, depthPreference: 'bottom' }
+    ];
+
+    // 2. STATE LOGIC SYSTEM
+    let playerGold = 100;
+    let score = 0;
+    let currentLevel = 1;
+    let equippedLaser = 'red';
+    let purchasedLasers = ['red'];
+    let equippedGadgets = [];
+    let comboCount = 0;
+    let comboTimer = 0;
+    let waveTime = 0;
+
+    // Simulation Configs
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const landWidth = 60; // 60px wide cliff side padding
+    const waterY = 160;    // Perfectly horizontal boundary line split
+
+    let launcherY = 90;   // Vertical coordinate of the turret
+    const launcherX = 20;  
+    const launcherWidth = 22;
+    const launcherHeight = 35;
+    
+    let keys = {};
+    let mouseX = 0;
+    let mouseY = 0;
+    
+    let activeLasers = []; 
+    let entitiesList = []; 
+    let particleSystems = []; 
+
+    window.onload = function() {
+        setupInputHandlers();
+        renderArmoryItems();
+        spawnInitialAquaticLife(6); // Spawn 6 initial fully random organisms
+        
+        setInterval(gameTick, 1000 / 60);
+        requestAnimationFrame(renderLoop);
+    };
+
+    function switchTab(tabName) {
+        document.getElementById('tab-weapons').classList.toggle('active', tabName === 'weapons');
+        document.getElementById('tab-gadgets').classList.toggle('active', tabName === 'gadgets');
+        document.getElementById('content-weapons').style.display = tabName === 'weapons' ? 'flex' : 'none';
+        document.getElementById('content-gadgets').style.display = tabName === 'gadgets' ? 'flex' : 'none';
+    }
+
+    function renderArmoryItems() {
+        const weaponBox = document.getElementById('content-weapons');
+        weaponBox.innerHTML = '';
+        laserWeapons.forEach(w => {
+            const isEquipped = equippedLaser === w.id;
+            const isUnlocked = purchasedLasers.includes(w.id);
+            let btn = '';
+
+            if (isEquipped) btn = `<span style="color:#2ecc71; font-weight:bold;">🟢 Active</span>`;
+            else if (isUnlocked) btn = `<button class="buy-btn" style="background:#3498db;" onclick="equipLaser('${w.id}')">Equip</button>`;
+            else btn = `<button class="buy-btn" ${playerGold < w.cost ? 'disabled' : ''} onclick="buyLaser('${w.id}', ${w.cost})">Buy: ${w.cost}🪙</button>`;
+
+            const div = document.createElement('div');
+            div.className = `upgrade-card ${isEquipped ? 'equipped' : ''}`;
+            div.innerHTML = `<div class="upgrade-info"><h4>${w.name}</h4><p>${w.desc}</p></div><div>${btn}</div>`;
+            weaponBox.appendChild(div);
+        });
+
+        const gadgetBox = document.getElementById('content-gadgets');
+        gadgetBox.innerHTML = '';
+        gadgetPeripherals.forEach(g => {
+            const isUnlocked = equippedGadgets.includes(g.id);
+            let btn = '';
+
+            if (isUnlocked) btn = `<span style="color:#2ecc71; font-weight:bold;">✨ Online</span>`;
+            else btn = `<button class="buy-btn" ${playerGold < g.cost ? 'disabled' : ''} onclick="buyGadget('${g.id}', ${g.cost})">Acquire: ${g.cost}🪙</button>`;
+
+            const div = document.createElement('div');
+            div.className = `upgrade-card ${isUnlocked ? 'equipped' : ''}`;
+            div.innerHTML = `<div class="upgrade-info"><h4>${g.name}</h4><p>${g.desc}</p></div><div>${btn}</div>`;
+            gadgetBox.appendChild(div);
+        });
+        
+        // Sync Dashboard Indicators
+        document.getElementById('player-gold').innerText = playerGold;
+        const activeWep = laserWeapons.find(l => l.id === equippedLaser);
+        document.getElementById('player-spear').innerText = activeWep.name;
+        document.getElementById('player-gear').innerText = equippedGadgets.length > 0 ? equippedGadgets.map(g => g === 'goggles' ? 'Visor 👓' : 'Sonar 📡').join(' + ') : 'None ❌';
+        document.getElementById('player-score').innerText = score;
+        document.getElementById('val-n2').innerText = environmentLevels[currentLevel].n.toFixed(2);
+        document.getElementById('val-dispersion').innerText = activeWep.dispersion.toFixed(2);
+        document.getElementById('val-depth-ratio').innerText = `1.00 / ${(environmentLevels[currentLevel].n * activeWep.dispersion).toFixed(2)}`;
+    }
+
+    function buyLaser(id, cost) {
+        if(playerGold >= cost) { playerGold -= cost; purchasedLasers.push(id); equippedLaser = id; renderArmoryItems(); }
+    }
+    function equipLaser(id) { equippedLaser = id; renderArmoryItems(); }
+    function buyGadget(id, cost) {
+        if(playerGold >= cost) { playerGold -= cost; equippedGadgets.push(id); renderArmoryItems(); }
+    }
+
+    function changeLevel(lvl) {
+        currentLevel = lvl;
+        document.querySelectorAll('.level-btn').forEach((b, idx) => b.classList.toggle('active', (idx+1)===lvl));
+        renderArmoryItems();
+        entitiesList = [];
+        spawnInitialAquaticLife(6);
+    }
+
+    function setupInputHandlers() {
+        window.addEventListener('keydown', e => keys[e.key] = true);
+        window.addEventListener('keyup', e => keys[e.key] = false);
+        
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            updatePhysicsTelemetry();
+        });
+
+        canvas.addEventListener('mousedown', e => {
+            if (mouseY > waterY && mouseX > landWidth) fireLaserSpear();
+        });
+    }
+
+    // --- ENHANCED STOCHASTIC PROCEDURAL SPAWNING ALGORITHM ENGINE ---
+    function generateSingleProceduralOrganism() {
+        const archetype = aquaticPool[Math.floor(Math.random() * aquaticPool.length)];
+        let minY, maxY;
+        
+        // Define stratified band distributions to represent separate ecological layers
+        if (archetype.depthPreference === 'shallow') { 
+            minY = waterY + 15; maxY = waterY + 75; 
+        } else if (archetype.depthPreference === 'mid') { 
+            minY = waterY + 75; maxY = waterY + 150; 
+        } else if (archetype.depthPreference === 'deep') { 
+            minY = waterY + 150; maxY = canvas.height - 65; 
+        } else { 
+            // Bottom dwellers / ancient artifacts (stationary)
+            minY = canvas.height - 45; maxY = canvas.height - 25; 
+        }
+
+        const isStationary = archetype.depthPreference === 'bottom';
+        const randomizedSpeed = isStationary ? 0 : (0.45 + Math.random() * 1.35);
+        const randomizedSize = archetype.baseSize * (0.85 + Math.random() * 0.35);
+
+        return {
+            realX: landWidth + 40 + Math.random() * (canvas.width - landWidth - 80),
+            realY: minY + Math.random() * (maxY - minY),
+            speed: randomizedSpeed,
+            dir: Math.random() > 0.5 ? 1 : -1,
+            profile: {
+                name: archetype.name,
+                icon: archetype.icon,
+                score: archetype.baseScore,
+                value: archetype.baseValue,
+                size: randomizedSize
+            },
+            hitFlash: 0
+        };
+    }
+
+    function spawnInitialAquaticLife(count) {
+        for(let i=0; i<count; i++) {
+            entitiesList.push(generateSingleProceduralOrganism());
+        }
+    }
+
+    function calculateLaserRefractionPath(startX, startY, targetX, targetY) {
+        let segments = [];
+        const n1 = 1.0;
+        const currentWepObj = laserWeapons.find(l => l.id === equippedLaser);
+        const n2 = environmentLevels[currentLevel].n * currentWepObj.dispersion;
+
+        let dx = targetX - startX;
+        let dy = targetY - startY;
+        if (dy <= 0) return null; 
+
+        let slope = dx / dy;
+        let intersectX = startX + slope * (waterY - startY);
+        
+        if (intersectX < landWidth) {
+            let intersectY_cliff = startY + (landWidth - startX) / slope;
+            if (intersectY_cliff > waterY) {
+                segments.push({ x1: startX, y1: startY, x2: landWidth, y2: intersectY_cliff });
+                return segments; 
+            }
+        }
+        if (intersectX > canvas.width) intersectX = canvas.width;
+
+        segments.push({ x1: startX, y1: startY, x2: intersectX, y2: waterY });
+
+        let theta1 = Math.atan2(intersectX - startX, waterY - startY);
+        
+        if (currentLevel === 2) {
+            let waveOffset = (environmentLevels[2].waveAmp / 100) * Math.sin(intersectX / 20 + waveTime);
+            theta1 += waveOffset;
+        }
+
+        let sinTheta1 = Math.sin(theta1);
+        let sinTheta2 = (n1 / n2) * sinTheta1;
+        
+        if (Math.abs(sinTheta2) <= 1.0) {
+            let theta2 = Math.asin(sinTheta2);
+            
+            let curX = intersectX;
+            let curY = waterY;
+            let vx = Math.sin(theta2);
+            let vy = Math.cos(theta2); 
+            
+            for (let bounce = 0; bounce < 5; bounce++) {
+                let tBottom = vy > 0 ? ((canvas.height - 20) - curY) / vy : Infinity;
+                let tTop = vy < 0 ? (waterY - curY) / vy : Infinity;
+                let tRight = vx > 0 ? (canvas.width - curX) / vx : Infinity;
+                let tLeft = vx < 0 ? (landWidth - curX) / vx : Infinity;
+                
+                let tMin = Math.min(tBottom, Math.min(tTop, Math.min(tRight, tLeft)));
+                if (tMin === Infinity || tMin <= 0) break;
+                
+                let nextX = curX + vx * tMin;
+                let nextY = curY + vy * tMin;
+                
+                segments.push({ x1: curX, y1: curY, x2: nextX, y2: nextY });
+                
+                if (!equippedGadgets.includes('sonar')) break;
+                
+                if (tMin === tBottom || tMin === tTop) {
+                    vy = -vy; 
+                } else if (tMin === tRight || tMin === tLeft) {
+                    vx = -vx; 
+                }
+                
+                curX = nextX;
+                curY = nextY;
+            }
+        }
+        return segments;
+    }
+
+    function updatePhysicsTelemetry() {
+        if (mouseY <= waterY || mouseX <= landWidth) return;
+        const currentWepObj = laserWeapons.find(l => l.id === equippedLaser);
+        const n2 = environmentLevels[currentLevel].n * currentWepObj.dispersion;
+        
+        let originX = launcherX + launcherWidth;
+        let originY = launcherY + launcherHeight / 2;
+        let dx = mouseX - originX;
+        
+        let slope = dx / (mouseY - originY);
+        let estX = originX + slope * (waterY - originY);
+        let theta1 = Math.atan2(estX - originX, waterY - originY);
+        
+        let sinTheta2 = (1.0 / n2) * Math.sin(theta1);
+        let theta2 = Math.abs(sinTheta2) <= 1 ? Math.asin(sinTheta2) : 0;
+
+        document.getElementById('val-theta1').innerText = `${Math.abs(theta1 * 180 / Math.PI).toFixed(1)}°`;
+        document.getElementById('val-theta2').innerText = `${Math.abs(theta2 * 180 / Math.PI).toFixed(1)}°`;
+    }
+
+    function fireLaserSpear() {
+        let originX = launcherX + launcherWidth;
+        let originY = launcherY + launcherHeight / 2;
+        let pathSegments = calculateLaserRefractionPath(originX, originY, mouseX, mouseY);
+        
+        if (!pathSegments) return;
+
+        const currentWepObj = laserWeapons.find(l => l.id === equippedLaser);
+        activeLasers.push({
+            segments: pathSegments,
+            age: 0,
+            maxAge: 20,
+            profile: currentWepObj
+        });
+
+        let hitRegistered = false;
+
+        entitiesList.forEach((ent, index) => {
+            pathSegments.forEach((seg, sIdx) => {
+                if (sIdx === 0) return; 
+                
+                let dist = getPointToLineDistance(ent.realX, ent.realY, seg.x1, seg.y1, seg.x2, seg.y2);
+                if (dist < ent.profile.size + 8) {
+                    ent.hitFlash = 15;
+                    hitRegistered = true;
+                    processHarvestHit(ent, index);
+                }
+            });
+        });
+
+        if (hitRegistered) {
+            comboCount++;
+            comboTimer = 180; 
+            const comboBadge = document.getElementById('combo-display');
+            comboBadge.innerText = `${comboCount} COMBO! 🔥`;
+            comboBadge.style.display = 'block';
+            
+            if (comboCount >= 3 && currentWepObj.id === 'violet') {
+                triggerRefractionStormCascade();
+            }
+        } else {
+            breakComboChain();
+        }
+        renderArmoryItems();
+    }
+
+    function getPointToLineDistance(x, y, x1, y1, x2, y2) {
+        let A = x - x1; let B = y - y1; let C = x2 - x1; let D = y2 - y1;
+        let dot = A * C + B * D;
+        let lenSq = C * C + D * D;
+        let param = -1;
+        if (lenSq !== 0) param = dot / lenSq;
+
+        let xx, yy;
+        if (param < 0) { xx = x1; yy = y1; }
+        else if (param > 1) { xx = x2; yy = y2; }
+        else { xx = x1 + param * C; yy = y1 + param * D; }
+
+        let dx = x - xx; let dy = y - yy;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function processHarvestHit(entity, index) {
+        playerGold += entity.profile.value;
+        score += Math.round(entity.profile.score * (comboCount > 1 ? comboCount * 0.5 : 1));
+        
+        for(let p=0; p<12; p++) {
+            particleSystems.push({
+                x: entity.realX, y: entity.realY,
+                vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
+                color: laserWeapons.find(l => l.id === equippedLaser).stroke,
+                life: 25
+            });
+        }
+
+        // --- ENHANCED INSTANT SHUFFLE RESPOND: REPLACE CAPTURED ASSET WITH A BRAND NEW RANDOM MODEL ---
+        entitiesList[index] = generateSingleProceduralOrganism();
+    }
+
+    function triggerRefractionStormCascade() {
+        document.getElementById('feedback-box').innerHTML = "⚡ <b>REFRACTION STORM ACTIVATED!</b> Dispersed beams cascading across the hydro-zone!";
+        document.getElementById('feedback-box').style.background = "#9b59b6";
+        
+        for(let k=0; k<3; k++) {
+            activeLasers.push({
+                segments: [{
+                    x1: landWidth + Math.random() * (canvas.width - landWidth), y1: waterY,
+                    x2: landWidth + Math.random() * (canvas.width - landWidth), y2: canvas.height
+                }],
+                age: 0, maxAge: 35,
+                profile: { stroke: '#e74c3c', glow: '#f1c40f' }
+            });
+        }
+    }
+
+    function breakComboChain() {
+        comboCount = 0;
+        document.getElementById('combo-display').style.display = 'none';
+        document.getElementById('feedback-box').innerHTML = "💡 Tip: Aim LOWER than the perceived virtual fish image! Refraction forces light downward.";
+        document.getElementById('feedback-box').style.background = "#2b6cb0";
+    }
+
+    function gameTick() {
+        if (keys['w'] || keys['ArrowUp']) launcherY = Math.max(15, launcherY - 4);
+        if (keys['s'] || keys['ArrowDown']) launcherY = Math.min(waterY - launcherHeight - 5, launcherY + 4);
+
+        waveTime += 0.05;
+
+        activeLasers.forEach((las, index) => {
+            las.age++;
+            if (las.age >= las.maxAge) activeLasers.splice(index, 1);
+        });
+
+        if (comboCount > 0) {
+            comboTimer--;
+            if (comboTimer <= 0) breakComboChain();
+        }
+
+        entitiesList.forEach(ent => {
+            if (ent.hitFlash > 0) ent.hitFlash--;
+            ent.realX += ent.speed * ent.dir;
+            if (ent.realX < landWidth + 30 || ent.realX > canvas.width - 35) ent.dir *= -1;
+        });
+
+        particleSystems.forEach((p, idx) => {
+            p.x += p.vx; p.y += p.vy; p.life--;
+            if (p.life <= 0) particleSystems.splice(idx, 1);
+        });
+    }
+
+    function renderLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const currentWepObj = laserWeapons.find(l => l.id === equippedLaser);
+        const n2 = environmentLevels[currentLevel].n * currentWepObj.dispersion;
+
+        // 1. Air Space
+        ctx.fillStyle = '#ebf8ff';
+        ctx.fillRect(0, 0, canvas.width, waterY);
+        
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath(); ctx.arc(690, 45, 22, 0, Math.PI*2); ctx.fill();
+
+        // 2. Left Cliff (8% width)
+        ctx.fillStyle = '#8c6239'; 
+        ctx.fillRect(0, waterY, landWidth, canvas.height - waterY);
+        ctx.fillStyle = '#27ae60'; 
+        ctx.fillRect(0, waterY, landWidth, 6);
+
+        ctx.strokeStyle = '#bdc3c7';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(launcherX + launcherWidth/2, 10); ctx.lineTo(launcherX + launcherWidth/2, waterY - 5); ctx.stroke();
+        
+        ctx.fillStyle = '#34495e';
+        ctx.fillRect(launcherX, launcherY, launcherWidth, launcherHeight);
+        ctx.fillStyle = '#e67e22'; 
+        ctx.fillRect(launcherX + launcherWidth, launcherY + (launcherHeight/2) - 4, 10, 8);
+
+        // 3. Right Water Medium
+        ctx.fillStyle = currentLevel === 3 ? 'rgba(135, 100, 60, 0.88)' : 'rgba(43, 115, 182, 0.88)';
+        ctx.fillRect(landWidth, waterY, canvas.width - landWidth, canvas.height - waterY);
+
+        ctx.strokeStyle = '#3498db';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(landWidth, waterY); ctx.lineTo(canvas.width, waterY); ctx.stroke();
+
+        if (currentLevel === 2) {
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for(let x = landWidth; x <= canvas.width; x += 8) {
+                let wy = waterY + Math.sin(x / 15 + waveTime) * 3;
+                if (x === landWidth) ctx.moveTo(x, wy); else ctx.lineTo(x, wy);
+            }
+            ctx.stroke();
+        }
+
+        // 4. Visor Guide Paths
+        if (equippedGadgets.includes('goggles') && mouseY > waterY && mouseX > landWidth) {
+            let originX = launcherX + launcherWidth;
+            let originY = launcherY + launcherHeight / 2;
+            let preSegs = calculateLaserRefractionPath(originX, originY, mouseX, mouseY);
+            if (preSegs) {
+                ctx.save();
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 4]);
+                
+                ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath(); ctx.moveTo(preSegs[0].x1, preSegs[0].y1); ctx.lineTo(preSegs[0].x2, preSegs[0].y2); ctx.stroke();
+
+                ctx.strokeStyle = '#f39c12';
+                ctx.beginPath();
+                preSegs.forEach((s, idx) => {
+                    if(idx === 0) return;
+                    ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y2);
+                });
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        // 5. Entities Render Grid with Apparent Depth Calculations
+        entitiesList.forEach(ent => {
+            let realDepth = ent.realY - waterY;
+            let apparentDepth = realDepth / n2;
+            let apparentY = waterY + apparentDepth;
+
+            // Faint real ghost matrix guide box
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+            ctx.setLineDash([2, 2]);
+            ctx.strokeRect(ent.realX - ent.profile.size, ent.realY - ent.profile.size, ent.profile.size*2, ent.profile.size*2);
+            ctx.restore();
+
+            // Render Text/Emoji Image perceived at Apparent Depth offset
+            ctx.save();
+            ctx.font = `${ent.profile.size * 2}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            if (ent.hitFlash > 0) {
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath(); ctx.arc(ent.realX, ent.realY, ent.profile.size, 0, Math.PI*2); ctx.fill();
+            }
+
+            // --- ADVANCED METRIC POLISH: FLIP EMOJI ORIENTATION REFLECTION GRAPH TO MATCH FORWARD MOTION VECTOR ---
+            ctx.translate(ent.realX, apparentY);
+            if (ent.dir > 0) {
+                ctx.scale(-1, 1); // Mirror horizontally if swimming right, because standard fish emojis look left
+            }
+            ctx.fillText(ent.profile.icon, 0, 0);
+            ctx.restore();
+            
+            // Textual logs overlays
+            ctx.font = '9px monospace';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Apparent: ${Math.round(apparentDepth)}cm`, ent.realX, apparentY - ent.profile.size - 4);
+        });
+
+        // 6. Laser Beams Overlay
+        activeLasers.forEach(las => {
+            ctx.save();
+            ctx.lineWidth = 4 * (1 - las.age / las.maxAge);
+            ctx.strokeStyle = las.profile.stroke;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = las.profile.glow;
+            
+            ctx.beginPath();
+            las.segments.forEach((seg, idx) => {
+                if (idx === 0) ctx.moveTo(seg.x1, seg.y1);
+                ctx.lineTo(seg.x2, seg.y2);
+            });
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        // 7. Exploding Sparks
+        particleSystems.forEach(p => {
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, 3, 3);
+        });
+
+        requestAnimationFrame(renderLoop);
+    }
+</script>
+
+</body>
+</html>

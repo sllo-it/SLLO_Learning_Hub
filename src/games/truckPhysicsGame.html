@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Overload: Hill King V3</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .game-container {
+            max-width: 1150px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            padding: 20px;
+            overflow: hidden;
+        }
+        header {
+            text-align: center;
+            border-bottom: 3px solid #34495e;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 28px;
+        }
+        header p {
+            margin: 5px 0 0 0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .stats-bar .stat-item span {
+            color: #f1c40f;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1.1fr;
+            gap: 20px;
+        }
+        @media (max-width: 850px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            border-left: 5px solid #3498db;
+            padding-left: 8px;
+        }
+
+        .sub-section-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #34495e;
+            margin: 15px 0 8px 0;
+            background: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .market-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #4a5568;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .market-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .cargo-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cargo-card:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+        .cargo-card.selected {
+            border-color: #e74c3c;
+            background: #fdf2f2;
+            box-shadow: 0 0 8px rgba(231, 76, 60, 0.2);
+        }
+        .cargo-icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        .cargo-name {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .cargo-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        .cargo-price-tag {
+            font-size: 11px;
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .upgrade-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .upgrade-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .upgrade-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        .upgrade-card.equipped {
+            border-color: #2ecc71;
+            background: #f4fbf7;
+        }
+        .upgrade-info h4 {
+            margin: 0 0 2px 0;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        .upgrade-info p {
+            margin: 0;
+            font-size: 11px;
+            color: #666;
+        }
+        .buy-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .buy-btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .truck-setup-section {
+            background: #fff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 15px;
+        }
+        .instruction-banner {
+            background: #ebf8ff;
+            color: #2b6cb0;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+        .truck-visual-bed {
+            background: #7f8c8d;
+            border-radius: 8px;
+            padding: 10px;
+            border: 4px solid #34495e;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            min-height: 180px;
+        }
+        .bed-column {
+            background: #95a5a6;
+            border: 2px inset #7f8c8d;
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+            min-height: 150px;
+        }
+        .bed-column:hover {
+            background: #bdc3c7;
+        }
+        .bed-label {
+            position: absolute;
+            top: 4px;
+            font-size: 11px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .loaded-item {
+            font-size: 24px;
+            cursor: pointer;
+            position: relative;
+            animation: bounceIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .loaded-item:hover::after {
+            content: "❌ Click to Unload";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            font-size: 10px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .physics-panel {
+            background: #2d3748;
+            color: #edf2f7;
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .formula-box {
+            background: #1a202c;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            font-size: 18px;
+            color: #63b3ed;
+            margin-bottom: 15px;
+            font-family: 'Times New Roman', serif;
+        }
+        .formula-box span {
+            font-weight: bold;
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            border-bottom: 1px solid #4a5568;
+            font-size: 14px;
+        }
+        .metric-value {
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 15px;
+        }
+        .status-indicator {
+            margin-top: 12px;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .status-safe { background: #2f855a; color: #fff; }
+        .status-danger { background: #c53030; color: #fff; }
+
+        .btn-drive {
+            width: 100%;
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 0 #d35400;
+            transition: all 0.1s;
+        }
+        .btn-drive:hover {
+            background: #f39c12;
+        }
+        .btn-drive:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .simulation-view {
+            display: none;
+            text-align: center;
+            padding: 30px 10px;
+        }
+        .track-container {
+            position: relative;
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(to right, #94a3b8 0%, #94a3b8 40%, #78350f 45%, #451a03 100%);
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .track-divider {
+            position: absolute;
+            left: 42%;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: #f1c40f;
+            z-index: 2;
+        }
+        .zone-label {
+            position: absolute;
+            top: 10px;
+            font-weight: bold;
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .zone-hard { left: 10%; }
+        .zone-mud { left: 65%; color: #fbd38d; }
+
+        .animated-truck {
+            position: absolute;
+            left: 5%;
+            bottom: 30px;
+            font-size: 50px;
+            z-index: 5;
+            transform: scaleX(-1); 
+            transition: left 4s linear, transform 0.6s cubic-bezier(0.6, -0.28, 0.735, 0.045), bottom 0.5s ease;
+            width: 70px;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            border-radius: 4px;
+        }
+        
+        .mud-splash {
+            position: absolute;
+            font-size: 30px;
+            display: none;
+            animation: splashUp 0.5s ease-out infinite alternate;
+            z-index: 4;
+        }
+
+        .result-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            animation: fadeIn 0.5s;
+        }
+        .result-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .result-title.win { color: #2ecc71; }
+        .result-title.lose { color: #e74c3c; }
+        .result-details {
+            font-size: 16px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .action-btn {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .action-btn:hover { background: #2c3e50; }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes splashUp {
+            0% { transform: translate(0, 0) scale(0.8); opacity: 0.5; }
+            100% { transform: translate(-10px, -25px) scale(1.3); opacity: 1; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+        
+        .physics-note {
+            background: #1a202c;
+            border-left: 4px solid #63b3ed;
+            padding: 10px;
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-top: 15px;
+            border-radius: 0 4px 4px 0;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <header>
+        <h1>🚚 Truck Overload: Hill King V3</h1>
+        <p>Interactive Physics Simulator —— Formula: Pressure P = Force F / Area S | Center of Gravity Balancing</p>
+    </header>
+
+    <!-- Top Global Ledger Indicators -->
+    <div class="stats-bar">
+        <div class="stat-item">Balance: <span id="player-gold">100</span> Coins</div>
+        <div class="stat-item">Tire Profile: <span id="player-tire">Stock Narrow 🛞</span></div>
+        <div class="stat-item">Body Coating: <span id="player-paint">Industrial Slate Grey 🩶</span></div>
+        <div class="stat-item">Delivery Round: <span id="game-day">1</span></div>
+    </div>
+
+    <!-- Main Workspace Configurator -->
+    <div id="setup-view" class="main-grid">
+        
+        <!-- Left Column: Purchasing & Logistics -->
+        <div>
+            <div class="market-section">
+                <div class="tabs">
+                    <button id="tab-cargo" class="tab-btn active" onclick="switchTab('cargo')">🛒 Commodity Market (Adjust Force F)</button>
+                    <button id="tab-upgrade" class="tab-btn" onclick="switchTab('upgrade')">⚙️ Garage Upgrades (Adjust Area S & Style)</button>
+                </div>
+
+                <!-- Commodity Market Panel -->
+                <div id="content-cargo" class="market-grid"></div>
+
+                <!-- Upgrades Subpanels -->
+                <div id="content-upgrade" class="upgrade-container" style="display: none;">
+                    <div class="sub-section-title">🛞 Tire Upgrade Profiles (Enlarge Contact Area 'S' to Lower Pressure)</div>
+                    <div id="tire-upgrade-list" class="upgrade-list"></div>
+                    
+                    <div class="sub-section-title">🎨 Premium Custom Body Coatings (Grants Exponential Revenue Multiplication Bonuses)</div>
+                    <div id="paint-upgrade-list" class="upgrade-list"></div>
+                </div>
+            </div>
+
+            <!-- Truck Loading Bed Mapping Scheme -->
+            <div class="truck-setup-section">
+                <div class="panel-title">Truck Loading Cargo Bed (Unloaded Kerb Weight: 1500 kg)</div>
+                <div id="loading-instruction" class="instruction-banner">
+                    💡 Click a commodity in the market above first, then select a truck bed partition below to load it!
+                </div>
+                
+                <div class="truck-visual-bed">
+                    <div class="bed-column" id="bed-left" onclick="tryPlaceCargo('left')">
+                        <span class="bed-label">Left Partition</span>
+                        <div id="items-left" style="display:contents;"></div>
+                    </div>
+                    <div class="bed-column" id="bed-center" onclick="tryPlaceCargo('center')">
+                        <span class="bed-label">Center Partition</span>
+                        <div id="items-center" style="display:contents;"></div>
+                    </div>
+                    <div class="bed-column" id="bed-right" onclick="tryPlaceCargo('right')">
+                        <span class="bed-label">Right Partition</span>
+                        <div id="items-right" style="display:contents;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Scientific Telemetry Station -->
+        <div class="physics-panel">
+            <div>
+                <div class="panel-title" style="color: #63b3ed; border-color: #63b3ed;">Scientific Telemetry Station</div>
+                
+                <div class="formula-box" id="live-formula">
+                    P = F / S
+                </div>
+                
+                <div class="metric-row">
+                    <span>Total Cargo Mass (m_cargo):</span>
+                    <span class="metric-value" id="val-cargo-mass">0 kg</span>
+                </div>
+                <div class="metric-row">
+                    <span>Total Vertical Force (F = m_total × g):</span>
+                    <span class="metric-value" id="val-force">15000 N</span>
+                </div>
+                <div class="metric-row">
+                    <span>Ground Contact Surface Area (S):</span>
+                    <span class="metric-value" id="val-area">0.40 m²</span>
+                </div>
+                <div class="metric-row" style="background: rgba(255,255,255,0.05); padding: 10px 5px; border-radius: 4px;">
+                    <span style="color: #f1c40f; font-weight: bold;">Actual Ground Pressure (P):</span>
+                    <span class="metric-value" id="val-pressure" style="color: #f1c40f; font-size: 17px;">37.5 kPa</span>
+                </div>
+                <div class="metric-row">
+                    <span>Mud Road Shear Capacity Limit:</span>
+                    <span class="metric-value" style="color: #2ecc71; font-weight: bold;">65.0 kPa</span>
+                </div>
+
+                <div style="margin-top: 12px; border-top: 1px dashed #4a5568; padding-top: 8px;">
+                    <div class="metric-row">
+                        <span>Left Mass vs Right Mass Distribution:</span>
+                        <span class="metric-value" id="val-balance-ratio">0 kg / 0 kg</span>
+                    </div>
+                    <div class="metric-row">
+                        <span>Absolute Lateral Weight Imbalance:</span>
+                        <span class="metric-value" id="val-imbalance">0 kg</span>
+                    </div>
+                    <div class="metric-row">
+                        <span>Hillside Rollover Overturn Limit:</span>
+                        <span class="metric-value" style="color: #e74c3c; font-weight: bold;">600 kg</span>
+                    </div>
+                </div>
+
+                <!-- Diagnostic Signal Gauges -->
+                <div id="indicator-pressure" class="status-indicator status-safe">
+                    Pressure Status: Safe for Transit ✅
+                </div>
+                <div id="indicator-balance" class="status-indicator status-safe" style="margin-top: 6px;">
+                    Chassis Balance: Stable Center of Gravity ✅
+                </div>
+            </div>
+
+            <div>
+                <div class="physics-note">
+                    👨‍🏫 <b>9th Grade Physics Guidelines:</b><br>
+                    1. <b>Strict Balance Control:</b> The rollover limit is squeezed down to <b>600 kg</b>! Place massive cargo in the [Center Partition] to preserve stability.<br>
+                    2. Upgrading tires scales up the denominator <b>S</b>. A wider surface area spreads out the downforce, drastically dropping the pressure <b>P</b>!
+                </div>
+                <button class="btn-drive" onclick="launchMission()">🚚 Ignite Engine & Start Delivery!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Animation Transit Window -->
+    <div id="simulation-view" class="simulation-view">
+        <h2 style="margin: 0; color: #2c3e50;">🚚 Vehicle moving through the cross-country route...</h2>
+        <p style="color: #666; margin: 5px 0 20px 0;">First half is concrete highway. Passing the yellow divider triggers the monsoon mud pit zone!</p>
+        
+        <div class="track-container">
+            <div class="zone-label zone-hard">Solid Highway</div>
+            <div class="track-divider"></div>
+            <div class="zone-label zone-mud">Monsoon Mud Pit Zone (Max 65 kPa)</div>
+            
+            <div id="splash" class="mud-splash">💦</div>
+            <div id="truck-actor" class="animated-truck">🚚</div>
+        </div>
+
+        <div style="background: #2d3748; color: white; display: inline-block; padding: 12px 25px; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px;">
+            Chassis Pressure Sensor Output: <span id="sim-live-pressure" style="color:#f1c40f;">37.5</span> kPa
+        </div>
+    </div>
+
+    <!-- Settlement Scoreboard Billboard -->
+    <div id="result-screen" class="result-screen">
+        <div id="result-title" class="result-title">Delivery Successful!</div>
+        <div id="result-text" class="result-details"></div>
+        <button id="result-btn" class="action-btn" onclick="backToMarket()">Return to Marketplace</button>
+    </div>
+
+</div>
+
+<script>
+    // 1. COMMODITY DATABASE (Fine-tuned margins and mass distribution)
+    const cargoTypes = [
+        { id: 'cassava', name: 'Rural Cassava Bags', cost: 15, sell: 23, weight: 600, icon: '🥔', desc: 'Standard bulk food root crop stuff.' },
+        { id: 'tea', name: 'Nyungwe Tea Bricks', cost: 35, sell: 52, weight: 500, icon: '🍃', desc: 'Lightweight high volume harvest.' },
+        { id: 'maize', name: 'East African Maize', cost: 25, sell: 39, weight: 900, icon: '🌽', desc: 'Mid-tier staple grain sack.' },
+        { id: 'coffee', name: 'Volcanic Coffee Beans', cost: 70, sell: 105, weight: 1400, icon: '☕', desc: 'Premium mountain harvest, high value.' },
+        { id: 'rocks', name: 'Volcanic Infra-Rocks', cost: 90, sell: 138, weight: 1800, icon: '🪨', desc: 'Ultra-dense heavy structural load.' },
+        { id: 'supplies', name: 'Conservation Supplies', cost: 140, sell: 215, weight: 2200, icon: '📦', desc: 'Secured high-grade conservation materials.' },
+        { id: 'elephant', name: 'Legendary Elephant Calf', cost: 300, sell: 480, weight: 3500, icon: '🐘', desc: 'Massive wildlife ward. Immense mass, extreme revenue yield!' }
+    ];
+
+    // 2. TIRE SURFACE AREA GRADIENT PROFILES
+    const tireTypes = [
+        { id: 'narrow', name: 'Stock Factory Narrow Tires 🛞', cost: 0, area: 0.40, desc: 'Default assembly setup. Total Surface Area: 0.40 m²' },
+        { id: 'medium', name: 'Upgraded Balanced Medium Wheels 🛞🛞', cost: 60, area: 0.70, desc: 'Good cost efficiency. Total Surface Area: 0.70 m²' },
+        { id: 'wide', name: 'Deluxe All-Terrain Wide Profiles ⚙️', cost: 130, area: 1.10, desc: 'Heavy load displacement choice. Total Surface Area: 1.10 m²' },
+        { id: 'dual', name: 'Giant Dual Rear-Wheel Setups 🚚', cost: 220, area: 1.70, desc: 'Extreme commercial force distribution. Total Surface Area: 1.70 m²' },
+        { id: 'tracks', name: 'Military Crawler Track Assemblies 🚜', cost: 380, area: 2.60, desc: 'The ultimate physics-breaking denominator! Total Surface Area: 2.60 m²' }
+    ];
+
+    // 3. DETAILED PREMIUM BODY COATINGS
+    const paintTypes = [
+        { id: 'none', name: 'Industrial Slate Grey 🩶', cost: 0, mult: 1.00, emoji: '🚚', bg: '#7f8c8d', shadow: 'none', border: 'none', desc: 'Standard unpainted anti-corrosive primer coating. No financial bonus.' },
+        { id: 'green', name: 'Vintage Emerald Sheen 💚', cost: 30, mult: 1.06, emoji: '🛻', bg: '#27ae60', shadow: '0 0 8px #2ecc71', border: '2px solid #2ecc71', desc: 'Elegant country styling. Boosts final delivery revenue by +6% due to high rural popularity.' },
+        { id: 'camo', name: 'Savannah Wildlife Camouflage 🐆', cost: 80, mult: 1.15, emoji: '🚛', bg: '#d35400', shadow: '0 0 10px #e67e22', border: '2px dashed #f1c40f', desc: 'Fierce safari leopard point patterns. Attracts eco-tourism grants, boosting revenue by +15%.' },
+        { id: 'neon', name: 'Kigali Cyber Neon Lightwave ⚡', cost: 160, mult: 1.30, emoji: '🚒', bg: '#2c3e50', shadow: '0 0 15px #00ffff, 0 0 25px #ff00ff', border: '2px solid #00ffff', desc: 'Highly reactive luminescent high-tech styling lines. Tech hype raises revenue yields by +30%.' },
+        { id: 'intore', name: 'Royal Intore Warrior Totem 👑', cost: 300, mult: 1.55, emoji: '👑', bg: '#c0392b', shadow: '0 0 20px #f1c40f, 0 0 35px #e74c3c', border: '3px solid #f1c40f', desc: 'The supreme traditional warrior custom artwork shield. Commands ultimate social honor: +55% payout explosion!' }
+    ];
+
+    // Global Core Engine State Variables
+    let playerGold = 100;
+    let equippedTire = 'narrow';
+    let purchasedTires = ['narrow'];
+    let equippedPaint = 'none';
+    let purchasedPaints = ['none'];
+    let gameRound = 1;
+    
+    let selectedCargoId = null;
+    let truckBed = { left: [], center: [], right: [] };
+
+    // Strict Physic Constraints
+    const baseTruckMass = 1500; // kg
+    const gravityConstant = 10; // N/kg
+    const maxMudPressure = 65.0; // Squeezed upward per instruction
+    const maxImbalance = 600;    // Drastically squeezed down from 1200kg
+
+    window.onload = function() {
+        renderMarketplace();
+        renderUpgrades();
+        updatePhysicsMetrics();
+    };
+
+    function switchTab(tabName) {
+        document.getElementById('tab-cargo').classList.toggle('active', tabName === 'cargo');
+        document.getElementById('tab-upgrade').classList.toggle('active', tabName === 'upgrade');
+        document.getElementById('content-cargo').style.display = tabName === 'cargo' ? 'grid' : 'none';
+        document.getElementById('content-upgrade').style.display = tabName === 'upgrade' ? 'block' : 'none';
+    }
+
+    function renderMarketplace() {
+        const grid = document.getElementById('content-cargo');
+        grid.innerHTML = '';
+        cargoTypes.forEach(cargo => {
+            const card = document.createElement('div');
+            card.className = `cargo-card ${selectedCargoId === cargo.id ? 'selected' : ''}`;
+            card.onclick = (e) => { selectCargo(cargo.id); e.stopPropagation(); };
+            card.innerHTML = `
+                <div class="cargo-icon">${cargo.icon}</div>
+                <div class="cargo-name">${cargo.name}</div>
+                <div class="cargo-meta">Mass: <b>${cargo.weight} kg</b></div>
+                <div class="cargo-price-tag">Cost: ${cargo.cost} | Sell: ${cargo.sell}</div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function renderUpgrades() {
+        const tireList = document.getElementById('tire-upgrade-list');
+        tireList.innerHTML = '';
+        
+        tireTypes.forEach(tire => {
+            const isEquipped = equippedTire === tire.id;
+            const isUnlocked = purchasedTires.includes(tire.id);
+            let btnHtml = '';
+
+            if (isEquipped) {
+                btnHtml = `<span style="color:#2ecc71; font-weight:bold;">🟢 Equipped</span>`;
+            } else if (isUnlocked) {
+                btnHtml = `<button class="buy-btn" style="background:#3498db;" onclick="equipTire('${tire.id}')">Equip</button>`;
+            } else {
+                btnHtml = `<button class="buy-btn" ${playerGold < tire.cost ? 'disabled' : ''} onclick="buyTire('${tire.id}', ${tire.cost})">Buy: ${tire.cost}🪙</button>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = `upgrade-card ${isEquipped ? 'equipped' : ''}`;
+            card.innerHTML = `
+                <div class="upgrade-info">
+                    <h4>${tire.name}</h4>
+                    <p>${tire.desc}</p>
+                </div>
+                <div>${btnHtml}</div>
+            `;
+            tireList.appendChild(card);
+        });
+
+        const paintList = document.getElementById('paint-upgrade-list');
+        paintList.innerHTML = '';
+
+        paintTypes.forEach(paint => {
+            const isEquipped = equippedPaint === paint.id;
+            const isUnlocked = purchasedPaints.includes(paint.id);
+            let btnHtml = '';
+
+            if (isEquipped) {
+                btnHtml = `<span style="color:#2ecc71; font-weight:bold;">✨ Painted</span>`;
+            } else if (isUnlocked) {
+                btnHtml = `<button class="buy-btn" style="background:#3498db;" onclick="equipPaint('${paint.id}')">Apply</button>`;
+            } else {
+                btnHtml = `<button class="buy-btn" style="background:#9b59b6;" ${playerGold < paint.cost ? 'disabled' : ''} onclick="buyPaint('${paint.id}', ${paint.cost})">Acquire: ${paint.cost}🪙</button>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = `upgrade-card ${isEquipped ? 'equipped' : ''}`;
+            card.innerHTML = `
+                <div class="upgrade-info">
+                    <h4>${paint.name}</h4>
+                    <p>${paint.desc}</p>
+                </div>
+                <div>${btnHtml}</div>
+            `;
+            paintList.appendChild(card);
+        });
+    }
+
+    function selectCargo(id) {
+        selectedCargoId = (selectedCargoId === id) ? null : id;
+        renderMarketplace();
+        
+        const banner = document.getElementById('loading-instruction');
+        if(selectedCargoId) {
+            const cargo = cargoTypes.find(c => c.id === selectedCargoId);
+            banner.innerHTML = `🎯 <b>Selected [${cargo.name}]</b>! Now choose and click the <b>[Left], [Center], or [Right] Partition</b> to purchase and load it.`;
+            banner.style.background = "#fff5f5";
+            banner.style.color = "#c53030";
+        } else {
+            banner.innerHTML = `💡 Click a commodity in the market above first, then select a truck bed partition below to load it!`;
+            banner.style.background = "#ebf8ff";
+            banner.style.color = "#2b6cb0";
+        }
+    }
+
+    function tryPlaceCargo(slot) {
+        if (!selectedCargoId) {
+            alert("Guidance Note: Please click to highlight an asset card from the marketplace above first.");
+            return;
+        }
+        const cargo = cargoTypes.find(c => c.id === selectedCargoId);
+        
+        if (playerGold < cargo.cost) {
+            alert("Capital Shortage! You cannot afford the purchase cost. Try transporting cheaper crop grain sacks first.");
+            return;
+        }
+
+        playerGold -= cargo.cost;
+        truckBed[slot].push({ ...cargo });
+        selectedCargoId = null;
+        
+        renderMarketplace();
+        renderUpgrades();
+        renderTruckBedItems();
+        updatePhysicsMetrics();
+        
+        const banner = document.getElementById('loading-instruction');
+        banner.innerHTML = `💡 Commodity successfully positioned! If you dislike the alignment balance, click the items inside for a <b>100% full value refund</b>.`;
+        banner.style.background = "#f0fff4";
+        banner.style.color = "#22543d";
+    }
+
+    function removeCargo(slot, index) {
+        const cargo = truckBed[slot][index];
+        playerGold += cargo.cost; 
+        truckBed[slot].splice(index, 1);
+        
+        renderMarketplace();
+        renderUpgrades();
+        renderTruckBedItems();
+        updatePhysicsMetrics();
+    }
+
+    function renderTruckBedItems() {
+        ['left', 'center', 'right'].forEach(slot => {
+            const colDiv = document.getElementById(`items-${slot}`);
+            colDiv.innerHTML = '';
+            truckBed[slot].forEach((item, index) => {
+                const span = document.createElement('span');
+                span.className = 'loaded-item';
+                span.innerHTML = item.icon;
+                span.onclick = (e) => { removeCargo(slot, index); e.stopPropagation(); };
+                colDiv.appendChild(span);
+            });
+        });
+    }
+
+    function buyTire(tireId, cost) {
+        if(playerGold >= cost) {
+            playerGold -= cost;
+            purchasedTires.push(tireId);
+            equippedTire = tireId;
+            renderUpgrades();
+            updatePhysicsMetrics();
+        }
+    }
+
+    function equipTire(tireId) {
+        equippedTire = tireId;
+        renderUpgrades();
+        updatePhysicsMetrics();
+    }
+
+    function buyPaint(paintId, cost) {
+        if(playerGold >= cost) {
+            playerGold -= cost;
+            purchasedPaints.push(paintId);
+            equippedPaint = paintId;
+            renderUpgrades();
+            updatePhysicsMetrics();
+        }
+    }
+
+    function equipPaint(paintId) {
+        equippedPaint = paintId;
+        renderUpgrades();
+        updatePhysicsMetrics();
+    }
+
+    function runPhysicsEngine() {
+        let weightL = 0, weightC = 0, weightR = 0;
+        let cargoCostValue = 0;
+        let potentialRevenue = 0;
+
+        truckBed.left.forEach(item => { weightL += item.weight; cargoCostValue += item.cost; potentialRevenue += item.sell; });
+        truckBed.center.forEach(item => { weightC += item.weight; cargoCostValue += item.cost; potentialRevenue += item.sell; });
+        truckBed.right.forEach(item => { weightR += item.weight; cargoCostValue += item.cost; potentialRevenue += item.sell; });
+
+        const cargoMass = weightL + weightC + weightR;
+        const totalMass = baseTruckMass + cargoMass;
+        const totalForce = totalMass * gravityConstant;
+        
+        const activeTire = tireTypes.find(t => t.id === equippedTire);
+        const surfaceArea = activeTire.area;
+        
+        const calcPressure = totalForce / surfaceArea / 1000; 
+        const massImbalance = Math.abs(weightL - weightR);
+
+        return {
+            cargoMass, totalForce, surfaceArea, calcPressure,
+            weightL, weightC, weightR, massImbalance,
+            isPressureSafe: calcPressure <= maxMudPressure,
+            isBalanceSafe: massImbalance <= maxImbalance,
+            potentialRevenue, cargoCostValue
+        };
+    }
+
+    function updatePhysicsMetrics() {
+        const sim = runPhysicsEngine();
+        const activePaintObj = paintTypes.find(p => p.id === equippedPaint);
+        
+        document.getElementById('player-gold').innerText = playerGold;
+        document.getElementById('player-tire').innerText = tireTypes.find(t => t.id === equippedTire).name;
+        document.getElementById('player-paint').innerText = activePaintObj.name;
+        document.getElementById('game-day').innerText = gameRound;
+
+        document.getElementById('val-cargo-mass').innerText = `${sim.cargoMass} kg`;
+        document.getElementById('val-force').innerText = `${sim.totalForce} N`;
+        document.getElementById('val-area').innerText = `${sim.surfaceArea.toFixed(2)} m²`;
+        document.getElementById('val-pressure').innerText = `${sim.calcPressure.toFixed(1)} kPa`;
+        document.getElementById('val-balance-ratio').innerText = `L: ${sim.weightL} kg / R: ${sim.weightR} kg`;
+        document.getElementById('val-imbalance').innerText = `${sim.massImbalance} kg`;
+
+        document.getElementById('live-formula').innerHTML = 
+            `P = F / S = ${sim.totalForce} N / ${sim.surfaceArea.toFixed(2)} m² = <span>${sim.calcPressure.toFixed(1)} kPa</span>`;
+
+        const pInd = document.getElementById('indicator-pressure');
+        if (sim.isPressureSafe) {
+            pInd.innerText = "Pressure Status: Safe for Transit ✅";
+            pInd.className = "status-indicator status-safe";
+        } else {
+            pInd.innerText = `🚨 OVERPRESSURE WARNING: Estimated pressure ${sim.calcPressure.toFixed(1)} kPa exceeds mud capacity (65.0 kPa)! Wheels will sink!`;
+            pInd.className = "status-indicator status-danger";
+        }
+
+        const bInd = document.getElementById('indicator-balance');
+        if (sim.isBalanceSafe) {
+            bInd.innerText = "Chassis Balance: Stable Center of Gravity ✅";
+            bInd.className = "status-indicator status-safe";
+        } else {
+            bInd.innerText = `🚨 ROLLOVER WARNING: Unbalanced lateral distribution (${sim.massImbalance} kg) violates overturn threshold (600 kg)! Truck will flip!`;
+            bInd.className = "status-indicator status-danger";
+        }
+    }
+
+    function launchMission() {
+        const sim = runPhysicsEngine();
+        if (sim.cargoMass === 0) {
+            alert("The truck bed is entirely empty! Load commodities to conduct marketplace distribution.");
+            return;
+        }
+
+        document.getElementById('setup-view').style.display = 'none';
+        document.getElementById('simulation-view').style.display = 'block';
+        
+        const truck = document.getElementById('truck-actor');
+        const splash = document.getElementById('splash');
+        const livePresText = document.getElementById('sim-live-pressure');
+        const activePaintObj = paintTypes.find(p => p.id === equippedPaint);
+        
+        truck.innerText = activePaintObj.emoji;
+        truck.style.backgroundColor = activePaintObj.bg;
+        truck.style.boxShadow = activePaintObj.shadow;
+        truck.style.border = activePaintObj.border;
+        
+        truck.style.left = '5%';
+        truck.style.bottom = '30px';
+        truck.style.transform = 'scaleX(-1) rotate(0deg)';
+        splash.style.display = 'none';
+        livePresText.innerText = sim.calcPressure.toFixed(1);
+
+        setTimeout(() => {
+            truck.style.left = '42%';
+        }, 100);
+
+        setTimeout(() => {
+            if (!sim.isBalanceSafe) {
+                truck.style.left = '47%';
+                truck.style.transform = 'scaleX(-1) rotate(90deg)'; 
+                truck.style.bottom = '15px';
+                showFinalReport(false, 'flip', sim);
+            } 
+            else if (!sim.isPressureSafe) {
+                truck.style.left = '52%';
+                truck.style.bottom = '5px';
+                splash.style.left = '50%';
+                splash.style.bottom = '35px';
+                splash.style.display = 'block';
+                showFinalReport(false, 'sink', sim);
+            } 
+            else {
+                truck.style.left = '85%';
+                setTimeout(() => {
+                    showFinalReport(true, 'success', sim);
+                }, 1800);
+            }
+        }, 2200);
+    }
+
+    function showFinalReport(isSuccess, failureType, sim) {
+        setTimeout(() => {
+            document.getElementById('simulation-view').style.display = 'none';
+            const screen = document.getElementById('result-screen');
+            screen.style.display = 'block';
+            
+            const rTitle = document.getElementById('result-title');
+            const rText = document.getElementById('result-text');
+            const activePaintObj = paintTypes.find(p => p.id === equippedPaint);
+            
+            if (isSuccess) {
+                rTitle.innerText = "🎉 Distribution Operation Successful!";
+                rTitle.className = "result-title win";
+                
+                let marketRevenue = sim.potentialRevenue; 
+                let paintMultiplier = activePaintObj.mult; 
+                let finalTotalPayout = Math.round(marketRevenue * paintMultiplier);
+                let premiumBonus = finalTotalPayout - marketRevenue;
+                
+                playerGold += finalTotalPayout;
+                
+                rText.innerHTML = `
+                    <b>🚚 Mechanical Evaluation Excellent:</b><br>
+                    During the voyage, your maximum ground pressure profile stabilized at <b>${sim.calcPressure.toFixed(1)} kPa</b>, perfectly below the mud breakdown threshhold! The mass distribution remained safe over steep topography.<br><br>
+                    <b>💰 Financial Statement Ledger:</b><br>
+                    - Marketplace Base Gross Revenue: <b>+${marketRevenue}</b> Coins<br>
+                    - Custom Body Paint [${activePaintObj.name}] Premium Bonus (×${activePaintObj.mult}): <span style="color:#e67e22; font-weight:bold;">+${premiumBonus}</span> Coins<br>
+                    <hr>
+                    - <b>Total Net Disbursed Funds Recouped: +${finalTotalPayout} Coins!</b>
+                `;
+                
+                truckBed.left = []; truckBed.center = []; truckBed.right = [];
+                renderTruckBedItems();
+                gameRound++;
+            } else {
+                rTitle.innerText = "💥 Logistics Transit Failure!";
+                rTitle.className = "result-title lose";
+                
+                let refundValue = Math.round(sim.cargoCostValue * 0.40);
+                playerGold += refundValue;
+                
+                let errorCause = "";
+                if (failureType === 'flip') {
+                    errorCause = `Due to asymmetric left/right loading, your absolute weight imbalance reached <b>${sim.massImbalance} kg</b>, totally smashing past the strict <b>600 kg rollover safety limit</b>. The torque threw the vehicle completely upside down!`;
+                } else {
+                    errorCause = `The downward downforce (F) was too large, or your tire contact width patch (S) was insufficient, raising ground pressure up to <b>${sim.calcPressure.toFixed(1)} kPa</b>. The vehicle sunk deep into the mire!`;
+                }
+
+                rText.innerHTML = `
+                    <b>❌ Mechanical Breakdown Root Cause:</b><br>
+                    ${errorCause}<br><br>
+                    <b>🛡️ Asset Risk Protection Insurance Settlement:</b><br>
+                    The initial value of the cargo assets lost inside the wreckage totaled <b>${sim.cargoCostValue}</b> Coins.<br>
+                    Although the truck crashed, your Tropical Mountain Transit Policy successfully redeemed <b>40% of the commodity acquisition value: <span style="color:#2ecc71; font-weight:bold;">+${refundValue} Coins</span></b>!
+                `;
+                
+                truckBed.left = []; truckBed.center = []; truckBed.right = [];
+                renderTruckBedItems();
+                
+                if (playerGold < 15) {
+                    playerGold = 45;
+                    rText.innerHTML += `<br><br>❤️ <b>Rehabilitation Micro-Grant:</b> System alerts show your liquidity capital has flattened entirely. The Development Bank of Rwanda has injected a emergency rescue allowance of <b>45 Coins</b>. Review the properties of mechanics and try again!`;
+                }
+            }
+            updatePhysicsMetrics();
+        }, 800);
+    }
+
+    function backToMarket() {
+        document.getElementById('result-screen').style.display = 'none';
+        document.getElementById('setup-view').style.display = 'grid';
+        updatePhysicsMetrics();
+    }
+</script>
+
+</body>
+</html>

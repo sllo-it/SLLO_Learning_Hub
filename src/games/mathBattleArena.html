@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<!-- saved from url=(0043)file:///C:/Users/angel/Downloads/math7.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Battle Arena</title>
+    <style>
+        /* Vibrant, Bright, and Energetic Color Palette */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);
+            --panel-bg: rgba(255, 255, 255, 0.95);
+            --primary-color: #FF5722; /* Vibrant Orange */
+            --secondary-color: #4CAF50; /* Energetic Green */
+            --accent-color: #00BCD4; /* Sky Blue */
+            --text-color: #2C3E50;
+            --hero-color: #2196F3;
+            --monster-color: #E91E63;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .game-container {
+            background: var(--panel-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 650px;
+            padding: 30px;
+            text-align: center;
+            border: 4px solid #FFF;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 2.2rem;
+            text-shadow: 1px 1px 0px #FFF, 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 25px;
+        }
+
+        /* Screen Configurations */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 3px solid #E0E0E0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: var(--accent-color);
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 0px #D84315;
+            transition: all 0.1s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0px #D84315;
+        }
+
+        .btn-success {
+            background: var(--secondary-color);
+            box-shadow: 0 5px 0px #2E7D32;
+        }
+
+        .btn-success:active {
+            box-shadow: 0 1px 0px #2E7D32;
+        }
+
+        /* Battle Arena Visuals */
+        .arena {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            background: #F5F7FA;
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px dashed #CCD1D9;
+        }
+
+        .fighter {
+            width: 45%;
+        }
+
+        .fighter-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .hero-name { color: var(--hero-color); }
+        .monster-name { color: var(--monster-color); }
+
+        .hp-bar-outer {
+            background: #E6E9ED;
+            border-radius: 10px;
+            height: 20px;
+            width: 100%;
+            overflow: hidden;
+            border: 2px solid #CCD1D9;
+        }
+
+        .hp-bar-inner {
+            height: 100%;
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+
+        #hero-hp { background-color: var(--secondary-color); }
+        #monster-hp { background-color: var(--monster-color); }
+
+        /* Problem and Input Display */
+        .question-box {
+            background: #FFF9C4;
+            border: 3px solid #FFF176;
+            padding: 25px;
+            border-radius: 15px;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        .feedback {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-height: 25px;
+        }
+
+        .feedback.correct { color: var(--secondary-color); }
+        .feedback.wrong { color: var(--monster-color); }
+
+        /* End Screens */
+        .end-title {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .victory { color: var(--secondary-color); }
+        .defeat { color: var(--monster-color); }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <!-- SETUP SCREEN -->
+    <div id="setup-screen" class="screen active">
+        <h1>⚔️ Math Battle Arena ⚔️</h1>
+        <p class="subtitle">Defeat the math monsters using your skills!</p>
+        
+        <div class="form-group">
+            <label for="topic-select">Choose Topic:</label>
+            <select id="topic-select">
+                <option value="integers">Operations on Integers (e.g., -5 + 3)</option>
+                <option value="fractions">Fractions &amp; Decimals</option>
+                <option value="equations">Linear Equations (Find x)</option>
+                <option value="percentages">Percentages</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="difficulty-select">Select Difficulty:</label>
+            <select id="difficulty-select">
+                <option value="easy">Easy (Level 1)</option>
+                <option value="medium">Medium (Level 2)</option>
+                <option value="hard">Hard (Level 3)</option>
+            </select>
+        </div>
+
+        <button class="btn" onclick="startGame()">Enter Arena</button>
+    </div>
+
+    <!-- BATTLE SCREEN -->
+    <div id="battle-screen" class="screen">
+        <div class="arena">
+            <div class="fighter">
+                <div class="fighter-name hero-name">Hero</div>
+                <div class="hp-bar-outer">
+                    <div id="hero-hp" class="hp-bar-inner"></div>
+                </div>
+            </div>
+            <div class="fighter">
+                <div class="fighter-name monster-name">👹 Math Monster</div>
+                <div class="hp-bar-outer">
+                    <div id="monster-hp" class="hp-bar-inner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="question-box" id="question-text">
+            5 + X = 12
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="answer-input" autocomplete="off" placeholder="Type your answer here..." onkeypress="handleKeyPress(event)">
+        </div>
+
+        <button class="btn btn-success" onclick="checkAnswer()">Attack!</button>
+        <div id="feedback-text" class="feedback"></div>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="end-screen" class="screen">
+        <div id="end-status" class="end-title">Victory!</div>
+        <p id="end-message" style="font-size: 1.2rem; margin-bottom: 25px;"></p>
+        <button class="btn" onclick="showSetup()">Play Again</button>
+    </div>
+</div>
+
+<script>
+    // Game State variables
+    let currentTopic, currentDifficulty;
+    let heroHP, monsterHP;
+    let currentAnswer;
+    let currentProblemText;
+
+    // Show a specific screen
+    function changeScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // Initialize Game values
+    function startGame() {
+        currentTopic = document.getElementById('topic-select').value;
+        currentDifficulty = document.getElementById('difficulty-select').value;
+        
+        heroHP = 100;
+        monsterHP = 100;
+        
+        updateHPDIsplay();
+        generateProblem();
+        
+        document.getElementById('feedback-text').innerText = '';
+        document.getElementById('answer-input').value = '';
+        
+        changeScreen('battle-screen');
+        setTimeout(() => document.getElementById('answer-input').focus(), 100);
+    }
+
+    function showSetup() {
+        changeScreen('setup-screen');
+    }
+
+    function updateHPDIsplay() {
+        document.getElementById('hero-hp').style.width = heroHP + '%';
+        document.getElementById('monster-hp').style.width = monsterHP + '%';
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            checkAnswer();
+        }
+    }
+
+    // Dynamic S1 Problem Generator Logic
+    function generateProblem() {
+        let num1, num2, num3;
+        let displayStr = "";
+        let ans = 0;
+
+        if (currentTopic === 'integers') {
+            // Generate positive and negative number operations
+            let val1 = (Math.random() > 0.5 ? 1 : -1) * Math.floor(Math.random() * 12 + 2);
+            let val2 = (Math.random() > 0.5 ? 1 : -1) * Math.floor(Math.random() * 10 + 2);
+            let op = Math.random() > 0.5 ? '+' : '-';
+            
+            if (currentDifficulty === 'easy') {
+                val1 = Math.abs(val1); // Easier with mostly positive starting elements
+            } else if (currentDifficulty === 'hard') {
+                val1 = val1 * 2;
+                val2 = val2 * 2;
+            }
+
+            if (op === '+') {
+                ans = val1 + val2;
+                displayStr = `${val1} + (${val2})`;
+            } else {
+                ans = val1 - val2;
+                displayStr = `${val1} - (${val2})`;
+            }
+            currentAnswer = ans.toString();
+
+        } else if (currentTopic === 'fractions') {
+            if (currentDifficulty === 'easy') {
+                // Decimals focus
+                num1 = (Math.random() * 5 + 1).toFixed(1);
+                num2 = (Math.random() * 4 + 1).toFixed(1);
+                ans = (parseFloat(num1) + parseFloat(num2)).toFixed(1);
+                displayStr = `${num1} + ${num2}`;
+                currentAnswer = ans.toString();
+            } else {
+                // S1 Fractions (Simplification/Basic Common Denominator operations)
+                let denominators = [2, 3, 4, 5, 6];
+                let d1 = denominators[Math.floor(Math.random() * denominators.length)];
+                let n1 = Math.floor(Math.random() * (d1 - 1)) + 1;
+                
+                displayStr = `${n1}/${d1} of something equals...`;
+                // Simplify to common decimal entries or string matching for ease of input
+                if (d1 === 2) { displayStr = "1/2 + 1/2"; currentAnswer = "1"; }
+                else if (d1 === 4) { displayStr = "1/4 + 2/4"; currentAnswer = "3/4"; }
+                else { displayStr = "0.25 + 0.5"; currentAnswer = "0.75"; }
+            }
+
+        } else if (currentTopic === 'equations') {
+            // S1 Basic Linear Equations
+            let xVal = Math.floor(Math.random() * 9) + 2; // Secret Answer
+            let multiplier = currentDifficulty === 'easy' ? 1 : Math.floor(Math.random() * 3) + 2;
+            let constant = Math.floor(Math.random() * 10) + 1;
+            
+            let leftSideValue = (multiplier * xVal) + constant;
+            
+            if (multiplier === 1) {
+                displayStr = `x + ${constant} = ${leftSideValue}`;
+            } else {
+                displayStr = `${multiplier}x + ${constant} = ${leftSideValue}`;
+            }
+            
+            if (currentDifficulty === 'hard') {
+                let leftSideValue2 = (multiplier * xVal) - constant;
+                displayStr = `${multiplier}x - ${constant} = ${leftSideValue2}`;
+            }
+            
+            currentAnswer = xVal.toString();
+
+        } else if (currentTopic === 'percentages') {
+            // S1 Percentages and business numbers
+            let baseArray = [20, 40, 50, 100, 200, 500];
+            let base = baseArray[Math.floor(Math.random() * baseArray.length)];
+            let pct = currentDifficulty === 'easy' ? 10 : (Math.random() > 0.5 ? 20 : 25);
+            
+            if (currentDifficulty === 'hard') pct = 15;
+
+            ans = (pct / 100) * base;
+            displayStr = `${pct}% of ${base}`;
+            currentAnswer = ans.toString();
+        }
+
+        document.getElementById('question-text').innerText = displayStr;
+    }
+
+    // Evaluate answers
+    function checkAnswer() {
+        let userInput = document.getElementById('answer-input').value.trim();
+        let feedback = document.getElementById('feedback-text');
+        
+        if (userInput === "") return;
+
+        let damage = currentDifficulty === 'easy' ? 25 : (currentDifficulty === 'medium' ? 34 : 50);
+
+        if (userInput === currentAnswer) {
+            // Player hit monster
+            monsterHP -= damage;
+            if (monsterHP < 0) monsterHP = 0;
+            
+            feedback.innerText = "💥 Correct! Critical Hit on the Monster!";
+            feedback.className = "feedback correct";
+        } else {
+            // Monster hit player
+            heroHP -= 20;
+            if (heroHP < 0) heroHP = 0;
+            
+            feedback.innerText = `❌ Incorrect. The correct answer was ${currentAnswer}. Keep pushing!`;
+            feedback.className = "feedback wrong";
+        }
+
+        updateHPDIsplay();
+        document.getElementById('answer-input').value = '';
+
+        // Check Match Ending States
+        if (monsterHP <= 0) {
+            setTimeout(() => endGame(true), 600);
+        } else if (heroHP <= 0) {
+            setTimeout(() => endGame(false), 600);
+        } else {
+            generateProblem();
+            document.getElementById('answer-input').focus();
+        }
+    }
+
+    // Handle Victory or Defeat
+    function endGame(isVictory) {
+        let status = document.getElementById('end-status');
+        let msg = document.getElementById('end-message');
+        
+        if (isVictory) {
+            status.innerText = "🏆 VICTORY! 🏆";
+            status.className = "end-title victory";
+            msg.innerText = `Fantastic job! You protected the S1 classroom and conquered the ${currentDifficulty} challenge on ${currentTopic.toUpperCase()}!`;
+        } else {
+            status.innerText = "💥 DEFEAT 💥";
+            status.className = "end-title defeat";
+            msg.innerText = "The monster overwhelmed you this time, but real mathematicians learn from failures. Try again to level up your score!";
+        }
+        
+        changeScreen('end-screen');
+    }
+</script>
+
+
+</body></html>

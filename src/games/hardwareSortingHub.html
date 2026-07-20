@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardware Sorting Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Arial Rounded MT Bold', sans-serif;
+            background: #f0f4ff;
+            color: #333;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ===== PAGE 1: TITLE SCREEN ===== */
+        #title-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .title-glow {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        #title-screen h1 {
+            font-size: clamp(2.5rem, 7vw, 4rem);
+            color: #ffffff;
+            text-shadow: 0 3px 15px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            font-weight: 900;
+            position: relative;
+            z-index: 2;
+        }
+
+        .title-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .title-sub {
+            font-size: 1.2rem;
+            color: #fff;
+            opacity: 0.9;
+            font-style: italic;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .main-btn {
+            padding: 20px 55px;
+            font-size: 1.3rem;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: bold;
+            background: #ffffff;
+            color: #764ba2;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+        }
+
+        .main-btn:hover {
+            transform: scale(1.06);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+
+        /* ===== PAGE 2: STORY SCREEN ===== */
+        #story-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, #e0c3fc 0%, #8ec5fc 100%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .story-card {
+            max-width: 520px;
+            width: 100%;
+            padding: 40px 32px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.15);
+        }
+
+        .story-heading {
+            font-size: 2rem;
+            color: #5a2d82;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .story-mission {
+            font-size: 1.15rem;
+            color: #444;
+            line-height: 1.8;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .story-kiny {
+            font-size: 0.95rem;
+            color: #6b4fa0;
+            font-style: italic;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            padding: 12px 16px;
+            background: rgba(118,75,162,0.06);
+            border-radius: 10px;
+            border-left: 4px solid #b388ff;
+            text-align: left;
+        }
+
+        .story-btn-wrap {
+            text-align: center;
+        }
+
+        .story-btn-wrap .main-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            padding: 16px 45px;
+            font-size: 1.2rem;
+        }
+
+        /* ===== PAGE 3: GAME SCREEN ===== */
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #hud {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: #ffffff;
+            border-bottom: 3px solid #e8e0f0;
+            min-height: 60px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hud-label {
+            color: #888;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        #health-bar-container {
+            width: 140px;
+            height: 20px;
+            background: #eee;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #health-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #66bb6a, #43a047);
+            transition: width 0.4s, background 0.4s;
+            border-radius: 12px;
+        }
+
+        #health-bar.warning { background: linear-gradient(90deg, #ffa726, #fb8c00); }
+        #health-bar.critical { background: linear-gradient(90deg, #ef5350, #e53935); }
+
+        .hud-center {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #timer {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #5c6bc0;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        #timer.urgent { color: #e53935; }
+
+        #restart-btn {
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            box-shadow: 0 3px 10px rgba(238,90,36,0.3);
+        }
+
+        #restart-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 5px 16px rgba(238,90,36,0.4);
+        }
+
+        #score {
+            font-size: 1.4rem;
+            color: #ff8f00;
+            font-weight: 900;
+        }
+
+        #health-text {
+            font-size: 0.95rem;
+            color: #555;
+            font-weight: 700;
+            min-width: 40px;
+        }
+
+        #conveyor-zone {
+            position: relative;
+            height: 45%;
+            background: linear-gradient(180deg, #f5f0ff 0%, #ede7f6 50%, #e8eaf6 100%);
+            border-bottom: 3px solid #d1c4e9;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        #conveyor-track {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 140px;
+            background: rgba(120,100,180,0.04);
+            border-top: 2px dashed rgba(120,100,180,0.15);
+            border-bottom: 2px dashed rgba(120,100,180,0.15);
+        }
+
+        #conveyor-belt {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 16px;
+            background: repeating-linear-gradient(
+                90deg,
+                #b39ddb 0px,
+                #b39ddb 20px,
+                #9575cd 20px,
+                #9575cd 40px
+            );
+            animation: beltMove 0.7s linear infinite;
+        }
+
+        #conveyor-belt.paused {
+            animation-play-state: paused;
+        }
+
+        @keyframes beltMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 0; }
+        }
+
+        #crash-zone {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: rgba(255,50,50,0.4);
+            border-radius: 3px;
+        }
+
+        .hw-block {
+            position: absolute;
+            width: 115px;
+            height: 125px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            transition: transform 0.1s, box-shadow 0.15s;
+            z-index: 10;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            padding: 8px;
+        }
+
+        .hw-block:hover {
+            transform: scale(1.06);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+            z-index: 100;
+        }
+
+        .hw-block.dragging {
+            cursor: grabbing;
+            transform: scale(1.12);
+            opacity: 0.95;
+            z-index: 1000;
+            box-shadow: 0 14px 50px rgba(0,0,0,0.25);
+        }
+
+        .hw-block .hw-icon {
+            width: 65px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+        }
+
+        .hw-block .label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-align: center;
+            color: #333;
+            line-height: 1.2;
+            max-width: 105px;
+        }
+
+        .hw-block.input-type {
+            background: linear-gradient(145deg, #e0f7fa, #b2ebf2);
+            border: 3px solid #4dd0e1;
+        }
+        .hw-block.output-type {
+            background: linear-gradient(145deg, #fce4ec, #f8bbd0);
+            border: 3px solid #f06292;
+        }
+        .hw-block.storage-type {
+            background: linear-gradient(145deg, #fff3e0, #ffe0b2);
+            border: 3px solid #ffb74d;
+        }
+
+        .hw-svg {
+            width: 56px;
+            height: 50px;
+        }
+
+        /* BINS AREA */
+        #bins-zone {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
+            padding: 14px 16px;
+            background: linear-gradient(180deg, #f8f6ff, #f0eeff);
+            flex: 1;
+        }
+
+        .bin {
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bin::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 20px;
+            border: 4px dashed;
+            opacity: 0.6;
+        }
+
+        .bin.highlight { transform: scale(1.04); }
+
+        #input-bin { background: rgba(0,188,212,0.08); }
+        #input-bin::before { border-color: #00bcd4; }
+        #input-bin.highlight { background: rgba(0,188,212,0.2); box-shadow: 0 0 40px rgba(0,188,212,0.25), inset 0 0 30px rgba(0,188,212,0.08); }
+
+        #output-bin { background: rgba(233,30,99,0.06); }
+        #output-bin::before { border-color: #e91e63; }
+        #output-bin.highlight { background: rgba(233,30,99,0.15); box-shadow: 0 0 40px rgba(233,30,99,0.25), inset 0 0 30px rgba(233,30,99,0.08); }
+
+        #storage-bin { background: rgba(255,152,0,0.08); }
+        #storage-bin::before { border-color: #ff9800; }
+        #storage-bin.highlight { background: rgba(255,152,0,0.2); box-shadow: 0 0 40px rgba(255,152,0,0.25), inset 0 0 30px rgba(255,152,0,0.08); }
+
+        .bin-icon { font-size: 2.5rem; margin-bottom: 6px; }
+        .bin-title {
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #input-bin .bin-title { color: #00838f; }
+        #output-bin .bin-title { color: #c2185b; }
+        #storage-bin .bin-title { color: #e65100; }
+
+        .bin-subtitle { font-size: 0.75rem; color: #777; margin-top: 4px; text-align: center; font-weight: 500; }
+
+        /* Feedback */
+        #feedback {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        #feedback.show { opacity: 1; }
+        #feedback.success { background: #c8e6c9; color: #2e7d32; border: 2px solid #66bb6a; }
+        #feedback.error { background: #ffcdd2; color: #c62828; border: 2px solid #ef5350; }
+
+        /* OVERLAY SCREENS */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #gameover-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+        #gameover-screen h1 { font-size: 2.8rem; color: #fff; margin-bottom: 12px; text-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+        #gameover-screen p { color: rgba(255,255,255,0.9); margin-bottom: 8px; font-size: 1.1rem; font-weight: 600; }
+
+        #end-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+        #end-screen h1 { font-size: 2.8rem; color: #fff; margin-bottom: 12px; text-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+        #end-screen p { color: rgba(255,255,255,0.9); margin-bottom: 8px; font-size: 1.1rem; font-weight: 600; }
+        #end-screen .end-subtitle { font-size: 1rem; color: rgba(255,255,255,0.75); font-style: italic; margin-bottom: 20px; }
+
+        .overlay-btn {
+            margin-top: 24px;
+            padding: 16px 50px;
+            font-size: 1.1rem;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: bold;
+            background: #ffffff;
+            color: #764ba2;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .overlay-btn:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+
+        /* Confirm Restart Modal */
+        #restart-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 32px 28px;
+            text-align: center;
+            max-width: 360px;
+            width: 100%;
+            box-shadow: 0 12px 50px rgba(0,0,0,0.2);
+        }
+
+        .modal-card h3 { font-size: 1.4rem; color: #333; margin-bottom: 10px; font-weight: 800; }
+        .modal-card p { font-size: 1rem; color: #666; margin-bottom: 24px; }
+
+        .modal-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .modal-btns button {
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        #confirm-restart {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(238,90,36,0.3);
+        }
+        #confirm-restart:hover { transform: scale(1.05); }
+
+        #cancel-restart {
+            background: #eee;
+            color: #555;
+        }
+        #cancel-restart:hover { background: #ddd; }
+
+        /* Particles */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            border-radius: 50%;
+            animation: particleFade 0.7s ease-out forwards;
+        }
+
+        @keyframes particleFade {
+            0% { transform: scale(1) translateY(0); opacity: 1; }
+            100% { transform: scale(0) translateY(-20px); opacity: 0; }
+        }
+
+        #sound-toggle {
+            position: fixed;
+            bottom: 14px;
+            right: 14px;
+            z-index: 3000;
+            padding: 10px 16px;
+            border-radius: 30px;
+            background: #fff;
+            border: 2px solid #ddd;
+            color: #555;
+            font-size: 0.85rem;
+            font-family: 'Segoe UI', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            font-weight: 600;
+        }
+        #sound-toggle:hover { border-color: #764ba2; color: #764ba2; }
+        #sound-toggle.muted { border-color: #e53935; color: #e53935; }
+
+        .paused-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.08);
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+        }
+
+        .paused-overlay.show {
+            display: block;
+        }
+
+        @media (max-width: 700px) {
+            .hw-block { width: 95px; height: 105px; }
+            .hw-block .hw-icon { width: 50px; height: 45px; }
+            .hw-svg { width: 46px; height: 42px; }
+            .hw-block .label { font-size: 0.6rem; }
+            #bins-zone { gap: 8px; padding: 10px; }
+            .bin { padding: 12px 6px; }
+            .bin-icon { font-size: 2rem; }
+            .story-card { padding: 28px 18px; }
+            .story-mission { font-size: 1rem; }
+            #restart-btn { padding: 6px 12px; font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PAGE 1: TITLE SCREEN -->
+    <div id="title-screen">
+        <div class="title-glow"></div>
+        <div class="title-icon">🖥️</div>
+        <h1>Hardware Sorting Hub</h1>
+        <p class="title-sub">Gushusha ibikoresho mu byiciro byabyo</p>
+        <button class="main-btn" id="enter-btn">Enter Lab</button>
+    </div>
+
+    <!-- PAGE 2: STORY SCREEN -->
+    <div id="story-screen">
+        <div class="story-card">
+            <h2 class="story-heading">You're the Lab Prefect!</h2>
+
+            <p class="story-mission">
+                New hardware just arrived — but it's all mixed up.<br>
+                <strong>Drag each device</strong> into the correct category:<br>
+                <strong>Input</strong>, <strong>Output</strong>, or <strong>Storage</strong><br>
+                before the 90-second bell rings.
+            </p>
+
+            <div class="story-kiny">
+                🇷🇼 Ibikoresho bishya byaraje ariko byaravanze! Kurura buri kimwe ukishire mu isanduku rikwiye mbere y'uko inzogera ivuza.
+            </div>
+
+            <div class="story-btn-wrap">
+                <button class="main-btn" id="start-btn">Let's Go!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 3: GAME SCREEN -->
+    <div id="game-screen">
+        <div id="hud">
+            <div class="hud-item">
+                <span class="hud-label">Stability:</span>
+                <div id="health-bar-container">
+                    <div id="health-bar"></div>
+                </div>
+                <span id="health-text">100%</span>
+            </div>
+            <div class="hud-center">
+                <span id="timer">90s</span>
+                <button id="restart-btn">🔄 Restart</button>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">Score:</span>
+                <span id="score">0</span>
+            </div>
+        </div>
+
+        <div id="conveyor-zone">
+            <div id="conveyor-track"></div>
+            <div id="conveyor-belt"></div>
+            <div id="crash-zone"></div>
+            <div class="paused-overlay" id="paused-overlay"></div>
+        </div>
+
+        <div id="bins-zone">
+            <div class="bin" id="input-bin" data-category="input">
+                <span class="bin-icon">📥</span>
+                <span class="bin-title">Input</span>
+                <span class="bin-subtitle">Kuvugisha mudasobwa</span>
+            </div>
+            <div class="bin" id="output-bin" data-category="output">
+                <span class="bin-icon">📤</span>
+                <span class="bin-title">Output</span>
+                <span class="bin-subtitle">Kwerekana amakuru</span>
+            </div>
+            <div class="bin" id="storage-bin" data-category="storage">
+                <span class="bin-icon">🗄️</span>
+                <span class="bin-title">Storage</span>
+                <span class="bin-subtitle">Kubika dosiye</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div id="feedback"></div>
+
+    <!-- RESTART CONFIRMATION MODAL -->
+    <div id="restart-modal">
+        <div class="modal-card">
+            <h3>Restart Game?</h3>
+            <p>Your current progress will be lost.</p>
+            <div class="modal-btns">
+                <button id="cancel-restart">Keep Playing</button>
+                <button id="confirm-restart">Restart</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME OVER (health = 0) -->
+    <div class="overlay" id="gameover-screen">
+        <h1>💥 System Crashed!</h1>
+        <p>Too much hardware was mishandled.</p>
+        <p id="go-score"></p>
+        <p id="go-routed"></p>
+        <button class="overlay-btn" id="retry-btn">Try Again</button>
+    </div>
+
+    <!-- END SCREEN (time up) -->
+    <div class="overlay" id="end-screen">
+        <h1 id="end-title"></h1>
+        <p id="end-subtitle" class="end-subtitle"></p>
+        <p id="end-score"></p>
+        <p id="end-accuracy"></p>
+        <p id="end-grade"></p>
+        <button class="overlay-btn" id="replay-btn">Play Again</button>
+    </div>
+
+    <!-- SOUND TOGGLE -->
+    <button id="sound-toggle">
+        <span class="icon">🔊</span>
+        <span class="label-text">Sound</span>
+    </button>
+
+    <script>
+        // ===== AUDIO ENGINE =====
+        let audioCtx = null;
+        let isMuted = false;
+        let musicNodes = [];
+        let musicGain = null;
+        let sfxGain = null;
+        let musicInterval = null;
+        let musicKickInterval = null;
+
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            musicGain = audioCtx.createGain();
+            musicGain.gain.setValueAtTime(0.035, audioCtx.currentTime);
+            musicGain.connect(audioCtx.destination);
+            sfxGain = audioCtx.createGain();
+            sfxGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            sfxGain.connect(audioCtx.destination);
+        }
+
+        function startMusic() {
+            if (!audioCtx) return;
+            stopMusic();
+            const padFreqs = [65.41, 98.00, 130.81, 196.00];
+            padFreqs.forEach(freq => {
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                const g = audioCtx.createGain();
+                g.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                osc.connect(g);
+                g.connect(musicGain);
+                osc.start();
+                musicNodes.push(osc);
+            });
+            const arpNotes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63];
+            let arpIdx = 0;
+            musicInterval = setInterval(() => {
+                if (!audioCtx || isMuted) return;
+                const now = audioCtx.currentTime;
+                const note = arpNotes[arpIdx % arpNotes.length]; arpIdx++;
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(note, now);
+                const env = audioCtx.createGain();
+                env.gain.setValueAtTime(0, now);
+                env.gain.linearRampToValueAtTime(0.15, now + 0.05);
+                env.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                osc.connect(env); env.connect(musicGain);
+                osc.start(now); osc.stop(now + 0.85);
+            }, 600);
+            musicKickInterval = setInterval(() => {
+                if (!audioCtx || isMuted) return;
+                const now = audioCtx.currentTime;
+                const kick = audioCtx.createOscillator();
+                kick.type = 'sine'; kick.frequency.setValueAtTime(80, now);
+                kick.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+                const kGain = audioCtx.createGain();
+                kGain.gain.setValueAtTime(0.3, now);
+                kGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                kick.connect(kGain); kGain.connect(musicGain);
+                kick.start(now); kick.stop(now + 0.25);
+            }, 2400);
+        }
+
+        function stopMusic() {
+            musicNodes.forEach(n => { try { n.stop(); } catch(e) {} });
+            musicNodes = [];
+            if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
+            if (musicKickInterval) { clearInterval(musicKickInterval); musicKickInterval = null; }
+        }
+
+        function playCorrectSound() {
+            if (!audioCtx || isMuted) return;
+            const now = audioCtx.currentTime;
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now + i * 0.06);
+                gain.gain.setValueAtTime(0, now + i * 0.06);
+                gain.gain.linearRampToValueAtTime(0.22, now + i * 0.06 + 0.015);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.35);
+                osc.connect(gain); gain.connect(sfxGain);
+                osc.start(now + i * 0.06); osc.stop(now + i * 0.06 + 0.4);
+            });
+        }
+
+        function playWrongSound() {
+            if (!audioCtx || isMuted) return;
+            const now = audioCtx.currentTime;
+            const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc1.type = 'sawtooth'; osc1.frequency.setValueAtTime(138, now);
+            osc2.type = 'square'; osc2.frequency.setValueAtTime(146, now);
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+            osc1.connect(gain); osc2.connect(gain); gain.connect(sfxGain);
+            osc1.start(now); osc2.start(now); osc1.stop(now + 0.45); osc2.stop(now + 0.45);
+        }
+
+        function playCrashSound() {
+            if (!audioCtx || isMuted) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now);
+            osc.frequency.exponentialRampToValueAtTime(40, now + 0.25);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+            osc.connect(gain); gain.connect(sfxGain);
+            osc.start(now); osc.stop(now + 0.4);
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('sound-toggle');
+            btn.querySelector('.icon').textContent = isMuted ? '🔇' : '🔊';
+            btn.classList.toggle('muted', isMuted);
+            if (audioCtx) {
+                if (musicGain) musicGain.gain.setValueAtTime(isMuted ? 0 : 0.035, audioCtx.currentTime);
+                if (sfxGain) sfxGain.gain.setValueAtTime(isMuted ? 0 : 0.5, audioCtx.currentTime);
+            }
+        }
+        document.getElementById('sound-toggle').addEventListener('click', toggleMute);
+
+        // ===== SVG HARDWARE VISUALS =====
+        function makeSVG(hw) {
+            const svgs = {
+                'Keyboard': `<svg viewBox="0 0 60 36" class="hw-svg"><rect x="2" y="4" width="56" height="28" rx="3" fill="#f5f5f5" stroke="#999" stroke-width="2"/><rect x="6" y="8" width="5" height="4" rx="1" fill="#bbb"/><rect x="13" y="8" width="5" height="4" rx="1" fill="#bbb"/><rect x="20" y="8" width="5" height="4" rx="1" fill="#bbb"/><rect x="27" y="8" width="5" height="4" rx="1" fill="#bbb"/><rect x="34" y="8" width="5" height="4" rx="1" fill="#bbb"/><rect x="41" y="8" width="5" height="4" rx="1" fill="#bbb"/><rect x="48" y="8" width="5" height="4" rx="1" fill="#bbb"/><rect x="6" y="14" width="5" height="4" rx="1" fill="#ccc"/><rect x="13" y="14" width="5" height="4" rx="1" fill="#ccc"/><rect x="20" y="14" width="5" height="4" rx="1" fill="#ccc"/><rect x="27" y="14" width="5" height="4" rx="1" fill="#ccc"/><rect x="34" y="14" width="5" height="4" rx="1" fill="#ccc"/><rect x="41" y="14" width="5" height="4" rx="1" fill="#ccc"/><rect x="48" y="14" width="5" height="4" rx="1" fill="#ccc"/><rect x="14" y="24" width="32" height="5" rx="2" fill="#aaa"/></svg>`,
+                'Mouse': `<svg viewBox="0 0 32 48" class="hw-svg"><ellipse cx="16" cy="28" rx="12" ry="16" fill="#e8e8e8" stroke="#999" stroke-width="2"/><line x1="16" y1="14" x2="16" y2="26" stroke="#bbb" stroke-width="1.5"/><rect x="13" y="14" width="6" height="8" rx="3" fill="none" stroke="#999" stroke-width="1.5"/><path d="M16 12 Q16 6 16 4" stroke="#aaa" stroke-width="1.5" fill="none"/></svg>`,
+                'Microphone': `<svg viewBox="0 0 30 52" class="hw-svg"><rect x="8" y="2" width="14" height="26" rx="7" fill="#555" stroke="#777" stroke-width="2"/><path d="M5 22 Q5 38 15 38 Q25 38 25 22" fill="none" stroke="#666" stroke-width="2"/><line x1="15" y1="38" x2="15" y2="48" stroke="#666" stroke-width="2.5"/><line x1="9" y1="48" x2="21" y2="48" stroke="#666" stroke-width="2.5" stroke-linecap="round"/><circle cx="15" cy="12" r="3" fill="#888"/></svg>`,
+                'Scanner': `<svg viewBox="0 0 56 40" class="hw-svg"><rect x="2" y="8" width="52" height="28" rx="5" fill="#e8e8e0" stroke="#aaa" stroke-width="2"/><rect x="6" y="12" width="44" height="16" rx="3" fill="#dde8ee"/><line x1="8" y1="20" x2="48" y2="20" stroke="#00cc66" stroke-width="2" opacity="0.8"><animate attributeName="y1" values="14;26;14" dur="2s" repeatCount="indefinite"/><animate attributeName="y2" values="14;26;14" dur="2s" repeatCount="indefinite"/></line></svg>`,
+                'Joystick': `<svg viewBox="0 0 44 52" class="hw-svg"><ellipse cx="22" cy="42" rx="18" ry="8" fill="#555" stroke="#666" stroke-width="2"/><rect x="18" y="8" width="8" height="32" rx="4" fill="#cc3333" stroke="#992222" stroke-width="2"/><circle cx="22" cy="8" r="5" fill="#dd4444" stroke="#bb3333" stroke-width="2"/></svg>`,
+                'Webcam': `<svg viewBox="0 0 40 44" class="hw-svg"><circle cx="20" cy="18" r="14" fill="#444" stroke="#666" stroke-width="2.5"/><circle cx="20" cy="18" r="8" fill="#2a5588" stroke="#5599bb" stroke-width="2"/><circle cx="20" cy="18" r="3" fill="#88ccee"/><rect x="16" y="34" width="8" height="8" rx="2" fill="#666"/></svg>`,
+                'Trackball': `<svg viewBox="0 0 48 34" class="hw-svg"><rect x="2" y="4" width="44" height="26" rx="10" fill="#eee" stroke="#999" stroke-width="2"/><circle cx="24" cy="17" r="10" fill="#cc2222" stroke="#881111" stroke-width="2"/><ellipse cx="22" cy="14" rx="3" ry="2" fill="rgba(255,255,255,0.3)"/></svg>`,
+                'Graphics Tablet': `<svg viewBox="0 0 50 44" class="hw-svg"><rect x="2" y="4" width="46" height="36" rx="4" fill="#333" stroke="#555" stroke-width="2"/><rect x="6" y="8" width="38" height="28" rx="2" fill="#2a2a3e" stroke="#444" stroke-width="1"/><line x1="38" y1="2" x2="44" y2="36" stroke="#ccc" stroke-width="2.5" stroke-linecap="round"/><circle cx="44" cy="36" r="1.5" fill="#aaa"/></svg>`,
+                'Barcode Reader': `<svg viewBox="0 0 26 52" class="hw-svg"><rect x="4" y="2" width="18" height="46" rx="6" fill="#666" stroke="#777" stroke-width="2"/><circle cx="13" cy="10" r="4" fill="#ff3333"/><circle cx="13" cy="10" r="2" fill="#ff6666" opacity="0.8"/><rect x="8" y="30" width="10" height="8" rx="2" fill="#444" stroke="#555" stroke-width="1"/></svg>`,
+                'Touch Screen': `<svg viewBox="0 0 38 50" class="hw-svg"><rect x="3" y="2" width="32" height="46" rx="4" fill="#222" stroke="#555" stroke-width="2"/><rect x="6" y="6" width="26" height="34" rx="2" fill="#224466"/><circle cx="19" cy="44" r="2" fill="#444"/><circle cx="19" cy="22" r="4" fill="none" stroke="#44aaff" stroke-width="1.5" opacity="0.7"><animate attributeName="r" values="2;6;2" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0.2;0.9" dur="1.5s" repeatCount="indefinite"/></circle></svg>`,
+                'Gamepad': `<svg viewBox="0 0 56 38" class="hw-svg"><rect x="4" y="6" width="48" height="26" rx="13" fill="#444" stroke="#666" stroke-width="2"/><circle cx="18" cy="19" r="5" fill="none" stroke="#aaa" stroke-width="2"/><line x1="18" y1="15" x2="18" y2="23" stroke="#aaa" stroke-width="1.5"/><line x1="14" y1="19" x2="22" y2="19" stroke="#aaa" stroke-width="1.5"/><circle cx="38" cy="16" r="2.5" fill="#44cc44"/><circle cx="44" cy="19" r="2.5" fill="#cc4444"/><circle cx="38" cy="22" r="2.5" fill="#4444cc"/><circle cx="32" cy="19" r="2.5" fill="#cccc44"/></svg>`,
+                'Fingerprint Scanner': `<svg viewBox="0 0 38 48" class="hw-svg"><rect x="4" y="4" width="30" height="40" rx="6" fill="#333" stroke="#555" stroke-width="2"/><ellipse cx="19" cy="24" rx="9" ry="12" fill="none" stroke="#4a7" stroke-width="1.5"/><ellipse cx="19" cy="24" rx="5" ry="8" fill="none" stroke="#4a7" stroke-width="1.5"/><ellipse cx="19" cy="24" rx="2" ry="4" fill="none" stroke="#4a7" stroke-width="1.5"/><rect x="10" y="38" width="18" height="3" rx="1" fill="#00ff88" opacity="0.6"><animate attributeName="opacity" values="0.3;0.8;0.3" dur="1.5s" repeatCount="indefinite"/></rect></svg>`,
+                'Digital Camera': `<svg viewBox="0 0 52 40" class="hw-svg"><rect x="2" y="8" width="48" height="28" rx="5" fill="#3a3a3a" stroke="#555" stroke-width="2"/><rect x="14" y="2" width="18" height="8" rx="2" fill="#555"/><circle cx="26" cy="22" r="10" fill="#335" stroke="#668" stroke-width="3"/><circle cx="26" cy="22" r="5" fill="#446"/><circle cx="24" cy="20" r="2" fill="rgba(255,255,255,0.2)"/><circle cx="42" cy="12" r="2" fill="#ff4444"/></svg>`,
+                'Light Pen': `<svg viewBox="0 0 16 56" class="hw-svg"><rect x="4" y="4" width="8" height="40" rx="3" fill="#cc2222" stroke="#dd4444" stroke-width="1.5"/><polygon points="6,44 10,44 8,52" fill="#ddd"/><circle cx="8" cy="10" r="2.5" fill="#ff6666"><animate attributeName="opacity" values="0.5;1;0.5" dur="1s" repeatCount="indefinite"/></circle></svg>`,
+                'Motion Sensor': `<svg viewBox="0 0 34 46" class="hw-svg"><rect x="5" y="10" width="24" height="32" rx="12" fill="#2a2a3a" stroke="#555" stroke-width="2"/><circle cx="17" cy="22" r="6" fill="#005533" stroke="#00ff88" stroke-width="2"><animate attributeName="r" values="5;7;5" dur="2s" repeatCount="indefinite"/></circle><circle cx="17" cy="22" r="2" fill="#00ff88"/><rect x="11" y="38" width="12" height="2" rx="1" fill="#444"/></svg>`,
+                'Stylus': `<svg viewBox="0 0 14 56" class="hw-svg"><rect x="3" y="2" width="8" height="42" rx="3" fill="#777" stroke="#888" stroke-width="1.5"/><polygon points="5,44 9,44 7,54" fill="#aaa"/><circle cx="7" cy="10" r="2" fill="#22cc88"><animate attributeName="opacity" values="0.4;1;0.4" dur="1.2s" repeatCount="indefinite"/></circle></svg>`,
+                'Dial Controller': `<svg viewBox="0 0 46 46" class="hw-svg"><circle cx="23" cy="23" r="20" fill="#444" stroke="#666" stroke-width="3"/><circle cx="23" cy="23" r="6" fill="#222" stroke="#555" stroke-width="2"/><line x1="23" y1="23" x2="23" y2="8" stroke="#ff8844" stroke-width="3" stroke-linecap="round"/><circle cx="23" cy="8" r="2" fill="#ffaa66"/></svg>`,
+                'VR Controller': `<svg viewBox="0 0 22 52" class="hw-svg"><rect x="3" y="6" width="16" height="40" rx="8" fill="#3a3a3a" stroke="#555" stroke-width="2"/><circle cx="11" cy="14" r="4" fill="#336" stroke="#558" stroke-width="2"/><rect x="7" y="24" width="8" height="5" rx="2" fill="#555"/><circle cx="11" cy="36" r="3" fill="#444" stroke="#666" stroke-width="1"/></svg>`,
+                'NFC Reader': `<svg viewBox="0 0 46 42" class="hw-svg"><rect x="3" y="4" width="40" height="34" rx="6" fill="#eee" stroke="#bbb" stroke-width="2"/><circle cx="23" cy="21" r="5" fill="#44aaff"/><circle cx="23" cy="21" r="9" fill="none" stroke="#44aaff" stroke-width="1.5" opacity="0.6"/><circle cx="23" cy="21" r="13" fill="none" stroke="#44aaff" stroke-width="1" opacity="0.3"/></svg>`,
+                'Pen Scanner': `<svg viewBox="0 0 18 56" class="hw-svg"><rect x="3" y="2" width="12" height="44" rx="4" fill="#999" stroke="#aaa" stroke-width="1.5"/><rect x="5" y="44" width="8" height="8" rx="2" fill="#ff3333"/><circle cx="9" cy="8" r="2" fill="#444"/><rect x="5" y="14" width="8" height="2" rx="1" fill="#666"/></svg>`,
+                'Monitor': `<svg viewBox="0 0 56 48" class="hw-svg"><rect x="4" y="2" width="48" height="32" rx="3" fill="#333" stroke="#666" stroke-width="2.5"/><rect x="8" y="6" width="40" height="24" rx="1" fill="#3366aa"/><rect x="22" y="34" width="12" height="8" fill="#555"/><rect x="16" y="42" width="24" height="4" rx="2" fill="#666"/><rect x="12" y="10" width="20" height="2" rx="1" fill="#88bbee" opacity="0.7"/><rect x="12" y="15" width="28" height="2" rx="1" fill="#88bbee" opacity="0.5"/><rect x="12" y="20" width="16" height="2" rx="1" fill="#88bbee" opacity="0.3"/></svg>`,
+                'Speaker': `<svg viewBox="0 0 42 50" class="hw-svg"><rect x="6" y="2" width="30" height="46" rx="6" fill="#3a3a3a" stroke="#555" stroke-width="2"/><circle cx="21" cy="18" r="10" fill="#222" stroke="#555" stroke-width="2"/><circle cx="21" cy="18" r="5" fill="#444" stroke="#555" stroke-width="1.5"/><circle cx="21" cy="18" r="2" fill="#666"/><circle cx="21" cy="38" r="5" fill="#222" stroke="#444" stroke-width="1.5"/><circle cx="21" cy="38" r="2" fill="#444"/></svg>`,
+                'Printer': `<svg viewBox="0 0 56 44" class="hw-svg"><rect x="4" y="14" width="48" height="22" rx="4" fill="#e0e0e0" stroke="#aaa" stroke-width="2"/><rect x="14" y="2" width="28" height="14" rx="2" fill="#fff" stroke="#ccc" stroke-width="1.5"/><rect x="14" y="34" width="28" height="10" rx="2" fill="#fff" stroke="#ccc" stroke-width="1.5"/><circle cx="44" cy="22" r="2" fill="#44cc44"/><rect x="18" y="37" width="16" height="1.5" rx="1" fill="#aaa"/><rect x="18" y="40" width="12" height="1.5" rx="1" fill="#ccc"/></svg>`,
+                'Projector': `<svg viewBox="0 0 56 36" class="hw-svg"><rect x="4" y="6" width="48" height="24" rx="5" fill="#e8e8e8" stroke="#999" stroke-width="2"/><circle cx="20" cy="18" r="9" fill="#2266aa" stroke="#4499cc" stroke-width="2.5"/><circle cx="20" cy="18" r="4" fill="#66bbff"/><circle cx="20" cy="18" r="2" fill="#fff" opacity="0.5"/><rect x="36" y="14" width="10" height="8" rx="2" fill="#bbb"/><rect x="14" y="30" width="6" height="4" rx="1" fill="#888"/><rect x="36" y="30" width="6" height="4" rx="1" fill="#888"/></svg>`,
+                'Plotter': `<svg viewBox="0 0 56 40" class="hw-svg"><rect x="2" y="4" width="52" height="32" rx="4" fill="#e8e8e8" stroke="#aaa" stroke-width="2"/><rect x="8" y="8" width="40" height="20" rx="2" fill="#fff" stroke="#ddd" stroke-width="1"/><line x1="12" y1="14" x2="36" y2="14" stroke="#2266cc" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="30" y2="19" stroke="#cc2222" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="24" x2="40" y2="24" stroke="#22aa44" stroke-width="2" stroke-linecap="round"/></svg>`,
+                'Headphones': `<svg viewBox="0 0 46 46" class="hw-svg"><path d="M8 28 Q8 10 23 10 Q38 10 38 28" fill="none" stroke="#555" stroke-width="4" stroke-linecap="round"/><rect x="4" y="26" width="10" height="16" rx="5" fill="#444" stroke="#666" stroke-width="2"/><rect x="32" y="26" width="10" height="16" rx="5" fill="#444" stroke="#666" stroke-width="2"/></svg>`,
+                'VR Headset': `<svg viewBox="0 0 54 36" class="hw-svg"><rect x="3" y="6" width="48" height="24" rx="8" fill="#333" stroke="#555" stroke-width="2"/><circle cx="19" cy="18" r="7" fill="#336" stroke="#558" stroke-width="2"/><circle cx="35" cy="18" r="7" fill="#336" stroke="#558" stroke-width="2"/><rect x="16" y="2" width="22" height="5" rx="2" fill="#444"/></svg>`,
+                '3D Printer': `<svg viewBox="0 0 48 48" class="hw-svg"><rect x="4" y="4" width="40" height="40" rx="4" fill="#444" stroke="#666" stroke-width="2"/><rect x="10" y="28" width="28" height="12" rx="2" fill="#666"/><rect x="20" y="10" width="4" height="20" rx="1" fill="#888"/><polygon points="16,30 32,30 28,22 20,22" fill="#ff8844" stroke="#cc5522" stroke-width="1"/></svg>`,
+                'Smart Speaker': `<svg viewBox="0 0 34 48" class="hw-svg"><rect x="5" y="2" width="24" height="44" rx="12" fill="#444" stroke="#666" stroke-width="2"/><circle cx="17" cy="14" r="6" fill="#1166aa" stroke="#44ccff" stroke-width="2"><animate attributeName="r" values="5;7;5" dur="2s" repeatCount="indefinite"/></circle><rect x="10" y="32" width="14" height="2" rx="1" fill="#555"/><rect x="10" y="36" width="14" height="2" rx="1" fill="#555"/><rect x="10" y="40" width="14" height="2" rx="1" fill="#555"/></svg>`,
+                'LED Display': `<svg viewBox="0 0 52 40" class="hw-svg"><rect x="2" y="4" width="48" height="32" rx="3" fill="#222" stroke="#444" stroke-width="2"/><rect x="6" y="8" width="40" height="24" rx="2" fill="#001a00"/><rect x="10" y="12" width="32" height="2" rx="1" fill="#00ff00" opacity="0.8"/><rect x="10" y="17" width="28" height="2" rx="1" fill="#00ff00" opacity="0.6"/><rect x="10" y="22" width="34" height="2" rx="1" fill="#00ff00" opacity="0.7"/><rect x="10" y="27" width="20" height="2" rx="1" fill="#00ff00" opacity="0.5"/></svg>`,
+                'Braille Display': `<svg viewBox="0 0 56 30" class="hw-svg"><rect x="2" y="2" width="52" height="26" rx="4" fill="#eee" stroke="#aaa" stroke-width="2"/><circle cx="12" cy="11" r="2.5" fill="#555"/><circle cx="12" cy="19" r="2.5" fill="#555"/><circle cx="20" cy="11" r="2.5" fill="#555"/><circle cx="20" cy="19" r="2.5" fill="#888"/><circle cx="28" cy="11" r="2.5" fill="#555"/><circle cx="28" cy="19" r="2.5" fill="#555"/><circle cx="36" cy="11" r="2.5" fill="#888"/><circle cx="36" cy="19" r="2.5" fill="#555"/><circle cx="44" cy="11" r="2.5" fill="#555"/><circle cx="44" cy="19" r="2.5" fill="#888"/></svg>`,
+                'Buzzer': `<svg viewBox="0 0 38 38" class="hw-svg"><circle cx="19" cy="19" r="16" fill="#555" stroke="#777" stroke-width="3"/><circle cx="19" cy="19" r="8" fill="#333" stroke="#888" stroke-width="2"/><circle cx="19" cy="19" r="3" fill="#222"/><path d="M30 8 Q34 4 36 6" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/><path d="M32 12 Q36 9 38 11" fill="none" stroke="#ffaa00" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+                'Hard Drive': `<svg viewBox="0 0 52 38" class="hw-svg"><rect x="2" y="4" width="48" height="30" rx="3" fill="#ccc" stroke="#888" stroke-width="2"/><circle cx="18" cy="19" r="10" fill="none" stroke="#888" stroke-width="2"/><circle cx="18" cy="19" r="4" fill="#aaa" stroke="#888" stroke-width="1.5"/><circle cx="18" cy="19" r="1.5" fill="#666"/><line x1="22" y1="15" x2="40" y2="10" stroke="#999" stroke-width="2" stroke-linecap="round"/><circle cx="40" cy="10" r="2" fill="#777"/><rect x="38" y="26" width="8" height="4" rx="1" fill="#999"/></svg>`,
+                'USB Drive': `<svg viewBox="0 0 24 52" class="hw-svg"><rect x="3" y="2" width="18" height="32" rx="4" fill="#2255cc" stroke="#4477ee" stroke-width="2"/><rect x="6" y="34" width="12" height="16" rx="1" fill="#ddd" stroke="#999" stroke-width="1.5"/><circle cx="12" cy="14" r="3" fill="#44aaff" opacity="0.8"><animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite"/></circle><rect x="8" y="38" width="2" height="8" fill="#aaa"/><rect x="14" y="38" width="2" height="8" fill="#aaa"/></svg>`,
+                'SSD': `<svg viewBox="0 0 52 34" class="hw-svg"><rect x="2" y="2" width="48" height="30" rx="4" fill="#2a2a3a" stroke="#555" stroke-width="2"/><rect x="6" y="6" width="16" height="12" rx="2" fill="#222" stroke="#444" stroke-width="1.5"/><rect x="8" y="9" width="4" height="4" fill="#444"/><rect x="14" y="9" width="4" height="4" fill="#444"/><rect x="26" y="22" width="20" height="5" rx="2" fill="#555"/><text x="30" y="26" font-size="4" fill="#888">SSD</text></svg>`,
+                'CD/DVD': `<svg viewBox="0 0 46 46" class="hw-svg"><circle cx="23" cy="23" r="20" fill="#eee" stroke="#ccc" stroke-width="2"/><circle cx="23" cy="23" r="16" fill="none" stroke="rgba(100,100,200,0.15)" stroke-width="8"/><circle cx="23" cy="23" r="6" fill="#fff" stroke="#ddd" stroke-width="2"/><circle cx="23" cy="23" r="2" fill="#bbb"/><path d="M23 7 A16 16 0 0 1 39 23" fill="none" stroke="rgba(150,100,255,0.12)" stroke-width="4"/></svg>`,
+                'Memory Card': `<svg viewBox="0 0 36 42" class="hw-svg"><polygon points="4,8 28,2 32,2 32,40 4,40" fill="#2255cc" stroke="#4477dd" stroke-width="2"/><rect x="9" y="31" width="3" height="6" fill="#ccaa00"/><rect x="14" y="31" width="3" height="6" fill="#ccaa00"/><rect x="19" y="31" width="3" height="6" fill="#ccaa00"/><rect x="24" y="31" width="3" height="6" fill="#ccaa00"/></svg>`,
+                'Blu-Ray Disc': `<svg viewBox="0 0 46 46" class="hw-svg"><circle cx="23" cy="23" r="20" fill="#2255bb" stroke="#4488ee" stroke-width="2"/><circle cx="23" cy="23" r="14" fill="none" stroke="rgba(50,100,255,0.3)" stroke-width="6"/><circle cx="23" cy="23" r="6" fill="#111" stroke="#333" stroke-width="2"/><circle cx="23" cy="23" r="2" fill="#222"/><path d="M23 5 A18 18 0 0 1 41 23" fill="none" stroke="rgba(100,150,255,0.2)" stroke-width="3"/></svg>`,
+                'Floppy Disk': `<svg viewBox="0 0 42 44" class="hw-svg"><rect x="4" y="2" width="34" height="40" rx="2" fill="#3a3a6a" stroke="#5a5a8a" stroke-width="2"/><rect x="12" y="2" width="18" height="14" rx="1" fill="#bbb" stroke="#999" stroke-width="1"/><rect x="18" y="4" width="8" height="10" fill="#777"/><rect x="10" y="24" width="22" height="16" rx="2" fill="rgba(0,0,0,0.2)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></svg>`,
+                'Tape Drive': `<svg viewBox="0 0 54 38" class="hw-svg"><rect x="2" y="4" width="50" height="30" rx="4" fill="#4a4a4a" stroke="#666" stroke-width="2"/><circle cx="17" cy="19" r="8" fill="#333" stroke="#888" stroke-width="2"/><circle cx="37" cy="19" r="8" fill="#333" stroke="#888" stroke-width="2"/><circle cx="17" cy="19" r="3" fill="#555"/><circle cx="37" cy="19" r="3" fill="#555"/><line x1="25" y1="19" x2="29" y2="19" stroke="#666" stroke-width="2"/></svg>`,
+                'NAS Drive': `<svg viewBox="0 0 44 50" class="hw-svg"><rect x="4" y="2" width="36" height="46" rx="4" fill="#3a3a3a" stroke="#555" stroke-width="2"/><rect x="8" y="8" width="28" height="8" rx="2" fill="#222" stroke="#444" stroke-width="1"/><rect x="8" y="20" width="28" height="8" rx="2" fill="#222" stroke="#444" stroke-width="1"/><rect x="8" y="32" width="28" height="8" rx="2" fill="#222" stroke="#444" stroke-width="1"/><circle cx="32" cy="12" r="2" fill="#00ff88"/><circle cx="32" cy="24" r="2" fill="#00ff88"/><circle cx="32" cy="36" r="2" fill="#ffaa00"/></svg>`,
+                'MicroSD Card': `<svg viewBox="0 0 26 32" class="hw-svg"><polygon points="4,6 18,2 22,2 22,30 4,30" fill="#222" stroke="#555" stroke-width="1.5"/><rect x="7" y="20" width="2" height="6" fill="#888"/><rect x="11" y="20" width="2" height="6" fill="#888"/><rect x="15" y="20" width="2" height="6" fill="#888"/><text x="7" y="16" font-size="4" fill="#888">SD</text></svg>`,
+                'Flash Drive': `<svg viewBox="0 0 20 50" class="hw-svg"><rect x="4" y="2" width="12" height="34" rx="3" fill="#cc4444" stroke="#dd5555" stroke-width="2"/><rect x="6" y="36" width="8" height="12" rx="1" fill="#ddd" stroke="#aaa" stroke-width="1"/><circle cx="10" cy="12" r="2.5" fill="#00ff88"><animate attributeName="opacity" values="0.3;1;0.3" dur="1s" repeatCount="indefinite"/></circle></svg>`,
+                'External HDD': `<svg viewBox="0 0 54 34" class="hw-svg"><rect x="2" y="4" width="50" height="26" rx="5" fill="#444" stroke="#666" stroke-width="2"/><circle cx="12" cy="17" r="4" fill="#00aaff"><animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/></circle><rect x="24" y="12" width="22" height="3" rx="1" fill="#555"/><rect x="24" y="18" width="22" height="3" rx="1" fill="#555"/><rect x="20" y="28" width="14" height="4" rx="1" fill="#555"/></svg>`,
+            };
+            return svgs[hw.name] || `<svg viewBox="0 0 40 40" class="hw-svg"><rect x="4" y="4" width="32" height="32" rx="4" fill="#555" stroke="#777" stroke-width="2"/><text x="20" y="24" text-anchor="middle" font-size="8" fill="#fff">?</text></svg>`;
+        }
+
+        // ===== HARDWARE DATABASE =====
+        const HARDWARE = [
+            { name: 'Keyboard', category: 'input' },
+            { name: 'Mouse', category: 'input' },
+            { name: 'Microphone', category: 'input' },
+            { name: 'Scanner', category: 'input' },
+            { name: 'Joystick', category: 'input' },
+            { name: 'Webcam', category: 'input' },
+            { name: 'Trackball', category: 'input' },
+            { name: 'Graphics Tablet', category: 'input' },
+            { name: 'Barcode Reader', category: 'input' },
+            { name: 'Touch Screen', category: 'input' },
+            { name: 'Gamepad', category: 'input' },
+            { name: 'Fingerprint Scanner', category: 'input' },
+            { name: 'Digital Camera', category: 'input' },
+            { name: 'Light Pen', category: 'input' },
+            { name: 'Motion Sensor', category: 'input' },
+            { name: 'Stylus', category: 'input' },
+            { name: 'Dial Controller', category: 'input' },
+            { name: 'VR Controller', category: 'input' },
+            { name: 'NFC Reader', category: 'input' },
+            { name: 'Pen Scanner', category: 'input' },
+            { name: 'Monitor', category: 'output' },
+            { name: 'Speaker', category: 'output' },
+            { name: 'Printer', category: 'output' },
+            { name: 'Projector', category: 'output' },
+            { name: 'Plotter', category: 'output' },
+            { name: 'Headphones', category: 'output' },
+            { name: 'VR Headset', category: 'output' },
+            { name: '3D Printer', category: 'output' },
+            { name: 'Smart Speaker', category: 'output' },
+            { name: 'LED Display', category: 'output' },
+            { name: 'Braille Display', category: 'output' },
+            { name: 'Buzzer', category: 'output' },
+            { name: 'Hard Drive', category: 'storage' },
+            { name: 'USB Drive', category: 'storage' },
+            { name: 'SSD', category: 'storage' },
+            { name: 'CD/DVD', category: 'storage' },
+            { name: 'Memory Card', category: 'storage' },
+            { name: 'Blu-Ray Disc', category: 'storage' },
+            { name: 'Floppy Disk', category: 'storage' },
+            { name: 'Tape Drive', category: 'storage' },
+            { name: 'NAS Drive', category: 'storage' },
+            { name: 'MicroSD Card', category: 'storage' },
+            { name: 'Flash Drive', category: 'storage' },
+            { name: 'External HDD', category: 'storage' },
+        ];
+
+        // ===== GAME STATE =====
+        let gameState = {
+            running: false, paused: false, health: 100, score: 0, timeLeft: 90,
+            totalRouted: 0, correctRoutes: 0, blocks: [],
+            gameLoop: null, timerInterval: null, dragBlock: null,
+            dragOffsetX: 0, dragOffsetY: 0, spawnCounts: {},
+            lastSpawnTime: 0, nextSpawnDelay: 0, lastFrameTime: 0, recentIndices: [],
+            timerStartedAt: 0, timerAccumulated: 0,
+        };
+
+        const titleScreen = document.getElementById('title-screen');
+        const storyScreen = document.getElementById('story-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const gameoverScreen = document.getElementById('gameover-screen');
+        const endScreen = document.getElementById('end-screen');
+        const restartModal = document.getElementById('restart-modal');
+        const enterBtn = document.getElementById('enter-btn');
+        const startBtn = document.getElementById('start-btn');
+        const retryBtn = document.getElementById('retry-btn');
+        const replayBtn = document.getElementById('replay-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const confirmRestartBtn = document.getElementById('confirm-restart');
+        const cancelRestartBtn = document.getElementById('cancel-restart');
+        const healthBar = document.getElementById('health-bar');
+        const healthText = document.getElementById('health-text');
+        const timerEl = document.getElementById('timer');
+        const scoreEl = document.getElementById('score');
+        const conveyorZone = document.getElementById('conveyor-zone');
+        const conveyorBelt = document.getElementById('conveyor-belt');
+        const pausedOverlay = document.getElementById('paused-overlay');
+        const bins = document.querySelectorAll('.bin');
+        const feedback = document.getElementById('feedback');
+
+        // PAGE NAVIGATION
+        enterBtn.addEventListener('click', () => {
+            titleScreen.style.display = 'none';
+            storyScreen.style.display = 'flex';
+        });
+
+        startBtn.addEventListener('click', startGame);
+        retryBtn.addEventListener('click', startGame);
+        replayBtn.addEventListener('click', startGame);
+
+        // RESTART - PAUSE GAME FIRST
+        restartBtn.addEventListener('click', () => {
+            pauseGame();
+            restartModal.style.display = 'flex';
+        });
+
+        confirmRestartBtn.addEventListener('click', () => {
+            restartModal.style.display = 'none';
+            startGame();
+        });
+
+        cancelRestartBtn.addEventListener('click', () => {
+            restartModal.style.display = 'none';
+            resumeGame();
+        });
+
+        function pauseGame() {
+            if (!gameState.running || gameState.paused) return;
+            gameState.paused = true;
+            conveyorBelt.classList.add('paused');
+            pausedOverlay.classList.add('show');
+            // Stop the timer - record how much time has been used
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+                gameState.timerInterval = null;
+            }
+            // Stop animation frame
+            if (gameState.gameLoop) {
+                cancelAnimationFrame(gameState.gameLoop);
+                gameState.gameLoop = null;
+            }
+        }
+
+        function resumeGame() {
+            if (!gameState.running || !gameState.paused) return;
+            gameState.paused = false;
+            conveyorBelt.classList.remove('paused');
+            pausedOverlay.classList.remove('show');
+            // Restart the timer
+            startTimerInterval();
+            // Restart the game loop
+            gameState.lastFrameTime = performance.now();
+            gameState.lastSpawnTime = performance.now();
+            gameState.gameLoop = requestAnimationFrame(gameLoop);
+        }
+
+        function startTimerInterval() {
+            if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+            gameState.timerInterval = setInterval(() => {
+                if (!gameState.running || gameState.paused) return;
+                gameState.timeLeft--;
+                updateTimer();
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timerInterval);
+                    gameState.timerInterval = null;
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            document.querySelectorAll('.hw-block').forEach(b => b.remove());
+
+            // Clear any existing intervals/frames
+            if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+            if (gameState.gameLoop) cancelAnimationFrame(gameState.gameLoop);
+
+            gameState = {
+                running: true, paused: false, health: 100, score: 0, timeLeft: 90,
+                totalRouted: 0, correctRoutes: 0, blocks: [],
+                gameLoop: null, timerInterval: null, dragBlock: null,
+                dragOffsetX: 0, dragOffsetY: 0, spawnCounts: {},
+                lastSpawnTime: 0, nextSpawnDelay: 0, lastFrameTime: 0, recentIndices: [],
+            };
+
+            updateHealth(); updateScore(); updateTimer();
+            conveyorBelt.classList.remove('paused');
+            pausedOverlay.classList.remove('show');
+
+            titleScreen.style.display = 'none';
+            storyScreen.style.display = 'none';
+            gameoverScreen.style.display = 'none';
+            endScreen.style.display = 'none';
+            restartModal.style.display = 'none';
+            gameScreen.style.display = 'flex';
+
+            startMusic();
+            setTimeout(() => { spawnBlock(); }, 80);
+
+            gameState.lastFrameTime = performance.now();
+            gameState.lastSpawnTime = performance.now();
+            gameState.nextSpawnDelay = getSpawnInterval();
+            gameState.gameLoop = requestAnimationFrame(gameLoop);
+
+            startTimerInterval();
+        }
+
+        function getSpawnInterval() {
+            const e = 90 - gameState.timeLeft;
+            if (e < 12) return 3000; if (e < 25) return 2600;
+            if (e < 40) return 2200; if (e < 55) return 1900;
+            if (e < 70) return 1700; return 1500;
+        }
+
+        function getBlockSpeed() {
+            const e = 90 - gameState.timeLeft;
+            if (e < 12) return 0.07; if (e < 25) return 0.08;
+            if (e < 40) return 0.09; if (e < 55) return 0.1;
+            if (e < 70) return 0.11; return 0.12;
+        }
+
+        function gameLoop(timestamp) {
+            if (!gameState.running || gameState.paused) return;
+            const delta = timestamp - gameState.lastFrameTime;
+            gameState.lastFrameTime = timestamp;
+
+            // Cap delta to prevent jumps after tab switch
+            const cappedDelta = Math.min(delta, 100);
+
+            if (timestamp - gameState.lastSpawnTime >= gameState.nextSpawnDelay) {
+                spawnBlock();
+                gameState.lastSpawnTime = timestamp;
+                gameState.nextSpawnDelay = getSpawnInterval();
+            }
+
+            const zoneWidth = conveyorZone.offsetWidth;
+            const crashX = zoneWidth - 8;
+
+            for (let i = gameState.blocks.length - 1; i >= 0; i--) {
+                const bd = gameState.blocks[i];
+                if (!bd.active || bd === gameState.dragBlock) continue;
+                bd.x += bd.speed * cappedDelta;
+                bd.element.style.left = bd.x + 'px';
+                if (bd.x >= crashX) {
+                    bd.active = false;
+                    bd.element.style.transition = 'opacity 0.3s, transform 0.3s';
+                    bd.element.style.opacity = '0';
+                    bd.element.style.transform = 'scale(0.5)';
+                    setTimeout(() => bd.element.remove(), 300);
+                    gameState.blocks.splice(i, 1);
+                    penalize(bd.hw.name);
+                    playCrashSound();
+                }
+            }
+            gameState.gameLoop = requestAnimationFrame(gameLoop);
+        }
+
+        function pickHardware() {
+            const available = [];
+            for (let i = 0; i < HARDWARE.length; i++) {
+                const count = gameState.spawnCounts[i] || 0;
+                if (count >= 2) continue;
+                if (gameState.recentIndices.includes(i)) continue;
+                available.push(i);
+            }
+            if (available.length === 0) {
+                for (let i = 0; i < HARDWARE.length; i++) {
+                    if (!gameState.recentIndices.includes(i)) available.push(i);
+                }
+            }
+            if (available.length === 0) return Math.floor(Math.random() * HARDWARE.length);
+            const idx = available[Math.floor(Math.random() * available.length)];
+            gameState.spawnCounts[idx] = (gameState.spawnCounts[idx] || 0) + 1;
+            gameState.recentIndices.push(idx);
+            if (gameState.recentIndices.length > 8) gameState.recentIndices.shift();
+            return idx;
+        }
+
+        function spawnBlock() {
+            if (!gameState.running || gameState.paused) return;
+            const idx = pickHardware();
+            const hw = HARDWARE[idx];
+
+            const block = document.createElement('div');
+            block.className = `hw-block ${hw.category}-type`;
+
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'hw-icon';
+            iconDiv.innerHTML = makeSVG(hw);
+            block.appendChild(iconDiv);
+
+            const labelEl = document.createElement('span');
+            labelEl.className = 'label';
+            labelEl.textContent = hw.name;
+            block.appendChild(labelEl);
+
+            const zoneHeight = conveyorZone.offsetHeight;
+            const blockH = 125;
+            const centerY = (zoneHeight - blockH) / 2;
+
+            block.style.left = '-120px';
+            block.style.top = centerY + 'px';
+            conveyorZone.appendChild(block);
+
+            const blockData = { element: block, x: -120, y: centerY, speed: getBlockSpeed(), hw: hw, active: true };
+            gameState.blocks.push(blockData);
+
+            block.addEventListener('mousedown', (e) => startDrag(e, blockData));
+            block.addEventListener('touchstart', (e) => startDrag(e, blockData), { passive: false });
+        }
+
+        function startDrag(e, blockData) {
+            if (!gameState.running || !blockData.active || gameState.paused) return;
+            e.preventDefault();
+            gameState.dragBlock = blockData;
+            blockData.element.classList.add('dragging');
+            const rect = blockData.element.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            gameState.dragOffsetX = clientX - rect.left;
+            gameState.dragOffsetY = clientY - rect.top;
+            blockData.element.style.position = 'fixed';
+            blockData.element.style.left = (clientX - gameState.dragOffsetX) + 'px';
+            blockData.element.style.top = (clientY - gameState.dragOffsetY) + 'px';
+            document.body.appendChild(blockData.element);
+        }
+
+        document.addEventListener('mousemove', moveDrag);
+        document.addEventListener('touchmove', moveDrag, { passive: false });
+
+        function moveDrag(e) {
+            if (!gameState.dragBlock) return;
+            e.preventDefault();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            gameState.dragBlock.element.style.left = (clientX - gameState.dragOffsetX) + 'px';
+            gameState.dragBlock.element.style.top = (clientY - gameState.dragOffsetY) + 'px';
+            bins.forEach(bin => {
+                const rect = bin.getBoundingClientRect();
+                if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                    bin.classList.add('highlight');
+                } else { bin.classList.remove('highlight'); }
+            });
+        }
+
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchend', endDrag);
+
+        function endDrag(e) {
+            if (!gameState.dragBlock) return;
+            const blockData = gameState.dragBlock;
+            blockData.element.classList.remove('dragging');
+            const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+            const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+
+            let droppedOnBin = null;
+            bins.forEach(bin => {
+                bin.classList.remove('highlight');
+                const rect = bin.getBoundingClientRect();
+                if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                    droppedOnBin = bin;
+                }
+            });
+
+            if (droppedOnBin) {
+                const binCategory = droppedOnBin.dataset.category;
+                const hwCategory = blockData.hw.category;
+                gameState.totalRouted++;
+                if (binCategory === hwCategory) {
+                    gameState.correctRoutes++;
+                    gameState.score += 10;
+                    updateScore();
+                    showFeedback(`✓ ${blockData.hw.name} → ${getBinName(binCategory)}`, 'success');
+                    spawnParticles(clientX, clientY, '#4caf50');
+                    playCorrectSound();
+                } else {
+                    showFeedback(`✗ ${blockData.hw.name} → should be ${getBinName(hwCategory)}!`, 'error');
+                    penalizeHealth();
+                    spawnParticles(clientX, clientY, '#e53935');
+                    playWrongSound();
+                }
+                blockData.active = false;
+                blockData.element.remove();
+                const idx = gameState.blocks.indexOf(blockData);
+                if (idx > -1) gameState.blocks.splice(idx, 1);
+            } else {
+                blockData.element.style.position = 'absolute';
+                blockData.element.style.left = blockData.x + 'px';
+                blockData.element.style.top = blockData.y + 'px';
+                conveyorZone.appendChild(blockData.element);
+            }
+            gameState.dragBlock = null;
+        }
+
+        function getBinName(cat) { return { input: 'Input', output: 'Output', storage: 'Storage' }[cat]; }
+
+        function penalize(name) {
+            showFeedback(`💥 ${name} missed!`, 'error');
+            penalizeHealth();
+        }
+
+        function penalizeHealth() {
+            gameState.health -= 15;
+            if (gameState.health < 0) gameState.health = 0;
+            updateHealth();
+            if (gameState.health <= 0) gameOver();
+        }
+
+        function updateHealth() {
+            healthBar.style.width = gameState.health + '%';
+            healthText.textContent = gameState.health + '%';
+            healthBar.classList.remove('warning', 'critical');
+            if (gameState.health <= 30) healthBar.classList.add('critical');
+            else if (gameState.health <= 55) healthBar.classList.add('warning');
+        }
+
+        function updateScore() { scoreEl.textContent = gameState.score; }
+
+        function updateTimer() {
+            timerEl.textContent = gameState.timeLeft + 's';
+            if (gameState.timeLeft <= 15) { timerEl.classList.add('urgent'); }
+            else { timerEl.classList.remove('urgent'); }
+        }
+
+        let feedbackTimeout;
+        function showFeedback(msg, type) {
+            feedback.textContent = msg;
+            feedback.className = `show ${type}`;
+            clearTimeout(feedbackTimeout);
+            feedbackTimeout = setTimeout(() => { feedback.className = ''; }, 1800);
+        }
+
+        function spawnParticles(x, y, color) {
+            for (let i = 0; i < 8; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = (x + (Math.random() - 0.5) * 60) + 'px';
+                p.style.top = (y + (Math.random() - 0.5) * 60) + 'px';
+                const size = 5 + Math.random() * 8;
+                p.style.width = size + 'px'; p.style.height = size + 'px';
+                p.style.background = color; p.style.boxShadow = `0 0 6px ${color}`;
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 700);
+            }
+        }
+
+        function stopGame() {
+            gameState.running = false;
+            if (gameState.gameLoop) { cancelAnimationFrame(gameState.gameLoop); gameState.gameLoop = null; }
+            if (gameState.timerInterval) { clearInterval(gameState.timerInterval); gameState.timerInterval = null; }
+            stopMusic();
+        }
+
+        function gameOver() {
+            stopGame();
+            document.getElementById('go-score').textContent = `Score: ${gameState.score}`;
+            document.getElementById('go-routed').textContent = `Correct: ${gameState.correctRoutes}/${gameState.totalRouted}`;
+            gameScreen.style.display = 'none';
+            gameoverScreen.style.display = 'flex';
+        }
+
+        function endGame() {
+            stopGame();
+            const accuracy = gameState.totalRouted > 0 ? Math.round((gameState.correctRoutes / gameState.totalRouted) * 100) : 0;
+            const wrongRoutes = gameState.totalRouted - gameState.correctRoutes;
+
+            let title, subtitle, grade;
+
+            if (accuracy >= 90) {
+                title = '🏆 Hardware Sorted!';
+                subtitle = 'Every device found its home. The lab is perfectly organized!';
+                grade = 'A+';
+            } else if (accuracy >= 75) {
+                title = '✅ Well Organized!';
+                subtitle = 'Most hardware is in the right place. Almost perfect!';
+                grade = 'A';
+            } else if (accuracy >= 60) {
+                title = '🔧 Partially Sorted';
+                subtitle = 'Some devices ended up in the wrong bins. Room for improvement!';
+                grade = 'B';
+            } else if (accuracy >= 40) {
+                title = '⚠️ Quite Mixed Up';
+                subtitle = 'The lab is still pretty disorganized. Study the categories!';
+                grade = 'C';
+            } else if (gameState.totalRouted === 0) {
+                title = '😶 Nothing Sorted';
+                subtitle = 'You didn\'t sort any hardware! The conveyor ran without you.';
+                grade = 'F';
+            } else {
+                title = '❌ Total Confusion';
+                subtitle = 'Almost everything went to the wrong bin. Time to review!';
+                grade = 'D';
+            }
+
+            document.getElementById('end-title').textContent = title;
+            document.getElementById('end-subtitle').textContent = subtitle;
+            document.getElementById('end-score').textContent = `Score: ${gameState.score}`;
+            document.getElementById('end-accuracy').textContent = `Accuracy: ${accuracy}% (${gameState.correctRoutes}/${gameState.totalRouted})`;
+            document.getElementById('end-grade').textContent = `Grade: ${grade} | Stability: ${gameState.health}%`;
+
+            gameScreen.style.display = 'none';
+            endScreen.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

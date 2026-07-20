@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drag, Hold and Drop!</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- Importing a playful, fancy font for kids -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    html,body{margin:0;padding:0}
+    body {
+      font-family: "Segoe UI",system-ui,sans-serif;
+      background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);
+      color: #2c3e50;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden; /* Strictly prevents page scrolling */
+    }
+    #main-box {
+      width: 100%;
+      max-width: 540px; /* Big game window */
+      padding: 15px;
+      box-sizing: border-box;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+      padding: 35px 30px;
+      text-align: center;
+      border: 1px solid rgba(0,0,0,0.04);
+      animation:fadein .4s cubic-bezier(.32,1.6,.66,1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    @keyframes fadein{from{opacity:0;transform:translateY(28px) scale(.97);}
+    to{opacity:1;transform:none;}}
+    
+    /* Premium fancy typography */
+    .card h2 {
+      font-family: 'Fredoka', sans-serif;
+      margin: 0;
+      color: #1e88e5;
+      font-size: 2.8rem; 
+      font-weight: 700;
+      line-height: 1.15;
+      text-shadow: 0 2px 4px rgba(30, 136, 229, 0.1);
+    }
+    .card h3 {
+      font-family: 'Fredoka', sans-serif;
+      margin: 0;
+      color:#0288d1;
+      font-size:1.7rem;
+      font-weight: 600;
+    }
+    .card p {
+      margin: 2px 0;
+      line-height: 1.4;
+      font-size: 1.05rem;
+    }
+    
+    /* Cleaned Up Intro Screen Grid Layout */
+    .intro-subtitle {
+      font-size: 1.2rem;
+      color: #546e7a;
+      margin: 0;
+      font-weight: 500;
+    }
+    .game-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 10px 0;
+      padding: 15px;
+      background: #f8fafc;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+    }
+    .preview-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      padding: 10px 4px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+      border: 1px solid rgba(0,0,0,0.02);
+    }
+    .preview-icon {
+      font-size: 1.8rem;
+    }
+    .preview-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #64748b;
+    }
+    .pulse-btn {
+      animation: buttonPulse 2.5s infinite;
+    }
+    @keyframes buttonPulse {
+      0% { box-shadow: 0 4px 12px rgba(244, 81, 30, 0.3); transform: scale(1); }
+      50% { box-shadow: 0 8px 28px rgba(244, 81, 30, 0.5); transform: scale(1.03); }
+      100% { box-shadow: 0 4px 12px rgba(244, 81, 30, 0.3); transform: scale(1); }
+    }
+
+    .tag {
+      display:inline-block;font-size:.75rem;color:#1565c0;
+      background:rgba(21, 101, 192, 0.09);border:1px solid rgba(21, 101, 192, 0.18);
+      padding:4px 16px;border-radius:8px;
+      align-self: center;
+      font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+    }
+    .pbar {
+      width:100%;height:12px;background:rgba(0,0,0,.05);
+      border-radius:6px;overflow:hidden;
+    }
+    .pfill {height:100%;border-radius:6px;background:linear-gradient(90deg,#42a5f5,#26c6da);transition:width .23s ease;}
+    .sc {font-size:1.1rem;color:#00838f;font-weight:700;margin: 2px 0;}
+    .hint {font-size:.85rem; color:#78909c;font-style:italic;}
+    
+    .btn {
+      font-family: 'Fredoka', sans-serif;
+      appearance: none;border: none;
+      background: linear-gradient(135deg,#ff7043,#f4511e);
+      color: #ffffff;
+      font-size: 1.4rem;font-weight: 600;
+      border-radius: 16px;
+      padding: 16px 52px;
+      cursor:pointer;
+      transition: all .14s;
+      outline:none;
+      align-self: center;
+      border-bottom: 5px solid #c93b0e;
+    }
+    .btn:hover { background: linear-gradient(135deg,#ff8157,#f4511e); }
+    .btn:active { transform: translateY(4px); border-bottom: 1px solid #c93b0e; margin-bottom: 4px; }
+    .hidden {display:none!important;}
+
+    /* Game layouts */
+    .charge-bay {min-height:130px;display: flex;justify-content: center;align-items: center;gap:28px;background: #f5f5f5;padding:20px 0;border-radius:12px;border:1px solid #e0e0e0;}
+    .batt {display:flex;flex-direction:column;align-items:center;gap:8px;}
+    .batt-shell{width:42px;height:84px;background:#ffffff;border:2.5px solid #b0bec5;border-radius:8px;position:relative;overflow:hidden;}
+    .batt-shell::before{content:'';position:absolute;top:-5px;left:23%;width:54%;height:6px;background:#b0bec5;border-radius:3px 3px 0 0;}
+    .batt-fill{position:absolute;bottom:0;left:0;width:100%;border-radius:0 0 4px 4px;transition:height .06s;}
+    .batt-ok{background:linear-gradient(0deg,#66bb6a,#4caf50);}
+    .batt-danger{background:linear-gradient(0deg,#ef5350,#e53935)!important;}
+    .batt-lbl{font-size:.85rem;color:#546e7a;font-weight:700;}
+    .batt-ico{font-size:1.7rem;}
+    .batt.done .batt-ico{animation:bDone .38s;}
+    @keyframes bDone{50%{transform:scale(1.32);}}
+    .shake{animation:shakeit .25s;}
+    @keyframes shakeit{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+
+    .sniper {height:240px;background:radial-gradient(circle,#ffffff 60%,#f0f4f8 100%);position:relative;cursor:crosshair;overflow: hidden;border-radius:12px;border:1px solid #cfd8dc;}
+    .s-cross {position:absolute;pointer-events:none;transform:translate(-50%,-50%);z-index:5;}
+    .s-cross::before,.s-cross::after{content:'';position: absolute;background: rgba(2,136,209,.43);}
+    .s-cross::before{width:1px;height:24px;left:50%;top:-12px;}
+    .s-cross::after{width:24px;height:1px;top:50%;left:-12px;}
+    .s-target {position:absolute;border:2.5px solid #ef5350;border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events: auto;cursor:crosshair;animation:sShrink var(--dur) linear forwards;}
+    @keyframes sShrink{from{width: var(--sz); height: var(--sz); opacity:1;}to{width: 0; height: 0; opacity:.34;}}
+    .s-target .s-dot{width:8px;height:8px;background:#ef5350;border-radius:50%;}
+    .s-target.caught{border-color:#4caf50;animation:none!important;}
+    .s-target.caught .s-dot{background:#4caf50;}
+
+    .lab{min-height:110px;background:#f5f7fa;border-radius:12px;padding:20px 12px;border:1px solid #e4e8eb;display:flex;flex-direction:column;gap:20px;}
+    .lab-src{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;}
+    .lab-orb{display:inline-flex;align-items:center;justify-content:center;font-size:2.1rem;cursor:grab;user-select:none;width:54px;height:54px;background:#ffffff;border:2px solid #b0ecff;border-radius:14px;transition:opacity .17s,transform .13s;box-shadow: 0 3px 8px rgba(0,0,0,0.06);}
+    .lab-orb:hover{transform:scale(1.07);}
+    .beaker-row{display:flex;justify-content:center;gap:28px;}
+    .beaker{width:54px;height:58px;background:#ffffff;border:2px dashed #b0bec5;border-radius:0 0 12px 12px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;transition:all .15s;position:relative;}
+    .beaker::before{content:'';position:absolute;top:-7px;left:6px;right:6px;height:7px;background:#cfd8dc;border-radius:3px 3px 0 0;}
+    .beaker.hl{border-color:#4caf50;background:rgba(76,175,80,.07);}
+    .beaker.done{border-style:solid;border-color:#4caf50;animation:bkFill .41s;}
+    @keyframes bkFill{50%{transform:scale(1.08);}}
+    .beaker .blbl{position:absolute;bottom:-20px;font-size:.75rem;color:#546e7a;white-space:nowrap;font-weight:700;}
+    .floatT{position:fixed;pointer-events:none;z-index:9998;font-size:1.2rem;font-weight:800;text-shadow:0 0 10px currentColor;opacity:1;transition:all .51s ease-out;}
+
+    .codegrid{min-height:130px;background:#f5f7fa;display:flex;flex-wrap:wrap;justify-content:center;gap:10px;border-radius:12px;padding:16px 12px;border:1px solid #e4e8eb;}
+    .ccell{width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:#ffffff;border:1.5px solid #cfd8dc;border-radius:8px;font-size:1.25rem;font-weight:700;color:#0288d1;cursor:pointer;transition:all .12s;font-family:'Courier New',monospace;box-shadow:0 2px 4px rgba(0,0,0,0.02);}
+    .ccell:hover{background:#e1f5fe;border-color:#0288d1;}
+    .ccell.ok{background:#e8f5e9;border-color:#4caf50;color:#2e7d32;cursor:default;box-shadow:0 0 5px rgba(76,175,80,.14);}
+    .ccell.bad{background:#ffebee;border-color:#ef5350;color:#c62828;animation:shakeit .25s;}
+  </style>
+</head>
+<body>
+<div id="main-box">
+  <div id="stage"></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let score=0, step=0, floatCt=0;
+
+function pb(c,t){return `<div class="pbar"><div class="pfill" id="pfill" style="width:${Math.round(100*c/t)}%"></div></div>`;}
+function updatePb(cnt, t){
+  let el=document.getElementById('pfill');
+  if(el) el.style.width = Math.round(100*cnt/t)+'%';
+}
+function floatT(el, txt, color) {
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const f = document.createElement('span');
+  f.className = 'floatT';
+  f.textContent = txt || '+100';
+  f.style.color = color || '#4caf50';
+  f.style.left = (rect.left + rect.width/2 - 18) + 'px';
+  f.style.top = (rect.top-8) + 'px';
+  f.id = "floatT"+(++floatCt);
+  document.body.appendChild(f);
+  setTimeout(() => { f.style.transform = 'translateY(-30px)';f.style.opacity = '0'; }, 16);
+  setTimeout(()=>{ try {f.remove();} catch{} }, 640);
+}
+function addPts(amt, el) {
+  score += amt;
+  let ts = $('score');
+  if(ts) ts.textContent = score;
+  if(el) floatT(el, amt>0?('+'+amt):amt, amt>=100?'#f57c00':'#4caf50');
+}
+
+/* INTRO */
+function showIntro() {
+  step=0;
+  $('stage').innerHTML = `
+    <div class="card" id="intro">
+      <h2>Drag, Hold & Drop!</h2>
+      <div class="intro-subtitle">Train your mouse skills with 4 fun challenges!</div>
+      
+      <div class="game-preview-grid">
+        <div class="preview-item">
+          <span class="preview-icon">🔢</span>
+          <span class="preview-label">Order</span>
+        </div>
+        <div class="preview-item">
+          <span class="preview-icon">⚡</span>
+          <span class="preview-label">Hold</span>
+        </div>
+        <div class="preview-item">
+          <span class="preview-icon">🧪</span>
+          <span class="preview-label">Drag</span>
+        </div>
+        <div class="preview-item">
+          <span class="preview-icon">🎯</span>
+          <span class="preview-label">Aim</span>
+        </div>
+      </div>
+
+      <button class="btn pulse-btn" id="startBtn">Play Now 🚀</button>
+    </div>
+  `;
+  $('startBtn').onclick = showNumbers;
+}
+showIntro();
+
+/* GAME 1: NUMBER ORDER */
+function showNumbers() {
+  step=1;
+  const N=10;
+  let seq = []; for(let i=1;i<=N;i++) seq.push(i);
+  for(let i=N-1;i>0;i--){let j=Math.floor(Math.random()*(i+1)),t=seq[i];seq[i]=seq[j];seq[j]=t;}
+  let h='';for(let i=0;i<N;i++) h+= `<div class="ccell" id="cc${seq[i]}">${seq[i]}</div>`;
+  let next=1;
+  $('stage').innerHTML = `
+    <div class="card">
+      <span class="tag">Game 1 / 4</span>
+      <h3>Number Order 🔢</h3>
+      <p>Click the numbers in order: 1 → 2 → 3 …</p>
+      ${pb(0,N)}
+      <div class="sc" id="seqSC" style="color:#0288d1;font-weight:700">CLICK → 1</div>
+      <div class="codegrid">${h}</div>
+      <div class="hint">Wrong click = lose points!</div>
+      <button class="btn hidden" id="nextGameBtn">Next →</button>
+    </div>`;
+  for(let i=1;i<=N;i++){
+    $(`cc${i}`).onclick = function() {
+      if(i===next){this.classList.add('ok');addPts(59,this);next++;
+        $('seqSC').innerHTML = next<=N ? `CLICK → ${next}` : '<span style="color:#4caf50">✅ All Done!</span>';
+        updatePb(next-1,N);
+        if(next>N) $('nextGameBtn').classList.remove('hidden');
+      } else {
+        this.classList.add('bad');
+        let x=this; setTimeout(()=>x.classList.remove('bad'),320);
+        score = Math.max(0, score-19); let ts = $('score'); if(ts) ts.textContent = score;
+        floatT(this,'-19','#ef5350');
+        $('seqSC').innerHTML = `❌ Click ${next}!`;
+      }
+    }
+  }
+  $('nextGameBtn').onclick = showBatt;
+}
+
+/* GAME 2: BATTERIES */
+function showBatt() {
+  step=2;
+  const N=4;
+  let progress = Array(N).fill(0), done = Array(N).fill(false), filled=0, active=-1, interval=null;
+  let batts = '';
+  for(let i=0;i<N;i++){
+    batts += `<div class="batt" id="bat${i}"><span class="batt-ico" id="btico${i}">🔋</span>
+    <div class="batt-shell"><div class="batt-fill batt-ok" id="bfill${i}" style="height:0%"></div></div>
+    <span class="batt-lbl" id="blbl${i}">0%</span></div>`;
+  }
+  $('stage').innerHTML = `
+    <div class="card">
+      <span class="tag">Game 2 / 4</span>
+      <h3>Fill the Batteries ⚡</h3>
+      <p>Hold down to fill each battery. Let go at <span style="color:#4caf50; font-weight:bold;">70–95%</span>!
+        <br><span style="color:#e53935;font-size:.88em; font-weight:bold;">Don't let it reach 100% — it explodes!</span>
+      </p>
+      ${pb(0,N)}
+      <div class="sc" id="prog">0 / ${N}</div>
+      <div class="charge-bay">${batts}</div>
+      <div class="hint">Click & hold, then release at the right time.</div>
+      <button class="btn hidden" id="nextBatt">Next →</button>
+    </div>`;
+  function startBatt(i) {
+    if (done[i]) return;
+    active = i;
+    interval = setInterval(() => {
+      if(active !== i) return;
+      progress[i] = Math.min(100, progress[i]+2);
+      $(`bfill${i}`).style.height = progress[i]+"%";
+      $(`blbl${i}`).textContent = Math.round(progress[i])+"%";
+      if(progress[i]>89) $(`bfill${i}`).className="batt-fill batt-danger";
+      if(progress[i]>=100) {
+        clearInterval(interval);
+        $(`bfill${i}`).className="batt-fill batt-ok";
+        $(`blbl${i}`).textContent = '💥';
+        progress[i] = 0;
+        $(`bfill${i}`).style.height = "0%";
+        let card = $('stage').firstChild;
+        if(card) {card.classList.add('shake');setTimeout(()=>card.classList.remove('shake'),350);}
+        setTimeout(()=>{$(`blbl${i}`).textContent='0%';},385);
+        active = -1;
+      }
+    }, 23);
+  }
+  function stopBatt() {
+    if(interval) clearInterval(interval);
+    if(active>=0 && !done[active]){
+      let p = progress[active];
+      if(p>=70&&p<100){
+        done[active]=true;
+        addPts(Math.round(48+p),$(`bat${active}`));
+        $(`bat${active}`).classList.add('done');
+        $(`btico${active}`).textContent='✅';
+        $(`bfill${active}`).className="batt-fill batt-ok";
+        filled++;
+        $('prog').textContent = filled + " / "+N; updatePb(filled,N);
+        if(filled===N) $('nextBatt').classList.remove('hidden');
+      } else if(p>0&&p<70){
+        $(`blbl${active}`).textContent='Too Low!';
+        let idx=active; setTimeout(()=>{if(!done[idx]) $(`blbl${idx}`).textContent=Math.round(progress[idx])+'%'},600);
+      }
+    }
+    active=-1;
+  }
+  for(let i=0;i<N;i++){
+    $(`bat${i}`).onmousedown = e=>{e.preventDefault();startBatt(i);}
+    $(`bat${i}`).ontouchstart = e=>{e.preventDefault();startBatt(i);}
+  }
+  document.addEventListener('mouseup', stopBatt);
+  document.addEventListener('touchend', stopBatt);
+  $('nextBatt').onclick = showDragDrop;
+}
+
+/* GAME 3: DRAG & DROP */
+function showDragDrop() {
+  step=3;
+  const balls = [
+    {e:'🔴',c:'#ff3333',n:'Red'},
+    {e:'🔵',c:'#3366ff',n:'Blue'},
+    {e:'🟢',c:'#33cc33',n:'Green'},
+    {e:'🟣',c:'#aa44dd',n:'Purple'}
+  ], N=balls.length;
+  let placed = Array(N).fill(false), filled=0, dragging=false, dragI=-1, ghost=null, ox=0, oy=0;
+  let sh='',bh='';
+  for(let i=0;i<N;i++) sh += `<span class="lab-orb" id="lo${i}" data-i="${i}">${balls[i].e}</span>`;
+  for(let i=0;i<N;i++) bh += `<div class="beaker" id="bk${i}" data-i="${i}"><span class="blbl">${balls[i].n}</span></div>`;
+  $('stage').innerHTML = `
+    <div class="card">
+      <span class="tag">Game 3 / 4</span>
+      <h3>Match & Drag 🧪</h3>
+      <p>Drag each coloured ball to its matching cup!</p>
+      ${pb(0,N)}
+      <div class="sc" id="dragCount">0 / ${N}</div>
+      <div class="lab"><div class="lab-src" id="lsrc">${sh}</div>
+      <div class="beaker-row">${bh}</div></div>
+      <div class="hint" style="margin-top:5px;">Hold, move down, then release.</div>
+      <button class="btn hidden" id="nextDrag">Next →</button>
+    </div>`;
+  function startD(i, cx, cy){
+    if(placed[i]) return;
+    dragging=true; dragI=i;
+    let rect = $(`lo${i}`).getBoundingClientRect();
+    ox = cx-rect.left; oy = cy-rect.top;
+    ghost = document.createElement('span');
+    ghost.textContent = balls[i].e;
+    ghost.style.cssText = 'position:fixed;font-size:2.5rem;pointer-events:none;z-index:9999;opacity:.9;left:'+(cx-ox)+'px;top:'+(cy-oy)+'px';
+    document.body.appendChild(ghost);
+    $(`lo${di}`).style.opacity='.27';
+  }
+  // Fallback if needed inside dynamic blocks
+  let activeGhost = () => ghost;
+  function moveD(cx,cy){
+    if(!dragging||!ghost) return;
+    ghost.style.left=(cx-ox)+'px';
+    ghost.style.top=(cy-oy)+'px';
+    for(let i=0;i<N;i++){
+      if(placed[i]) continue;
+      let r=$(`bk${i}`).getBoundingClientRect();
+      $(`bk${i}`).classList.toggle('hl',cx>r.left&&cx<r.right&&cy>r.top&&cy<r.bottom);
+    }
+  }
+  function endD(cx,cy){
+    if(!dragging) return;
+    let di=dragI; dragging=false; dragI=-1;
+    if(ghost) {ghost.remove();ghost=null;}
+    $(`lo${di}`).style.opacity='1';
+    for(let i=0;i<N;i++){
+      $(`bk${i}`).classList.remove('hl');
+      if(placed[i]) continue;
+      let r=$(`bk${i}`).getBoundingClientRect();
+      if(cx>r.left&&cx<r.right&&cy>r.top&&cy<r.bottom){
+        if(i===di){
+          placed[i]=true;$(`bk${i}`).textContent=balls[i].e;
+          $(`bk${i}`).classList.add('done');$(`lo${di}`).style.display='none';
+          addPts(93,$(`bk${i}`));
+          filled++;$('dragCount').textContent=filled+" / "+N;updatePb(filled,N);
+          if(filled===N)$('nextDrag').classList.remove('hidden');
+        } else {
+          let card = $('stage').firstChild;
+          if(card){card.classList.add('shake');setTimeout(()=>card.classList.remove('shake'),240);}
+          floatT($(`bk${i}`),"No!","#ef5350");
+        }
+        break;
+      }
+    }
+  }
+  function md(e){for(let i=0;i<N;i++){if(e.target===$(`lo${i}`)&&!placed[i]){e.preventDefault();startD(i,e.clientX,e.clientY);break;}}}
+  function mm(e){if(dragging)moveD(e.clientX,e.clientY);}
+  function mu(e){if(dragging)endD(e.clientX,e.clientY);}
+  function ts(e){for(let i=0;i<N;i++){if(e.target === $(`lo${i}`)&&!placed[i]){e.preventDefault();startD(i,e.touches[0].clientX,e.touches[0].clientY);break;}}}
+  function tm(e){if(dragging&&e.touches.length){e.preventDefault();moveD(e.touches[0].clientX,e.touches[0].clientY);}}
+  function te(e){if(dragging)endD(e.changedTouches[0].clientX,e.changedTouches[0].clientY);}
+  document.addEventListener('mousedown',md);document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);
+  document.addEventListener('touchstart',ts,{passive:false});document.addEventListener('touchmove',tm,{passive:false});document.addEventListener('touchend',te);
+  $('nextDrag').onclick = () => {
+    document.removeEventListener('mousedown',md);document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);
+    document.removeEventListener('touchstart',ts);document.removeEventListener('touchmove',tm);document.removeEventListener('touchend',te);
+    if(ghost) ghost.remove();
+    showSniper();
+  };
+}
+
+/* GAME 4: SHRINKING TARGETS */
+function showSniper() {
+  step=4;
+  const N=10; let hit=0, running=true;
+  $('stage').innerHTML = `
+    <div class="card">
+      <span class="tag">Game 4 / 4</span>
+      <h3>Shrinking Targets 🎯</h3>
+      <p>Click the circles before they disappear! Faster = more points.</p>
+      ${pb(0,N)}
+      <div class="sc" id="sncount">0 / ${N}</div>
+      <div class="sniper" id="snZone" style="margin-bottom:2px;">
+        <div class="s-cross" id="snCross"></div>
+      </div>
+      <div class="hint">Aim carefully, click fast!</div>
+      <button class="btn hidden" id="finishBtn">Finish 🏆</button>
+    </div>`;
+  let zone = $('snZone');
+  function followMouse(e) {
+    const r = zone.getBoundingClientRect(),
+      x = (e.touches?e.touches[0].clientX:e.clientX)-r.left,
+      y = (e.touches?e.touches[0].clientY:e.clientY)-r.top;
+    $('snCross').style.left = x+'px';$('snCross').style.top = y+'px';
+  }
+  zone.addEventListener('mousemove', followMouse);
+  function spawnTarget() {
+    if(!running || hit>=N) return;
+    const el = document.createElement('div');
+    el.className = 's-target';
+    let sz = 50+Math.random()*25, dur = 2.45-Math.min(hit*0.12,1.1);
+    el.style.left = (Math.random()*74+10)+"%";
+    el.style.top = (Math.random()*60+12)+"%";
+    el.style.setProperty('--sz', sz+'px');
+    el.style.setProperty('--dur', dur+'s');
+    el.style.width=sz+"px";el.style.height=sz+"px";
+    el.innerHTML = '<div class="s-dot"></div>';
+    zone.appendChild(el);
+    let alive = true;
+    el.addEventListener('pointerdown', function(e){
+      if(!alive) return;
+      e.preventDefault(); alive=false;
+      el.classList.add('caught');
+      addPts(Math.max(30, Math.round(210-sz*3)), el);
+      setTimeout(()=>el.remove(),180);hit++;
+      $('sncount').textContent = hit+" / "+N;updatePb(hit,N);
+      if(hit===N) {running=false;$('finishBtn').classList.remove('hidden');}
+      else setTimeout(spawnTarget,320);
+    });
+    el.addEventListener('animationend', function(){
+      if(!alive)return;alive=false;el.remove();
+      if(running&&hit<N) setTimeout(spawnTarget,280);
+    });
+  }
+  setTimeout(spawnTarget,500);
+  $('finishBtn').onclick = showSummary;
+}
+
+/* SUMMARY */
+function showSummary() {
+  step=5;
+  let rank, badge, s=score;
+  if(s>=1100){rank="Skilled!", badge='⚡';}
+  else if(s>=750){rank="Training Complete!", badge='⭐';}
+  else if(s>0){rank="Beginner!", badge='🆕';}
+  else{rank="Learning!", badge='🔰';}
+  $('stage').innerHTML = `
+    <div class="card">
+      <h2>${badge} ${rank}</h2>
+      <div style="color:#2e7d32;font-weight:800;font-size:2.4rem; margin-top: 5px;">${score} <span style="font-size:1rem">points</span></div>
+      <div style="margin:2px 0;color:#546e7a; font-size: 1.05rem;">
+        <b>Skills Practiced:</b>
+        <br><span style="font-size:1rem; display:inline-block; margin-top:5px;">Sequence Order · Hold & Release · Drag & Drop · Aim & Click</span>
+      </div>
+      <button class="btn" id="retryBtn">Play Again 🔄</button>
+      <div class="hint">Try again to improve your score!</div>
+    </div>`;
+  $('retryBtn').onclick = ()=>{score=0;showIntro();};
+}
+</script>
+</body>
+</html>

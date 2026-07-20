@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Rescue the train!</title>
+  <style>
+    :root {
+      --primary-forest: #1b4332;
+      --sky-blue: #a2d2ff;
+      --track-brown: #7f5539;
+      --cream-bg: #fffcf2;
+      --gold-star: #ffb703;
+      --alert-red: #d90429;
+      --success-green: #38b000;
+      --cannon-black: #111111;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    body {
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif;
+      background: linear-gradient(135deg, #40916c 0%, #1b4332 100%);
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      padding: 12px;
+    }
+
+    #gameContainer {
+      background-color: var(--cream-bg);
+      width: 100%;
+      max-width: 900px;
+      height: 100%;
+      max-height: 640px;
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+      border: 6px solid #e1d5c2;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(180deg, #ffe3c1 0%, #f7b282 100%);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 4px solid #de9362;
+      flex-shrink: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.1rem, 2.8vw, 1.6rem);
+      color: #2b1a0d;
+      text-shadow: 1px 1px 0 #fff;
+    }
+
+    .hud-deck {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hud-pill {
+      background: #fff;
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-weight: bold;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.12);
+      font-size: clamp(0.85rem, 2.2vw, 1.05rem);
+      color: #222;
+    }
+
+    #starPill { color: var(--gold-star); letter-spacing: 1px; }
+
+    .btn-reset {
+      background: #e65f2b;
+      color: #fff;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 12px;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #ab3b11;
+      font-size: clamp(0.8rem, 2vw, 0.95rem);
+    }
+    .btn-reset:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #ab3b11;
+    }
+
+    .field-workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      gap: 10px;
+      position: relative;
+    }
+
+    .instruction-bar {
+      font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+      color: var(--primary-forest);
+      text-align: center;
+      font-weight: bold;
+      background-color: #eaf7ee;
+      padding: 6px 18px;
+      border-radius: 999px;
+      border: 2px dashed #8ec3a3;
+      width: 95%;
+    }
+
+    .canvas-card-frame {
+      position: relative;
+      width: 100%;
+      max-width: 780px;
+      background: linear-gradient(180deg, var(--sky-blue) 0%, #e0f2fe 100%);
+      border-radius: 20px;
+      box-shadow: inset 0 5px 12px rgba(0,0,0,0.15), 0 5px 0 #a2bda7;
+      border: 4px solid #a2bda7;
+      overflow: hidden;
+    }
+
+    #worldCanvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+    }
+
+    .dashboard-deck {
+      width: 100%;
+      max-width: 780px;
+      background: #f1f3f5;
+      padding: 8px 20px;
+      border-radius: 18px;
+      border: 3px solid #dee2e6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ammo-manifest-card {
+      background-color: #fff;
+      border: 4px solid var(--gold-star);
+      border-radius: 14px;
+      padding: 4px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 200px;
+      box-shadow: 0 4px 0 #e29578;
+    }
+
+    .ammo-title { font-size: 0.75rem; color: #6c757d; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .ammo-symbol { font-size: 1.8rem; font-weight: 900; color: #1b4332; margin: 2px 0; }
+    .ammo-label { font-size: 1.1rem; font-weight: bold; color: #111; }
+
+    .popup-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(18, 48, 35, 0.96);
+      z-index: 600;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .popup-overlay h2 { font-size: clamp(2rem, 6vw, 3.2rem); margin-bottom: 12px; text-shadow: 2px 3px 0px #0b1a14; }
+    .popup-overlay p { font-size: clamp(1.05rem, 3vw, 1.4rem); margin-bottom: 24px; color: #d8f3dc; }
+
+    .btn-action {
+      background-color: var(--gold-star);
+      color: #111;
+      border: none;
+      font-family: inherit;
+      font-weight: bold;
+      font-size: clamp(1.05rem, 3vw, 1.35rem);
+      padding: 14px 40px;
+      border-radius: 18px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #cc9200;
+    }
+    .btn-action:active { transform: translateY(4px); box-shadow: 0 2px 0 #cc9200; }
+
+    #confettiCanvas {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 601;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="gameContainer">
+    <header>
+      <h1>🚂 Rescue the train!</h1>
+      <div class="hud-deck">
+        <span class="hud-pill" id="levelPill">Level 1/8</span>
+        <span class="hud-pill" id="starPill">⭐⭐⭐</span>
+        <button class="btn-reset" id="topResetBtn">Reset</button>
+      </div>
+    </header>
+
+    <div class="field-workspace">
+      <div class="instruction-bar" id="instruction">Drag back on the cannon to shoot down the matching track target slot!</div>
+       
+      <div class="canvas-card-frame" id="canvasFrame">
+        <canvas id="worldCanvas" width="760" height="300"></canvas>
+      </div>
+
+      <div class="dashboard-deck">
+        <div class="ammo-manifest-card">
+          <span class="ammo-title">Current Loadout</span>
+          <span class="ammo-symbol" id="ammoSymbol">〓</span>
+          <span class="ammo-label" id="ammoLabel">Parallel</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup-overlay" id="gameOverScreen">
+      <h2>💥 Train Derailed!</h2>
+      <p>The express ran out of tracks and fell down the riverbed channel!</p>
+      <button class="btn-action" id="retryBtn">Try Repair Again 🔄</button>
+    </div>
+
+    <div class="popup-overlay" id="victoryScreen" style="background: linear-gradient(135deg, #0d1f10 0%, #1b4332 100%);">
+      <h2>🏆 Master Train Architect!</h2>
+      <p>Incredible slingshot aiming skills! All 8 express lanes have been fully secured!</p>
+      <button class="btn-action" id="victoryBtn">Play Again 🔄</button>
+    </div>
+
+    <canvas id="confettiCanvas"></canvas>
+  </div>
+
+  <script>
+    const STAGE_CONFIGS = [
+      { id: 1, ammoType: "Parallel", targetSpeed: 0.6, slots: [
+          { type: "Perpendicular", draw: (c, x, y) => drawTracks(c, x-25, y, x+25, y, x, y-25, x, y+25, "blue") },
+          { type: "Parallel", draw: (c, x, y) => drawTracks(c, x-25, y-10, x+25, y-10, x-25, y+10, x+25, y+10, "green") },
+          { type: "Skew", draw: (c, x, y) => drawTracks(c, x-25, y-18, x+25, y+18, x-25, y+18, x+25, y-18, "gray") }
+        ]
+      },
+      { id: 2, ammoType: "Perpendicular", targetSpeed: 0.8, slots: [
+          { type: "Skew", draw: (c, x, y) => drawTracks(c, x-25, y-12, x+25, y+12, x-12, y+20, x+12, y-20, "gray") },
+          { type: "Parallel", draw: (c, x, y) => drawTracks(c, x-10, y-25, x-10, y+25, x+10, y-25, x+10, y+25, "green") },
+          { type: "Perpendicular", draw: (c, x, y) => drawTracks(c, x-25, y, x+25, y, x, y-25, x, y+25, "blue") }
+        ]
+      },
+      { id: 3, ammoType: "Skew", targetSpeed: 1.1, slots: [
+          { type: "Skew", draw: (c, x, y) => drawTracks(c, x-25, y-18, x+25, y+18, x-25, y+18, x+25, y-18, "gray") },
+          { type: "Perpendicular", draw: (c, x, y) => drawTracks(c, x-25, y, x+25, y, x, y-25, x, y+25, "blue") },
+          { type: "Parallel", draw: (c, x, y) => drawTracks(c, x-25, y-10, x+25, y-10, x-25, y+10, x+25, y+10, "green") }
+        ]
+      },
+      { id: 4, ammoType: "Parallel", targetSpeed: 1.3, slots: [
+          { type: "Skew", draw: (c, x, y) => drawTracks(c, x-25, y-6, x+25, y+6, x-25, y+15, x+25, y-6, "gray") },
+          { type: "Parallel", draw: (c, x, y) => drawTracks(c, x-25, y-12, x+25, y-12, x-25, y+12, x+25, y+12, "green") },
+          { type: "Perpendicular", draw: (c, x, y) => drawTracks(c, x-22, y-22, x+22, y+22, x-22, y+22, x+22, y-22, "blue") }
+        ]
+      },
+      { id: 5, ammoType: "Perpendicular", targetSpeed: 1.6, slots: [
+          { type: "Perpendicular", draw: (c, x, y) => drawTracks(c, x-22, y+18, x-22, y-18, x-22, y+18, x+14, y+18, "blue") },
+          { type: "Parallel", draw: (c, x, y) => drawTracks(c, x-18, y-18, x+18, y+18, x-6, y-25, x+30, y+10, "green") },
+          { type: "Skew", draw: (c, x, y) => drawTracks(c, x-25, y-6, x+25, y+22, x-25, y+10, x+25, y-10, "gray") }
+        ]
+      },
+      { id: 6, ammoType: "Skew", targetSpeed: 1.8, slots: [
+          { type: "Parallel", draw: (c, x, y) => drawTracks(c, x-25, y-10, x+25, y-10, x-25, y+10, x+25, y+10, "green") },
+          { type: "Skew", draw: (c, x, y) => drawTracks(c, x-25, y-8, x+25, y-15, x-25, y+12, x+25, y+8, "gray") },
+          { type: "Perpendicular", draw: (c, x, y) => drawTracks(c, x-25, y, x+25, y, x, y-25, x, y+25, "blue") }
+        ]
+      },
+      { id: 7, ammoType: "Perpendicular", targetSpeed: 2.1, slots: [
+          { type: "Parallel", draw: (c, x, y) => drawTracks(c, x-25, y-12, x+25, y-12, x-25, y+12, x+25, y+12, "green") },
+          { type: "Skew", draw: (c, x, y) => drawTracks(c, x-25, y-25, x+10, y+25, x+35, y-25, x-10, y+25, "gray") },
+          { type: "Perpendicular", draw: (c, x, y) => drawTracks(c, x-22, y-22, x+22, y+22, x-22, y+22, x+22, y-22, "blue") }
+        ]
+      },
+      { id: 8, ammoType: "Skew", targetSpeed: 2.5, slots: [
+          { type: "Skew", draw: (c, x, y) => drawTracks(c, x-25, y-10, x+6, y+25, x+25, y-10, x-6, y+25, "gray") },
+          { type: "Perpendicular", draw: (c, x, y) => drawTracks(c, x-25, y, x+25, y, x, y-25, x, y+25, "blue") },
+          { type: "Parallel", draw: (c, x, y) => drawTracks(c, x-12, y-25, x-12, y+25, x+12, y-25, x+12, y+25, "green") }
+        ]
+      }
+    ];
+
+    function drawTracks(ctx, x1, y1, x2, y2, x3, y3, x4, y4, colorTheme = "brown") {
+      let railColor = "#6c7a89";
+      let tieColor = "#4a2c11";
+
+      if(colorTheme === "green") { railColor = "#2d6a4f"; tieColor = "#52b788"; }
+      else if(colorTheme === "blue") { railColor = "#03045e"; tieColor = "#00b4d8"; }
+      else if(colorTheme === "gray") { railColor = "#4a4e69"; tieColor = "#9a8c98"; }
+
+      function segment(xa, ya, xb, yb) {
+        const dx = xb - xa, dy = yb - ya;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const count = Math.floor(dist / 8);
+        const ang = Math.atan2(dy, dx), pang = ang + Math.PI/2;
+
+        ctx.strokeStyle = tieColor; ctx.lineWidth = 4.5;
+        for(let i=0; i<=count; i++) {
+          const r = i/count;
+          const cx = xa + dx*r, cy = ya + dy*r;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(pang)*8, cy + Math.sin(pang)*8);
+          ctx.lineTo(cx - Math.cos(pang)*8, cy - Math.sin(pang)*8);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = railColor; ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(xa + Math.cos(pang)*4, ya + Math.sin(pang)*4); ctx.lineTo(xb + Math.cos(pang)*4, yb + Math.sin(pang)*4);
+        ctx.moveTo(xa - Math.cos(pang)*4, ya - Math.sin(pang)*4); ctx.lineTo(xb - Math.cos(pang)*4, yb - Math.sin(pang)*4);
+        ctx.stroke();
+      }
+      segment(x1, y1, x2, y2);
+      if (x3 !== undefined) segment(x3, y3, x4, y4);
+    }
+
+    let currentLevelIndex = 0;
+    let lives = 3;
+    let gameActive = false;
+    let roundIsSuccess = false;
+    let screenShake = 0;
+
+    let trainX = -60;
+    const bridgeY = 210;
+    const gapStartX = 240;
+    const gapEndX = 390;
+
+    const cannonPos = { x: 380, y: 282 };
+    let dragStart = null;
+    let currentDrag = null;
+    let isDragging = false;
+
+    let activeProjectile = null;
+    let particles = [];
+    let runtimeSlots = [];
+
+    const canvas = document.getElementById("worldCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let audioCtx = null;
+    let bgMusicTimer = null;
+
+    function initAudioEngine() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        startTrainBackgroundMusic();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    // LOUDER chung-chung background music (volume increased to 0.65)
+    function startTrainBackgroundMusic() {
+      if(bgMusicTimer) clearInterval(bgMusicTimer);
+      bgMusicTimer = setInterval(() => {
+        if(!gameActive) return;
+        playNote(70, 0.06, 'triangle', 0, 0.08, 0.65);
+        playNote(50, 0.06, 'triangle', 0.05, 0.08, 0.65);
+        playNote(70, 0.06, 'triangle', 0.22, 0.08, 0.65);
+        playNote(50, 0.06, 'triangle', 0.27, 0.08, 0.65);
+      }, 480);
+    }
+
+    function playNote(freq, duration, type='sine', delay=0, falloff=0.08, customVolume = 0.65) {
+      if(!audioCtx) return;
+      setTimeout(() => {
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          gain.gain.setValueAtTime(customVolume, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration - 0.01);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(); osc.stop(audioCtx.currentTime + duration);
+        } catch(e){}
+      }, delay * 1000);
+    }
+
+    // LOUDER launch blast (volume increased to 0.45)
+    function audioLaunchBlast() {
+      if(!audioCtx) return;
+      try {
+        const bufferSize = audioCtx.sampleRate * 0.15, buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate), data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const source = audioCtx.createBufferSource(); source.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 400;
+        const gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.45, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+        source.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+        source.start();
+      } catch(e){}
+    }
+
+    // LOUDER impact crash (volume increased to 0.55)
+    function audioImpactCrash() {
+      playNote(140, 0.28, 'sawtooth', 0, 0.3, 0.55);
+      playNote(90, 0.32, 'sawtooth', 0.05, 0.3, 0.55);
+    }
+
+    // LOUDER match success (volume increased to 0.5)
+    function audioMatchSuccess() {
+      playNote(523.25, 0.09, 'sine', 0, 0.25, 0.5);
+      playNote(659.25, 0.09, 'sine', 0.06, 0.25, 0.5);
+      playNote(783.99, 0.18, 'sine', 0.12, 0.25, 0.5);
+      playNote(1046.50, 0.22, 'sine', 0.2, 0.25, 0.5);
+    }
+
+    function spawnPoofParticles(x, y, color, count=15) {
+      for(let i=0; i<count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 2;
+        particles.push({
+          x: x, y: y,
+          vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+          radius: Math.random() * 5 + 3,
+          alpha: 1, color: color
+        });
+      }
+    }
+
+    function initGame() {
+      initAudioEngine();
+      currentLevelIndex = 0;
+      lives = 3;
+      gameActive = true;
+      roundIsSuccess = false;
+      activeProjectile = null;
+      particles = [];
+      trainX = -60;
+      screenShake = 0;
+
+      document.getElementById("gameOverScreen").style.display = "none";
+      document.getElementById("victoryScreen").style.display = "none";
+      document.getElementById("confettiCanvas").style.display = "none";
+
+      setupLevelEnvironment(currentLevelIndex);
+    }
+
+    function setupLevelEnvironment(index) {
+      if (index >= STAGE_CONFIGS.length) {
+        triggerEndGameVictory();
+        return;
+      }
+      roundIsSuccess = false;
+      activeProjectile = null;
+      trainX = -60; 
+      
+      const config = STAGE_CONFIGS[index];
+      document.getElementById("ammoLabel").textContent = config.ammoType;
+      document.getElementById("ammoSymbol").textContent = config.ammoType === "Parallel" ? "〓" : config.ammoType === "Perpendicular" ? "⊥" : "Ｘ";
+
+      const horizontalSpacing = 160;
+      const startX = 220;
+      runtimeSlots = config.slots.map((s, idx) => {
+        return {
+          type: s.type,
+          draw: s.draw,
+          x: startX + idx * horizontalSpacing,
+          y: 50 + (Math.random() * 15),
+          radius: 40, 
+          dir: idx % 2 === 0 ? 1 : -1,
+          speed: config.targetSpeed,
+          active: true
+        };
+      });
+
+      updateHudDisplayPanels();
+    }
+
+    function updateHudDisplayPanels() {
+      document.getElementById("levelPill").textContent = `Level ${currentLevelIndex + 1}/${STAGE_CONFIGS.length}`;
+      let stars = "";
+      for (let i = 1; i <= 3; i++) stars += (i <= lives) ? "⭐" : "⚪";
+      document.getElementById("starPill").textContent = stars;
+    }
+
+    function getCanvasCoordinates(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rect.left) * (760 / rect.width),
+        y: (clientY - rect.top) * (300 / rect.height)
+      };
+    }
+
+    canvas.addEventListener("pointerdown", (e) => {
+      if (!gameActive || roundIsSuccess || activeProjectile) return;
+      initAudioEngine();
+      
+      const pos = getCanvasCoordinates(e);
+      if (Math.hypot(pos.x - cannonPos.x, pos.y - cannonPos.y) < 75) {
+        dragStart = { x: cannonPos.x, y: cannonPos.y };
+        currentDrag = { x: pos.x, y: pos.y };
+        isDragging = true;
+        canvas.setPointerCapture(e.pointerId);
+      }
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+      if (!isDragging) return;
+      currentDrag = getCanvasCoordinates(e);
+    });
+
+    canvas.addEventListener("pointerup", (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      canvas.releasePointerCapture(e.pointerId);
+
+      const dx = dragStart.x - currentDrag.x;
+      const dy = dragStart.y - currentDrag.y;
+      const dragDistance = Math.hypot(dx, dy);
+
+      if (dragDistance > 15) {
+        const powerScalar = Math.min(dragDistance * 0.12, 14);
+        const angleRad = Math.atan2(dy, dx);
+
+        audioLaunchBlast();
+        activeProjectile = {
+          x: cannonPos.x,
+          y: cannonPos.y - 15,
+          vx: Math.cos(angleRad) * powerScalar,
+          vy: Math.sin(angleRad) * powerScalar,
+          radius: 12
+        };
+      }
+      dragStart = null;
+      currentDrag = null;
+    });
+
+    function checkTargetCollisions(proj) {
+      for (let i = 0; i < runtimeSlots.length; i++) {
+        const slot = runtimeSlots[i];
+        if (!slot.active) continue;
+
+        const distance = Math.hypot(proj.x - slot.x, proj.y - slot.y);
+        if (distance <= slot.radius + proj.radius) {
+          evaluateHitResult(slot);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function evaluateHitResult(hitSlot) {
+      const config = STAGE_CONFIGS[currentLevelIndex];
+      activeProjectile = null;
+
+      if (hitSlot.type === config.ammoType) {
+        audioMatchSuccess();
+        spawnPoofParticles(hitSlot.x, hitSlot.y, "var(--success-green)", 25);
+        screenShake = 12;
+        roundIsSuccess = true;
+      } else {
+        audioImpactCrash();
+        spawnPoofParticles(hitSlot.x, hitSlot.y, "var(--alert-red)", 20);
+        screenShake = 8;
+        hitSlot.active = false; 
+        
+        lives--;
+        updateHudDisplayPanels();
+
+        if (lives <= 0) {
+          gameActive = false;
+          document.getElementById("gameOverScreen").style.display = "flex";
+        }
+      }
+    }
+
+    function gameLoopTick() {
+      ctx.save();
+      if (screenShake > 0) {
+        const dx = (Math.random() * 2 - 1) * screenShake;
+        const dy = (Math.random() * 2 - 1) * screenShake;
+        ctx.translate(dx, dy);
+        screenShake *= 0.88;
+        if (screenShake < 0.5) screenShake = 0;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#74c69d"; ctx.fillRect(0, bridgeY + 18, canvas.width, canvas.height);
+      
+      ctx.fillStyle = "#0077b6"; ctx.fillRect(gapStartX, bridgeY + 18, gapEndX - gapStartX, 46);
+
+      drawTracks(ctx, 0, bridgeY, gapStartX, bridgeY);
+      drawTracks(ctx, gapEndX, bridgeY, canvas.width, bridgeY);
+
+      if (roundIsSuccess) {
+        drawTracks(ctx, gapStartX, bridgeY, gapEndX, bridgeY);
+      }
+
+      if (gameActive && !roundIsSuccess) {
+        runtimeSlots.forEach(slot => {
+          if (!slot.active) return;
+
+          slot.x += slot.speed * slot.dir;
+          if (slot.x > canvas.width - 45) { slot.dir = -1; slot.x = canvas.width - 45; }
+          if (slot.x < 45) { slot.dir = 1; slot.x = 45; }
+
+          ctx.save();
+          ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,0.18)";
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#222222"; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI*2);
+          ctx.fill(); ctx.stroke();
+          ctx.restore();
+
+          ctx.save();
+          slot.draw(ctx, slot.x, slot.y);
+          ctx.restore();
+        });
+      }
+
+      if (gameActive && !roundIsSuccess && !isDragging) {
+        ctx.save();
+        const pulse = 24 + Math.sin(performance.now() * 0.008) * 6;
+        ctx.strokeStyle = "rgba(255, 183, 3, 0.65)";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(cannonPos.x, cannonPos.y, pulse, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (isDragging && dragStart && currentDrag) {
+        const dx = dragStart.x - currentDrag.x;
+        const dy = dragStart.y - currentDrag.y;
+        const pullDist = Math.hypot(dx, dy);
+
+        if (pullDist > 12) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(217, 4, 41, 0.75)"; ctx.lineWidth = 4;
+          ctx.setLineDash([4, 4]);
+          
+          const angleRad = Math.atan2(dy, dx);
+          const power = Math.min(pullDist * 0.12, 14);
+          
+          ctx.beginPath();
+          ctx.moveTo(cannonPos.x, cannonPos.y - 15);
+          ctx.lineTo(cannonPos.x + Math.cos(angleRad) * power * 18, (cannonPos.y - 15) + Math.sin(angleRad) * power * 18);
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.strokeStyle = "#111111"; ctx.lineWidth = 4.5;
+          ctx.beginPath();
+          ctx.moveTo(cannonPos.x - 20, cannonPos.y - 20); ctx.lineTo(currentDrag.x, currentDrag.y);
+          ctx.moveTo(cannonPos.x + 20, cannonPos.y - 20); ctx.lineTo(currentDrag.x, currentDrag.y);
+          ctx.stroke();
+        }
+      }
+
+      ctx.save();
+      ctx.translate(cannonPos.x, cannonPos.y);
+      ctx.fillStyle = "#111111";
+      ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI, true); ctx.fill();
+      ctx.fillStyle = "#ecf0f1"; 
+      ctx.beginPath(); ctx.arc(0, -10, 6, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      if (activeProjectile) {
+        activeProjectile.x += activeProjectile.vx;
+        activeProjectile.y += activeProjectile.vy;
+        activeProjectile.vy += 0.16; 
+
+        ctx.save();
+        ctx.fillStyle = "var(--gold-star)"; ctx.strokeStyle = "#11"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(activeProjectile.x, activeProjectile.y, activeProjectile.radius, 0, Math.PI*2);
+        ctx.fill(); ctx.stroke();
+        
+        ctx.fillStyle = "#222"; ctx.font = "bold 14px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+        const bulletSym = document.getElementById("ammoSymbol").textContent;
+        ctx.fillText(bulletSym, activeProjectile.x, activeProjectile.y + 1);
+        ctx.restore();
+
+        const collided = checkTargetCollisions(activeProjectile);
+        if (!collided && (activeProjectile.y > canvas.height || activeProjectile.x > canvas.width || activeProjectile.x < 0)) {
+          activeProjectile = null;
+        }
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy; p.alpha -= 0.03;
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+        } else {
+          ctx.save();
+          ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      if (gameActive) {
+        if (roundIsSuccess) {
+          trainX += 4.8;
+          if (trainX > canvas.width + 60) {
+            currentLevelIndex++;
+            setupLevelEnvironment(currentLevelIndex);
+          }
+        } else {
+          trainX += 0.22;
+          if (trainX + 45 >= gapStartX && trainX + 15 <= gapEndX) {
+            gameActive = false;
+            document.getElementById("gameOverScreen").style.display = "flex";
+          }
+        }
+      }
+
+      drawTrainAsset(ctx, trainX, bridgeY - 15);
+
+      ctx.restore(); 
+      requestAnimationFrame(gameLoopTick);
+    }
+
+    function drawTrainAsset(ctx, x, y) {
+      ctx.save();
+      const vibrationY = (gameActive && !roundIsSuccess) ? Math.sin(performance.now() * 0.05) * 1.5 : 0;
+      
+      ctx.fillStyle = "#d90429"; ctx.fillRect(x, y + vibrationY, 48, 22); 
+      ctx.fillStyle = "#118ab2"; ctx.fillRect(x + 30, y - 8 + vibrationY, 15, 10); 
+      ctx.fillStyle = "#06d6a0"; ctx.fillRect(x + 4, y - 12 + vibrationY, 18, 14); 
+       
+      ctx.fillStyle = "#fff"; ctx.fillRect(x + 7, y - 8 + vibrationY, 5, 7);
+      ctx.fillStyle = "#fff"; ctx.fillRect(x + 14, y - 8 + vibrationY, 5, 7);
+       
+      ctx.fillStyle = "#1e2229";
+      ctx.beginPath();
+      ctx.arc(x + 12, y + 22 + vibrationY, 6, 0, Math.PI*2);
+      ctx.arc(x + 36, y + 22 + vibrationY, 6, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function startConfettiTimeline() {
+      const c = document.getElementById("confettiCanvas"); c.style.display = "block";
+      const cctx = c.getContext("2d");
+      const bounds = gameContainer.getBoundingClientRect();
+      c.width = bounds.width; c.height = bounds.height;
+
+      const items = [];
+      const colors = ['#ff5d8f', '#ffd23f', '#43c463', '#4cc9f0', '#9b5de5'];
+      for(let i=0; i<100; i++) {
+        items.push({
+          x: Math.random() * c.width, y: Math.random() * c.height - c.height,
+          r: Math.random()*4 + 4, d: Math.random()*c.height, color: colors[i % colors.length],
+          tilt: Math.random()*10 - 5, v: 2.2 + Math.random()*2
+        });
+      }
+
+      requestAnimationFrame(function frame() {
+        if(c.style.display === "none") return;
+        cctx.clearRect(0,0,c.width,c.height);
+        items.forEach(p => {
+          p.y += p.v; p.x += Math.sin(p.y * 0.02);
+          if(p.y > c.height) { p.y = -12; p.x = Math.random()*c.width; }
+          cctx.beginPath(); cctx.lineWidth = p.r; cctx.strokeStyle = p.color;
+          cctx.moveTo(p.x + p.tilt + p.r/2, p.y); cctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r/2);
+          cctx.stroke();
+        });
+        requestAnimationFrame(frame);
+      });
+    }
+
+    function triggerEndGameVictory() {
+      gameActive = false;
+      document.getElementById("victoryScreen").style.display = "flex";
+      startConfettiTimeline();
+      [261.6, 329.6, 392.0, 523.3, 659.3, 784.0].forEach((f, i) => playNote(f, 0.25, 'triangle', i * 0.08, 0.2, 0.6));
+    }
+
+    document.getElementById("topResetBtn").addEventListener("click", initGame);
+    document.getElementById("retryBtn").addEventListener("click", initGame);
+    document.getElementById("victoryBtn").addEventListener("click", initGame);
+
+    initGame();
+    requestAnimationFrame(gameLoopTick);
+  </script>
+</body>
+</html>

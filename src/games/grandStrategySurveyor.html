@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<!-- saved from url=(0043)file:///C:/Users/angel/Downloads/math6.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imboni y'Imibare: Grand Strategy Surveyor</title>
+    <style>
+        :root {
+            --sky-blue: #0ea5e9;
+            --sunny-yellow: #f59e0b;
+            --emerald-green: #10b981;
+            --coral-red: #ef4444;
+            --soft-bg: #f0fdfa;
+            --card-white: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--soft-bg); color: var(--text-main); padding: 20px; }
+        
+        .game-wrapper { max-width: 950px; margin: 20px auto; background: var(--card-white); border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(15, 118, 110, 0.15); border: 4px solid #ccfbf1; }
+        
+        /* Vibrant Rainbow Top Ribbon */
+        .color-ribbon { height: 8px; display: flex; }
+        .rb-blue { background: var(--sky-blue); flex: 2; }
+        .rb-yellow { background: var(--sunny-yellow); flex: 1; }
+        .rb-green { background: var(--emerald-green); flex: 1; }
+
+        /* Bright Dashboard Panel */
+        .hud-top { background: #f8fafc; padding: 24px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 3px solid #e2e8f0; gap: 15px; }
+        .profile { display: flex; align-items: center; gap: 15px; }
+        .badge-icon { font-size: 2.5rem; background: #e0f2fe; padding: 8px; border-radius: 12px; border: 2px solid #bae6fd; }
+        .metrics-cluster { display: flex; gap: 12px; }
+        .stat-badge { background: var(--card-white); color: var(--text-main); padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 2px solid #e2e8f0; }
+        
+        /* Interactive Progress Tracking Gauge */
+        .progress-container { background: #f1f5f9; padding: 16px 24px; border-bottom: 2px solid #e2e8f0; display: flex; align-items: center; gap: 20px; }
+        .progress-bar-bg { flex: 1; height: 16px; background: #e2e8f0; border-radius: 8px; overflow: hidden; position: relative; border: 1px solid #cbd5e1; }
+        .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--sky-blue), var(--emerald-green)); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Core Layout Grid Splits */
+        .main-arena { display: grid; grid-template-columns: 1fr; }
+        @media (min-width: 768px) { .main-arena { grid-template-columns: 320px 1fr; } }
+        
+        .sidebar-narrative { background: #f8fafc; border-right: 2px solid #e2e8f0; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+        .npc-box { background: var(--card-white); border: 2px solid var(--sky-blue); padding: 18px; border-radius: 14px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.08); }
+        .npc-title { color: var(--sky-blue); font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .npc-quote { font-style: italic; font-size: 0.95rem; color: #334155; line-height: 1.4; }
+
+        .interactive-stage { padding: 30px; display: flex; flex-direction: column; justify-content: space-between; gap: 25px; background: var(--card-white); }
+        .sandbox-display { background: #f8fafc; border: 3px dashed #cbd5e1; border-radius: 16px; padding: 30px; text-align: center; position: relative; }
+        
+        /* Vibrant Mathematical Typo Elements */
+        .math-statement { font-size: 2.4rem; font-weight: 700; font-family: 'Trebuchet MS', sans-serif; color: #0f172a; margin: 20px 0; }
+        .math-statement sup { color: var(--sky-blue); }
+        
+        .options-stack { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 20px; }
+        @media (min-width: 550px) { .options-stack { grid-template-columns: 1fr 1fr; } }
+        
+        /* Fun Interactive Button Actions */
+        .action-node-btn { background: var(--card-white); color: var(--text-main); border: 2px solid #cbd5e1; padding: 16px; font-size: 1.1rem; font-weight: 700; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .action-node-btn:hover { background: #f0fdf4; border-color: var(--emerald-green); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+        .action-node-btn.correct-glow { background: #dcfce7 !important; border-color: var(--emerald-green) !important; color: #15803d !important; font-size: 1.2rem; }
+        .action-node-btn.wrong-glow { background: #fee2e2 !important; border-color: var(--coral-red) !important; color: #b91c1c !important; }
+
+        /* Colorful Feedbacks Systems Logs */
+        .log-panel { padding: 20px; border-radius: 12px; font-size: 1rem; display: none; line-height: 1.6; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .log-panel.success { display: block; background: #dcfce7; border: 2px solid var(--emerald-green); color: #166534; }
+        .log-panel.error { display: block; background: #fee2e2; border: 2px solid var(--coral-red); color: #991b1b; }
+
+        /* Lower Control Footer Bridge */
+        .deck-footer { background: #f8fafc; padding: 20px 30px; border-top: 2px solid #e2e8f0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; }
+        .btn-prime { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px 30px; border-radius: 12px; font-weight: 800; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .btn-prime:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4); filter: brightness(1.05); }
+        .btn-prime:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+    </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+    <!-- Colorful Top border aesthetic -->
+    <div class="color-ribbon"><div class="rb-blue"></div><div class="rb-yellow"></div><div class="rb-green"></div></div>
+    
+    <!-- MASTER HUD DASHBOARD HEADER -->
+    <div class="hud-top">
+        <div class="profile">
+            <div class="badge-icon">🌟</div>
+            <div>
+                <h1 style="font-size:1.4rem; font-weight:800; color:#0f172a;">National Math Surveyor Quest</h1>
+                <p style="font-size:0.9rem; color:var(--text-muted);">Development Campaign</p>
+            </div>
+        </div>
+        <div class="metrics-cluster">
+            <div class="stat-badge" id="hud-tier" style="border-color:#bae6fd; background:#f0f9ff; color:#0369a1;">Rank: Rookie Cadet 🌟</div>
+            <div class="stat-badge" id="hud-total-xp" style="border-color:#fde047; background:#fef9c3; color:#a16207;">Total: 0 XP</div>
+        </div>
+    </div>
+
+    <!-- LEVEL PROGRESS DECK INDICATORS GAUGE -->
+    <div class="progress-container">
+        <span style="font-size:0.95rem; font-weight:800; color:#334155;" id="progress-label">Province Map Progress:</span>
+        <div class="progress-bar-bg"><div id="progress-fill" class="progress-bar-fill" style="width: 100%;"></div></div>
+        <span style="font-size:0.95rem; font-weight:800; color:var(--sunny-yellow);" id="progress-text">Ready to Go!</span>
+    </div>
+
+    <!-- WORKSPACE RUNTIME DIVISION SPLIT ARENA -->
+    <div class="main-arena">
+        
+        <!-- SIDEBAR NARRATIVE MODULE -->
+        <div class="sidebar-narrative">
+            <h3 style="font-size:1.1rem; border-bottom:3px solid #e2e8f0; padding-bottom:8px; color:#0f172a;" id="sidebar-prov-title">Welcome to Capital City Operations Command!</h3>
+            <div class="npc-box">
+                <div class="npc-title" id="npc-role">Chief Training Coordinator</div>
+                <div class="npc-quote" id="npc-dialogue">"Hi there! We are modernizing infrastructure files across four major provinces. Complete your calculations to help us sync everything!"</div>
+            </div>
+            <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; font-weight:500;" id="sidebar-context-brief">Initialize map routing profiles for deployment.</div>
+        </div>
+
+        <!-- MAIN INTERACTIVE LABORATORY STAGE COMPONENT -->
+        <div class="interactive-stage">
+            <div id="stage-viewport-upper">
+                <h2 style="font-size:1.4rem; margin-bottom:6px; color:#0f172a;" id="puzzle-header-title">Welcome to Capital City Operations Command!</h2>
+                <p style="font-size:0.95rem; color:var(--text-muted); margin-bottom:20px;" id="puzzle-instructions">Check your current mission guidelines below.</p>
+                
+                <div class="sandbox-display">
+                    <div id="math-arena-display" class="math-statement"><div style="text-align:center; line-height:1.7;">
+                            <p style="color:var(--text-main); font-size:1.1rem; font-weight:600; margin-bottom:15px;">Your bright quest tracker link is active!</p>
+                            <p style="color:var(--text-muted);">You will tour across 4 unique zones. You need to gather <strong>300 Experience Points (XP) per province</strong> to fully secure them. Let's start scanning the grid!</p>
+                        </div></div>
+                    <div id="options-arena-container" class="options-stack"></div>
+                </div>
+            </div>
+
+            <!-- EXPLANATION SUB LOG ENGINE PANEL FEEDBACK -->
+            <div id="resolution-log-panel" class="log-panel" style="display: none;"></div>
+
+            <!-- LOWER CONTROL ACTION FOOTER DECK BAR -->
+            <div class="deck-footer">
+                <span style="font-size:0.9rem; color:var(--text-muted); font-weight:600;" id="control-hint-text">Click the button to accept the mission updates.</span>
+                <button class="btn-prime" id="master-control-btn" onclick="triggerEngineStep()">Continue Onward!</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // CORE DYNAMIC LOOP STATE ENGINE MANAGEMENT DATA VARIABLES
+    let game = {
+        tierIndex: 0, 
+        levelXPEarned: 0,
+        levelXPTarget: 300, // 300 XP to win means longer sessions per province
+        globalXPAccumulated: 0,
+        
+        hasCommittedAnswer: false,
+        activeQuestionObj: null,
+        interactionStepState: 'narrative'
+    };
+
+    // CURRICULUM MATHEMATICS CALCULATIONS ALGORITHMIC PROBLEMS ENGINE
+    const mathEngine = {
+        generateSetsQuestion: function() {
+            const themes = ['nat_set', 'int_set', 'rat_set', 'subset_statement'];
+            let mode = themes[Math.floor(Math.random() * themes.length)];
+            
+            if (mode === 'nat_set') {
+                let val = Math.floor(Math.random() * 50);
+                return {
+                    question: `Sort this cargo unit number: <br><span style="color:var(--sky-blue); font-weight:800;">${val}</span>`,
+                    choices: ["Natural Number Set (ℕ)", "Negative Integer Only (ℤ)", "Irrational Number Profile", "None of these sets apply"],
+                    correct: "Natural Number Set (ℕ)",
+                    walkthrough: `The counting number ${val} is a positive whole value, making it a proud member of the Natural Numbers set (ℕ).`
+                };
+            } else if (mode === 'int_set') {
+                let val = (Math.floor(Math.random() * 30) + 1) * -1;
+                return {
+                    question: `Sort this baseline temperature log: <br><span style="color:var(--sky-blue); font-weight:800;">${val}</span>`,
+                    choices: ["Natural Number Set (ℕ)", "Integer (ℤ) but not Natural", "Irrational Constant", "Non-Real Matrix Block"],
+                    correct: "Integer (ℤ) but not Natural",
+                    walkthrough: `Negative whole numbers like ${val} aren't in Natural Numbers (ℕ) but are included cleanly in Integers (ℤ).`
+                };
+            } else if (mode === 'rat_set') {
+                let num = Math.floor(Math.random() * 9) + 1;
+                let den = Math.floor(Math.random() * 7) + 2;
+                if (num % den === 0) num++; // strip smooth down reductions out
+                return {
+                    question: `Sort this scale indicator weight fraction: <br><span style="color:var(--sky-blue); font-weight:800;">${num}/${den}</span>`,
+                    choices: ["Natural count element (ℕ)", "Integer line target (ℤ)", "Rational fraction format (ℚ)", "Irrational cosmic constant"],
+                    correct: "Rational fraction format (ℚ)",
+                    walkthrough: `Any true fraction value where the top and bottom items are both integers belongs inside the Rational Numbers set (ℚ).`
+                };
+            } else {
+                return {
+                    question: "Which of these foundational number statements is completely true?",
+                    choices: ["ℕ is a subset of ℤ (ℕ ⊂ ℤ)", "ℤ is a subset of ℕ (ℤ ⊂ ℕ)", "ℚ excludes whole numbers", "Real numbers exclude fractions"],
+                    correct: "ℕ is a subset of ℤ (ℕ ⊂ ℤ)",
+                    walkthrough: "Since all natural numbers are positive integers, the Natural system is nested entirely inside the Integer boundary (ℕ ⊂ ℤ)."
+                };
+            }
+        },
+
+        generateEquationsQuestion: function() {
+            let x = Math.floor(Math.random() * 8) + 2;
+            let a = Math.floor(Math.random() * 6) + 2;
+            let b = Math.floor(Math.random() * 12) + 1;
+            let operator = Math.random() > 0.5 ? '+' : '-';
+            let c = (operator === '+') ? (a * x) + b : (a * x) - b;
+
+            let questionString = `Balance the line equations grid: <br> <span style="color:var(--emerald-green); font-weight:800;">${a}x ${operator} ${b} = ${c}</span>`;
+            let w1 = x + 2;
+            let w2 = Math.max(1, x - 1);
+            let w3 = Math.floor((c + b) / a) + 1;
+
+            let opts = Array.from(new Set([x, w1, w2, w3])).map(v => `x = ${v}`);
+            opts.sort(() => Math.random() - 0.5);
+
+            let explanation = operator === '+' ? 
+                `1. Subtract ${b} from both sides to sort terms: ${a}x = ${c} - ${b} &rarr; ${a}x = ${c - b}.<br>2. Divide across by multiplier ${a}: x = ${c - b} &divide; ${a} &rarr; x = ${x}.` :
+                `1. Add ${b} to both sides to sort terms: ${a}x = ${c} + ${b} &rarr; ${a}x = ${c + b}.<br>2. Divide across by multiplier ${a}: x = ${c + b} &divide; ${a} &rarr; x = ${x}.`;
+
+            return {
+                question: questionString,
+                choices: opts,
+                correct: `x = ${x}`,
+                walkthrough: explanation
+            };
+        },
+
+        generateIndicesQuestion: function() {
+            let base = Math.floor(Math.random() * 3) + 2; 
+            let p1 = Math.floor(Math.random() * 3) + 2; 
+            let p2 = Math.floor(Math.random() * 2) + 1; 
+            let taskType = Math.random() > 0.5 ? 'multiply' : 'divide';
+
+            if (taskType === 'multiply') {
+                let ansPower = p1 + p2;
+                let realAnsValue = Math.pow(base, ansPower);
+                let badValue = Math.pow(base, p1 * p2);
+
+                let choicesList = [`${realAnsValue}`, `${badValue}`, `${base * ansPower}`, `${realAnsValue + base}`];
+                choicesList = Array.from(new Set(choicesList)).sort(() => Math.random() - 0.5);
+
+                return {
+                    question: `Simplify the matching power blocks expression: <br> <span style="color:var(--sunny-yellow); font-weight:800;">${base}<sup>${p1}</sup> &times; ${base}<sup>${p2}</sup></span>`,
+                    choices: choicesList,
+                    correct: `${realAnsValue}`,
+                    walkthrough: `When multiplying identical base terms, add their exponent powers together: ${base}<sup>${p1} + ${p2}</sup> = ${base}<sup>${ansPower}</sup> = ${realAnsValue}.`
+                };
+            } else {
+                let ansPower = p1;
+                let parentPower = p1 + p2;
+                let realAnsValue = Math.pow(base, ansPower);
+                let badValue = Math.pow(base, Math.floor(parentPower / p2));
+
+                let choicesList = [`${realAnsValue}`, `${badValue}`, `${base * ansPower}`, `${Math.pow(base, parentPower + p2)}`];
+                choicesList = Array.from(new Set(choicesList)).sort(() => Math.random() - 0.5);
+
+                return {
+                    question: `Simplify the matching power blocks expression: <br> <span style="color:var(--sunny-yellow); font-weight:800;">${base}<sup>${parentPower}</sup> &divide; ${base}<sup>${p2}</sup></span>`,
+                    choices: choicesList,
+                    correct: `${realAnsValue}`,
+                    walkthrough: `When dividing identical base terms, subtract the second exponent power from the first: ${base}<sup>${parentPower} - ${p2}</sup> = ${base}<sup>${ansPower}</sup> = ${realAnsValue}.`
+                };
+            }
+        },
+
+        generateInequalitiesQuestion: function() {
+            let xSol = Math.floor(Math.random() * 5) + 3;
+            let a = Math.floor(Math.random() * 4) + 2;
+            let b = Math.floor(Math.random() * 8) + 1;
+            let symbol = Math.random() > 0.5 ? '≤' : '≥';
+            
+            let c = (symbol === '≤') ? (a * xSol) + b : (a * xSol) - b;
+            let questionString = `Solve the safe limits range boundary inequality: <br> <span style="color:var(--coral-red); font-weight:800;">${a}x ${symbol === '≤' ? '+' : '-'} ${b} ${symbol} ${c}</span>`;
+            
+            let correctOption = `x ${symbol} ${xSol}`;
+            let wrong1 = `x ${symbol === '≤' ? '≥' : '≤'} ${xSol}`;
+            let wrong2 = `x ${symbol} ${xSol + 2}`;
+            let wrong3 = `x ${symbol === '≤' ? '≥' : '≤'} ${Math.max(1, xSol - 1)}`;
+
+            let opts = Array.from(new Set([correctOption, wrong1, wrong2, wrong3])).sort(() => Math.random() - 0.5);
+            let walkthroughText = symbol === '≤' ?
+                `1. Subtract the constant parameter ${b} from both sides: ${a}x ≤ ${c} - ${b} &rarr; ${a}x ≤ ${c - b}.<br>2. Divide across by multiplier value ${a}: x ≤ ${c - b} &divide; ${a} &rarr; x ≤ ${xSol}.` :
+                `1. Add the constant parameter ${b} to both sides: ${a}x ≥ ${c} + ${b} &rarr; ${a}x ≥ ${c + b}.<br>2. Divide across by multiplier value ${a}: x ≥ ${c + b} &divide; ${a} &rarr; x ≥ ${xSol}.`;
+
+            return {
+                question: questionString,
+                choices: opts,
+                correct: correctOption,
+                walkthrough: walkthroughText
+            };
+        }
+    };
+
+    // REGIONAL CHRONICLE CONTENT CONFIG BLUEPRINTS
+    const levelsRegistry = [
+        {
+            phaseKey: "prologue",
+            title: "Welcome to Capital City Operations Command!",
+            role: "Chief Training Coordinator",
+            brief: "Initialize map routing profiles for deployment.",
+            dialogue: "Hi there! We are modernizing infrastructure files across four major provinces. Complete your calculations to help us sync everything!",
+            renderStage: function() {
+                return `<div style='text-align:center; line-height:1.7;'>
+                            <p style='color:var(--text-main); font-size:1.1rem; font-weight:600; margin-bottom:15px;'>Your bright quest tracker link is active!</p>
+                            <p style='color:var(--text-muted);'>You will tour across 4 unique zones. You need to gather <strong>300 Experience Points (XP) per province</strong> to fully secure them. Let's start scanning the grid!</p>
+                        </div>`;
+            }
+        },
+        {
+            phaseKey: "eastern_province",
+            title: "Eastern Province - Bright Cargo Center",
+            role: "Logistics Team Leader",
+            brief: "Filter manifest codes into their exact real number set types (Senior 1 Unit 1).",
+            dialogue: "Greetings! Our digital sorting tags got scrambled. Help us classify these inventory codes into clear mathematical subsets!",
+            generatorMethod: "generateSetsQuestion"
+        },
+        {
+            phaseKey: "northern_province",
+            title: "Northern Province - Water Systems Hub",
+            role: "Hydro Valve Operator",
+            brief: "Isolate equations terms variables to level off line pipeline valves (Senior 1 Unit 3).",
+            dialogue: "High mountain pressure loops need structural monitoring. Isolate the 'x' values to keep the flows steady and clean!",
+            generatorMethod: "generateEquationsQuestion"
+        },
+        {
+            phaseKey: "southern_province",
+            title: "Southern Province - Green Power Arrays",
+            role: "Solar Array Controller",
+            brief: "Apply matching-base indices operations rules to balance grid voltages (Senior 2 Unit 1).",
+            dialogue: "Our solar arrays output fluctuating currents. Run matching base indices combinations to sync electricity paths!",
+            generatorMethod: "generateIndicesQuestion"
+        },
+        {
+            phaseKey: "western_province",
+            title: "Western Province - Lakeside Eco Port",
+            role: "Harbor Security Director",
+            brief: "Calculate multi-variable inequalities to confirm safe boat weight levels (Senior 2 Unit 4).",
+            dialogue: "Ferry transport lines must check weight ranges before cruising. Confirm the safety limit indices right away!",
+            generatorMethod: "generateInequalitiesQuestion"
+        },
+        {
+            phaseKey: "epilogue",
+            title: "Grand Campaign Victory Celebration!",
+            role: "National Mission Director",
+            brief: "Accept the Golden Badge of Analytical Excellence.",
+            dialogue: "Splendid job, Master Surveyor! Your mathematical calculations verified records perfectly across all four borders!",
+            renderStage: function() {
+                return `<div style='text-align:center;'>
+                            <h3 style='color:var(--sunny-yellow); font-size:2rem; margin-bottom:15px;'>🎉 All Regions Cleared!</h3>
+                            <p style='color:var(--text-main); font-weight:600; max-width:600px; margin:0 auto; line-height:1.7;'>
+                                You solved every problem and cleared all dynamic math sectors successfully. You are officially a Champion Analytics Surveyor!
+                            </p>
+                        </div>`;
+            }
+        }
+    ];
+
+    // ROUTER DESIGN MANAGEMENT MECHANICS SYSTEM
+    function updateHUDInterface() {
+        let activeConfig = levelsRegistry[game.tierIndex];
+        
+        document.getElementById('sidebar-prov-title').innerText = activeConfig.title.split(' - ')[0];
+        document.getElementById('npc-role').innerText = activeConfig.role;
+        document.getElementById('npc-dialogue').innerText = `"${activeConfig.dialogue}"`;
+        document.getElementById('sidebar-context-brief').innerText = activeConfig.brief;
+
+        document.getElementById('hud-total-xp').innerText = `Total: ${game.globalXPAccumulated} XP`;
+        
+        let rankText = "Rookie Cadet 🌟";
+        if(game.globalXPAccumulated >= 1000) rankText = "Master Math Champion 👑";
+        else if(game.globalXPAccumulated >= 600) rankText = "Elite Lead Surveyor 🚀";
+        else if(game.globalXPAccumulated >= 300) rankText = "Expert Field Analyst ⚡";
+        document.getElementById('hud-tier').innerText = `Rank: ${rankText}`;
+
+        if(activeConfig.phaseKey === 'prologue' || activeConfig.phaseKey === 'epilogue') {
+            document.getElementById('progress-fill').style.width = "100%";
+            document.getElementById('progress-text').innerText = "Ready to Go!";
+        } else {
+            let percentageValue = (game.levelXPEarned / game.levelXPTarget) * 100;
+            document.getElementById('progress-fill').style.width = `${percentageValue}%`;
+            document.getElementById('progress-text').innerText = `${game.levelXPEarned} / ${game.levelXPTarget} XP`;
+        }
+    }
+
+    function triggerEngineStep() {
+        let activeConfig = levelsRegistry[game.tierIndex];
+        let cBtn = document.getElementById('master-control-btn');
+        let resolutionPanel = document.getElementById('resolution-log-panel');
+
+        if (game.interactionStepState === 'narrative') {
+            resolutionPanel.style.display = 'none';
+            
+            if (activeConfig.generatorMethod) {
+                game.interactionStepState = 'puzzle';
+                game.hasCommittedAnswer = false;
+                
+                document.getElementById('puzzle-header-title').innerText = "Analyzing Live Field Challenge Matrix...";
+                document.getElementById('puzzle-instructions').innerText = "Take a close look at the question below, then select the bright button with the correct solution range!";
+                
+                game.activeQuestionObj = mathEngine[activeConfig.generatorMethod]();
+                document.getElementById('math-arena-display').innerHTML = game.activeQuestionObj.question;
+
+                let optsContainer = document.getElementById('options-arena-container');
+                optsContainer.innerHTML = '';
+
+                game.activeQuestionObj.choices.forEach(val => {
+                    let btnEl = document.createElement('button');
+                    btnEl.className = "action-node-btn";
+                    btnEl.innerHTML = val;
+                    btnEl.onclick = function() { processPlayerAnswerSelection(this, val); };
+                    optsContainer.appendChild(btnEl);
+                });
+
+                cBtn.innerText = "Waiting for selection...";
+                cBtn.disabled = true;
+                document.getElementById('control-hint-text').innerText = "Pick an answer choice above to run diagnostic tests.";
+            } else {
+                if(activeConfig.phaseKey === 'epilogue') {
+                    game.tierIndex = 0;
+                    game.globalXPAccumulated = 0;
+                } else {
+                    game.tierIndex++;
+                }
+                game.levelXPEarned = 0;
+                setupCurrentWorkflowPhase();
+            }
+        } else if (game.interactionStepState === 'resolution') {
+            if (game.levelXPEarned >= game.levelXPTarget) {
+                game.tierIndex++;
+                game.levelXPEarned = 0;
+                game.interactionStepState = 'narrative';
+                setupCurrentWorkflowPhase();
+            } else {
+                game.interactionStepState = 'narrative';
+                triggerEngineStep();
+            }
+        }
+    }
+
+    function processPlayerAnswerSelection(selectedBtnRef, clickedStringText) {
+        if (game.hasCommittedAnswer) return; 
+        game.hasCommittedAnswer = true;
+
+        let logBox = document.getElementById('resolution-log-panel');
+        let masterBtn = document.getElementById('master-control-btn');
+        let targetTrueAnswer = game.activeQuestionObj.correct;
+
+        document.querySelectorAll('.action-node-btn').forEach(b => {
+            if(b.innerHTML === targetTrueAnswer) {
+                b.classList.add('correct-glow');
+            }
+        });
+
+        if (clickedStringText === targetTrueAnswer) {
+            game.levelXPEarned += 50; 
+            game.globalXPAccumulated += 50;
+            
+            logBox.className = "log-panel success";
+            logBox.innerHTML = `<strong>✨ FANTASTIC JOB! (+50 XP)</strong> Excellent job! Your choice fits perfectly.<br>💡 <em>Steps:</em> ${game.activeQuestionObj.walkthrough}`;
+        } else {
+            selectedBtnRef.classList.add('wrong-glow');
+            logBox.className = "log-panel error";
+            logBox.innerHTML = `<strong>OUPHE, NOT QUITE! (0 XP)</strong> Let's adjust our math scales. Check out how to solve it:<br>💡 <em>Steps:</em> ${game.activeQuestionObj.walkthrough}`;
+        }
+
+        updateHUDInterface();
+        game.interactionStepState = 'resolution';
+        masterBtn.disabled = false;
+        
+        if (game.levelXPEarned >= game.levelXPTarget) {
+            masterBtn.innerText = "Travel to Next Region! ->";
+            document.getElementById('control-hint-text').innerText = "Woohoo! You earned enough points to unlock the next destination.";
+        } else {
+            masterBtn.innerText = "Try Another Problem! ->";
+            document.getElementById('control-hint-text').innerText = "Read through the solution hint above to sharpen your skills for the next round.";
+        }
+    }
+
+    function setupCurrentWorkflowPhase() {
+        let activeConfig = levelsRegistry[game.tierIndex];
+        
+        document.getElementById('puzzle-header-title').innerText = activeConfig.title;
+        document.getElementById('puzzle-instructions').innerText = "Check your current mission guidelines below.";
+        
+        let displayBox = document.getElementById('math-arena-display');
+        let optionsWrapper = document.getElementById('options-arena-container');
+        optionsWrapper.innerHTML = '';
+        document.getElementById('resolution-log-panel').style.display = 'none';
+
+        if (activeConfig.renderStage) {
+            displayBox.innerHTML = activeConfig.renderStage();
+        } else {
+            displayBox.innerHTML = `<div style='font-size:1.2rem; line-height:1.6; padding:10px; color:var(--text-main); font-weight:600;'>
+                                        Connected to the local province sector computer! <br>
+                                        <span style='color:var(--sky-blue); font-weight:800;'>Target objective: Score 300 points here to clear the map.</span>
+                                    </div>`;
+        }
+
+        let controlBtn = document.getElementById('master-control-btn');
+        controlBtn.disabled = false;
+        controlBtn.innerText = (activeConfig.phaseKey === 'prologue' || activeConfig.phaseKey === 'epilogue') ? "Continue Onward!" : "Start Map Scanning!";
+        document.getElementById('control-hint-text').innerText = "Click the button to accept the mission updates.";
+
+        updateHUDInterface();
+    }
+
+    window.onload = function() {
+        setupCurrentWorkflowPhase();
+    };
+</script>
+
+
+</body></html>

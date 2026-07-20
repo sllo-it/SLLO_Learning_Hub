@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Match Master - Cartoon Edition</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        p.subtitle {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+        }
+
+        .score-board {
+            background: var(--card-bg);
+            padding: 10px 20px;
+            border-radius: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .score { color: var(--success); }
+        .timer { color: var(--primary); }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .column-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 3px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 110px;
+            height: 120px;
+        }
+
+        .body-art {
+            width: 75px;
+            height: 75px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card:hover:not(.matched):not(.selected) {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 6px 12px rgba(74, 144, 226, 0.15);
+        }
+
+        .card.selected {
+            border-color: var(--primary);
+            background-color: #ebf5ff;
+            transform: scale(1.02);
+        }
+
+        .card.matched {
+            background-color: #e8f8f0;
+            border-color: var(--success);
+            color: #27ae60;
+            cursor: default;
+            animation: pop 0.3s ease;
+        }
+
+        .card.wrong {
+            background-color: #fdedec;
+            border-color: var(--error);
+            color: var(--error);
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        .win-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            text-align: center;
+            z-index: 10;
+            animation: pop 0.4s ease;
+        }
+
+        .win-message h2 {
+            color: var(--success);
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #357abd;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Body Match Master! 🎨</h1>
+        <p class="subtitle">Primary 6 English Vocabulary Game</p>
+    </header>
+
+    <div class="score-board">
+        <div>Matches: <span id="score" class="score">0</span> / 6</div>
+        <div>Time: <span id="timer" class="timer">0s</span></div>
+    </div>
+
+    <div class="game-container">
+        <div class="column">
+            <div class="column-title">1. Look at the Picture</div>
+            <div id="image-column"></div>
+        </div>
+        
+        <div class="column">
+            <div class="column-title">2. Choose English Name</div>
+            <div id="word-column"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="win-message" id="win-message">
+        <h2>Баяр хүргэе! 🎉</h2>
+        <p>Wonderful work! You matched all the anatomy diagrams correctly.</p>
+        <p id="final-time" style="margin-top: 10px; font-weight: bold;"></p>
+        <button class="btn" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <script>
+        const dataset = [
+            { 
+                id: 1, 
+                word: "Eye", 
+                svg: `<svg class="body-art" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="42" ry="25" fill="#fff" stroke="#333" stroke-width="4"/><circle cx="50" cy="50" r="18" fill="#4a90e2"/><circle cx="50" cy="50" r="9" fill="#000"/><circle cx="54" cy="46" r="4" fill="#fff"/></svg>` 
+            },
+            { 
+                id: 2, 
+                word: "Hand", 
+                svg: `<svg class="body-art" viewBox="0 0 100 100"><path d="M30,70 V50 C30,45 35,42 38,47 V30 C38,25 44,25 44,30 V45 V23 C44,18 50,18 50,23 V45 V20 C50,15 56,15 56,20 V45 V26 C56,21 62,21 62,26 V55 C62,65 55,75 45,75 H35 Z" fill="#ffdbac" stroke="#333" stroke-width="4" stroke-linejoin="round"/><path d="M30,60 C22,60 18,52 24,48 L32,44" fill="none" stroke="#333" stroke-width="4" stroke-linecap="round"/></svg>` 
+            },
+            { 
+                id: 3, 
+                word: "Foot", 
+                svg: `<svg class="body-art" viewBox="0 0 100 100"><path d="M40,25 C45,20 55,20 58,28 C62,35 60,45 64,55 C67,62 72,66 72,72 C72,82 60,82 50,82 C35,82 28,75 28,65 C28,50 35,32 40,25 Z" fill="#ffdbac" stroke="#333" stroke-width="4" stroke-linejoin="round"/><circle cx="56" cy="22" r="5" fill="#ffdbac" stroke="#333" stroke-width="2"/><circle cx="64" cy="27" r="4" fill="#ffdbac" stroke="#333" stroke-width="2"/><circle cx="69" cy="34" r="3.5" fill="#ffdbac" stroke="#333" stroke-width="2"/><circle cx="72" cy="42" r="3" fill="#ffdbac" stroke="#333" stroke-width="2"/><circle cx="74" cy="50" r="2.5" fill="#ffdbac" stroke="#333" stroke-width="2"/></svg>` 
+            },
+            { 
+                id: 4, 
+                word: "Ear", 
+                svg: `<svg class="body-art" viewBox="0 0 100 100"><path d="M40,25 C55,15 75,25 70,45 C66,55 72,65 65,75 C55,85 40,75 42,65" fill="#ffdbac" stroke="#333" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M52,38 C62,35 64,48 58,52 C52,55 54,65 48,62" fill="none" stroke="#333" stroke-width="3" stroke-linecap="round"/></svg>` 
+            },
+            { 
+                id: 5, 
+                word: "Nose", 
+                svg: `<svg class="body-art" viewBox="0 0 100 100"><path d="M45,25 C45,25 42,55 36,65 C32,72 42,76 50,75 C58,76 68,72 64,65 C58,55 55,25 55,25" fill="#ffdbac" stroke="#333" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/><path d="M42,68 C45,71 55,71 58,68" fill="none" stroke="#333" stroke-width="3" stroke-linecap="round"/></svg>` 
+            },
+            { 
+                id: 6, 
+                word: "Mouth", 
+                svg: `<svg class="body-art" viewBox="0 0 100 100"><path d="M20,50 C30,35 45,38 50,42 C55,38 70,35 80,50 C70,68 30,68 20,50 Z" fill="#ff6b6b" stroke="#333" stroke-width="4" stroke-linejoin="round"/><path d="M20,50 C35,52 45,50 50,52 C55,50 65,52 80,50" fill="none" stroke="#333" stroke-width="3"/></svg>` 
+            }
+        ];
+
+        let selectedImageCard = null;
+        let selectedWordCard = null;
+        let matchesFound = 0;
+        let startTime = null;
+        let timerInterval = null;
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('timer').innerText = elapsedTime + 's';
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function initGame() {
+            const imageCol = document.getElementById('image-column');
+            const wordCol = document.getElementById('word-column');
+            imageCol.innerHTML = '';
+            wordCol.innerHTML = '';
+            
+            matchesFound = 0;
+            document.getElementById('score').innerText = '0';
+            document.getElementById('timer').innerText = '0s';
+            document.getElementById('win-message').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+
+            const shuffledImages = shuffle([...dataset]);
+            const shuffledWords = shuffle([...dataset]);
+
+            shuffledImages.forEach(item => {
+                const card = document.createElement('div');
+                card.classList.add('card', 'image-card');
+                card.dataset.id = item.id;
+                card.innerHTML = item.svg;
+                card.addEventListener('click', () => handleCardClick(card, 'image'));
+                imageCol.appendChild(card);
+            });
+
+            shuffledWords.forEach(item => {
+                const card = document.createElement('div');
+                card.classList.add('card', 'word-card');
+                card.dataset.id = item.id;
+                card.innerText = item.word;
+                card.addEventListener('click', () => handleCardClick(card, 'word'));
+                wordCol.appendChild(card);
+            });
+
+            startTimer();
+        }
+
+        function handleCardClick(card, type) {
+            if (card.classList.contains('matched')) return;
+
+            if (type === 'image') {
+                if (selectedImageCard) selectedImageCard.classList.remove('selected');
+                selectedImageCard = card;
+                card.classList.add('selected');
+            } else {
+                if (selectedWordCard) selectedWordCard.classList.remove('selected');
+                selectedWordCard = card;
+                card.classList.add('selected');
+            }
+
+            if (selectedImageCard && selectedWordCard) {
+                const imgId = selectedImageCard.dataset.id;
+                const wordId = selectedWordCard.dataset.id;
+
+                if (imgId === wordId) {
+                    selectedImageCard.classList.remove('selected');
+                    selectedWordCard.classList.remove('selected');
+                    selectedImageCard.classList.add('matched');
+                    selectedWordCard.classList.add('matched');
+                    
+                    matchesFound++;
+                    document.getElementById('score').innerText = matchesFound;
+                    
+                    selectedImageCard = null;
+                    selectedWordCard = null;
+
+                    if (matchesFound === dataset.length) {
+                        handleWin();
+                    }
+                } else {
+                    const tempImg = selectedImageCard;
+                    const tempWord = selectedWordCard;
+                    
+                    tempImg.classList.add('wrong');
+                    tempWord.classList.add('wrong');
+                    
+                    selectedImageCard.classList.remove('selected');
+                    selectedWordCard.classList.remove('selected');
+                    selectedImageCard = null;
+                    selectedWordCard = null;
+
+                    setTimeout(() => {
+                        tempImg.classList.remove('wrong');
+                        tempWord.classList.remove('wrong');
+                    }, 400);
+                }
+            }
+        }
+
+        function handleWin() {
+            stopTimer();
+            const finalTimeText = document.getElementById('timer').innerText;
+            document.getElementById('final-time').innerText = `Completed in: ${finalTimeText}`;
+            document.getElementById('win-message').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function resetGame() {
+            stopTimer();
+            initGame();
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>

@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help the Lost Animal - Discovery Edition</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --primary-dark: #388E3C;
+            --accent: #FFC107;
+            --danger: #FF5722;
+            --text-dark: #2C3E50;
+            --ui-bg: rgba(255, 255, 255, 0.96);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: background 0.8s ease-in-out;
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        .env-meadow { background: linear-gradient(to bottom, #74b9ff, #55efc4); }
+        .env-sky { background: linear-gradient(to bottom, #0984e3, #74b9ff); }
+        .env-forest { background: linear-gradient(to bottom, #2ecc71, #27ae60); }
+        .env-danger { background: linear-gradient(to bottom, #2d3436, #d63031); }
+        .env-home { background: linear-gradient(to bottom, #ffeaa7, #fab1a0); }
+
+        #game-container {
+            width: 100%;
+            max-width: 750px;
+            background: var(--ui-bg);
+            border-radius: 24px;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.3);
+            border: 4px solid #FFF;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(4px);
+            transition: all 0.5s ease;
+        }
+
+        #audio-panel {
+            background: #FFFDE7;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px dashed #FFF59D;
+            font-size: 0.95rem;
+            font-weight: bold;
+        }
+
+        .audio-controls-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .sound-status-icon {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #5D4037;
+        }
+
+        #top-bar {
+            background: #FFF;
+            padding: 15px 20px;
+            border-bottom: 4px dashed #C8E6C9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .hud-item {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #F5F5F5;
+            padding: 6px 12px;
+            border-radius: 12px;
+        }
+
+        .hud-timer-alert {
+            background: #FFEBEE !important;
+            color: var(--danger) !important;
+            animation: shake-heavy 0.5s infinite;
+        }
+
+        #current-tracker-ui {
+            background: #E8F5E9;
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: bold;
+        }
+
+        .btn-pause {
+            background: var(--accent);
+            border: none;
+            color: var(--text-dark);
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #D5A000;
+        }
+        .btn-pause:active { transform: translateY(2px); box-shadow: 0 1px 0 #D5A000; }
+
+        .btn-audio {
+            background: #63c2de;
+            border: none;
+            color: white;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #3993a9;
+        }
+        .btn-audio:active { transform: translateY(2px); box-shadow: 0 1px 0 #3993a9; }
+        .btn-audio.muted { background: #90a4ae; box-shadow: 0 3px 0 #607d8b; }
+
+        #stage-canvas-container {
+            margin: 15px;
+            position: relative;
+            border: 4px dashed var(--primary);
+            border-radius: 20px;
+            height: 240px;
+            overflow: hidden;
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.2);
+            background-color: #ECEFF1;
+        }
+
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .drag-instructions {
+            position: absolute;
+            bottom: 8px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #2C3E50;
+            background: rgba(255, 255, 255, 0.75);
+            padding: 2px 0;
+            font-weight: bold;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+            z-index: 20;
+        }
+
+        .live-avatar-display {
+            font-size: 4rem;
+            position: absolute;
+            left: calc(50% - 2.5rem);
+            top: calc(50% - 2.5rem);
+            width: 5rem;
+            height: 5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            cursor: grab;
+            background: #FFFFFF;
+            border: 4px solid #FFF;
+            border-radius: 50%;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+            transform-origin: center;
+            will-change: transform, top, left;
+            touch-action: none;
+        }
+        
+        .live-avatar-display:active { cursor: grabbing; }
+
+        .live-expression-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 1.8rem;
+            background: #FFF;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 15;
+            pointer-events: none;
+        }
+
+        .state-idle { animation: float-slow 3s ease-in-out infinite; }
+        .state-happy { animation: bounce-happy 0.35s ease infinite alternate; border-color: var(--primary); }
+        .state-scared { animation: shake-heavy 0.25s infinite; border-color: var(--accent); }
+        .state-sad { animation: sink-sad 2s infinite alternate; border-color: var(--danger); }
+
+        #progress-path {
+            display: flex;
+            justify-content: space-between;
+            background: #F1F8E9;
+            padding: 12px 20px;
+            border-bottom: 2px solid #E0E0E0;
+        }
+
+        .path-node {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #E0E0E0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #FFF;
+            transition: all 0.3s ease;
+        }
+
+        .path-node.active {
+            background: var(--accent);
+            transform: scale(1.15);
+            box-shadow: 0 0 10px rgba(255,193,7,0.6);
+            color: var(--text-dark);
+        }
+
+        .path-node.done { background: var(--primary); }
+
+        .screen {
+            display: none;
+            padding: 25px 30px 30px 30px;
+            animation: fadeIn 0.4s ease-in-out;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 380px;
+        }
+
+        .screen.active { display: flex; }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 0px #FFF, 2px 2px 0px #C8E6C9;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+        }
+
+        p.story-text {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            color: #455A64;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+            width: 100%;
+        }
+
+        .kinyarwanda-text {
+            display: block;
+            font-style: italic;
+            font-size: 0.95rem;
+            color: #546E7A;
+            margin-top: 4px;
+            font-weight: normal;
+        }
+
+        .btn-main {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 36px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0px var(--primary-dark);
+            transition: all 0.1s ease;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            margin-top: 15px;
+        }
+
+        .btn-main:hover { transform: translateY(2px); box-shadow: 0 4px 0px var(--primary-dark); }
+        .btn-main:active { transform: translateY(6px); box-shadow: 0 0px 0px var(--primary-dark); }
+
+        .speaker-btn {
+            background: #FFF;
+            border: 3px solid #B0BEC5;
+            border-radius: 50%;
+            width: 46px;
+            height: 46px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            box-shadow: 0 3px 0 #B0BEC5;
+        }
+
+        .options-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 500px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+        .option-card {
+            background: #FFF;
+            border: 3px solid #CFD8DC;
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #CFD8DC;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 4px;
+        }
+
+        .option-card:hover {
+            border-color: var(--primary);
+            background: #FAFAFA;
+            transform: translateY(-2px);
+        }
+
+        .option-card.selected { background: #E8F5E9; border-color: var(--primary); }
+        .option-emoji { font-size: 2.2rem; color: #78909C; }
+        
+        .ans-rw {
+            font-size: 0.9rem;
+            font-style: italic;
+            color: #546E7A;
+            font-weight: normal;
+        }
+
+        .sentence-box {
+            font-size: 1.3rem;
+            background: #FFFDE7;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px dashed #FFF59D;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .blank-space {
+            display: inline-block;
+            min-width: 150px;
+            border-bottom: 3px solid var(--text-dark);
+            color: var(--primary-dark);
+            font-weight: bold;
+            padding: 0 10px;
+            text-align: center;
+        }
+
+        #feedback-area {
+            display: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 16px;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1.15rem;
+            text-align: center;
+        }
+
+        .fb-correct { background: #E8F5E9; border: 3px solid var(--primary); color: var(--primary-dark); }
+        .fb-wrong { background: #FFEBEE; border: 3px solid var(--danger); color: var(--danger); }
+
+        #pause-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 20px;
+        }
+
+        .badge-rack { display: flex; gap: 12px; justify-content: center; margin: 15px 0; }
+        .badge-icon { font-size: 2.2rem; background: #FFF9C4; width: 55px; height: 55px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 3px solid var(--accent); opacity: 0.3; transition: all 0.4s ease; }
+        .badge-icon.earned { opacity: 1; transform: scale(1.1) rotate(5deg); }
+        .review-list { width: 100%; text-align: left; margin-top: 20px; max-height: 180px; overflow-y: auto; background: #F5F5F5; padding: 15px; border-radius: 12px; }
+        .review-item { padding: 10px; border-bottom: 1px solid #E0E0E0; font-size: 1rem; }
+        .review-status-tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; margin-right: 8px; }
+        .tag-correct { background: #C8E6C9; color: var(--primary-dark); }
+        .tag-wrong { background: #FFCDD2; color: var(--danger); }
+        .theme-panel { background: rgba(255,255,255,0.9); border: 2px solid #E0E0E0; border-radius: 16px; padding: 20px; width: 100%; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes float-slow { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-6px) rotate(1deg); } }
+        @keyframes bounce-happy { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+        @keyframes shake-heavy { 0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-2px, 1px); } 40% { transform: translate(2px, -1px); } }
+        @keyframes sink-sad { 0% { transform: translateY(0); } 100% { transform: translateY(5px); } }
+    </style>
+</head>
+<body class="env-meadow">
+
+    <div id="game-container">
+        <div id="pause-overlay">
+            <h1 style="color: var(--accent); text-shadow: none;">Game Paused</h1>
+            <h2 style="color: #ECEFF1;">Umugenzo Uhagaritswe Umwanya</h2>
+            <p style="margin-bottom: 20px; text-align: center;">Take a deep breath! The lost animal is safely waiting for you.</p>
+            <button class="btn-main" style="background: var(--accent); color: var(--text-dark); box-shadow: 0 5px 0 #D5A000;" onclick="togglePauseGame()">
+                <span>Resume Game ▶️</span>
+                <span class="sub-lang">Komeza Umukino</span>
+            </button>
+        </div>
+
+        <div id="audio-panel">
+            <div class="sound-status-icon" id="audio-status-label">🎵 Playful Background Music Active</div>
+            <div class="audio-controls-group">
+                <button id="btn-audio-toggle" class="btn-audio" onclick="toggleBackgroundAudio()">🔊 Mute Music</button>
+                <button class="btn-pause" onclick="togglePauseGame()">⏸️ Pause Game</button>
+            </div>
+        </div>
+
+        <div id="top-bar">
+            <div class="hud-item" id="timer-wrapper">⏱️ <span id="timer-val">05:00</span></div>
+            <div id="current-tracker-ui">
+                <span>Rescuing:</span>
+                <span id="global-avatar" style="font-size: 1.4rem;">❓</span>
+                <span id="global-name">Animal</span>
+            </div>
+            <div class="hud-item">⭐ Score: <span id="score-val">0</span>/8</div>
+        </div>
+
+        <div id="progress-path">
+            <div class="path-node" id="node-0">1</div>
+            <div class="path-node" id="node-1">2</div>
+            <div class="path-node" id="node-2">3</div>
+            <div class="path-node" id="node-3">4</div>
+            <div class="path-node" id="node-4">5</div>
+            <div class="path-node" id="node-5">6</div>
+            <div class="path-node" id="node-6">7</div>
+            <div class="path-node" id="node-7">8</div>
+        </div>
+
+        <div id="screen-welcome" class="screen active">
+            <h1>Help the Lost Animal</h1>
+            <h2 style="font-size: 1.2rem; color: #546E7A; margin-top:-5px;">Fasha Inyamaswa Yataye Umuryango</h2>
+            <div style="font-size: 5rem; margin: 15px 0; animation: float-slow 4s infinite;">🌳🏡✨</div>
+            <p class="story-text">
+                Welcome, Little Helper! A baby creature is lost in the nature world. Can you find them and guide them back home safely?
+                <span class="kinyarwanda-text">Murakaza neza, Mufasha Muto! Akana k'inyamaswa kataye umuryango mu mashyamba. Mbese wamufasha gukataza agasubira mu rugo amahoro?</span>
+            </p>
+            <button class="btn-main" onclick="startIntroStage()">
+                <span>Let's Explore! 🚀</span>
+                <span class="sub-lang">Ingaho Ntabara!</span>
+            </button>
+        </div>
+
+        <div id="screen-intro" class="screen">
+            <h2>Look! Who is here?</h2>
+            <h2 style="font-size: 1.2rem; color: #546E7A; margin-top:-15px;">Yego ko! Umva uyu ni inde?</h2>
+            <div style="background: white; width: 110px; height: 110px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(0,0,0,0.1); margin: 15px 0;">
+                <div id="intro-avatar" style="font-size: 4.5rem; animation: bounce-happy 0.5s infinite alternate;">❓</div>
+            </div>
+            <div class="theme-panel">
+                <p id="intro-story-msg" class="story-text" style="border: none; background: transparent; padding: 0; margin-bottom: 0;"></p>
+            </div>
+            <button class="btn-main" onclick="startGameplay()">
+                <span>Help Them Get Home! ❤️</span>
+                <span class="sub-lang">Mufasha Gutaha!</span>
+            </button>
+        </div>
+
+        <div id="screen-gameplay" class="screen">
+            <div id="stage-canvas-container" style="width: 100%;">
+                <canvas id="game-canvas" width="700" height="240"></canvas>
+                
+                <div id="live-animal-character" class="live-avatar-display state-idle">
+                    <span id="live-animal-emoji">❓</span>
+                    <div id="live-expression-indicator" class="live-expression-badge"></div>
+                </div>
+                <div class="drag-instructions">👋 Move me to explore / Nshingura unyambure!</div>
+            </div>
+
+            <div>
+                <button class="speaker-btn" onclick="triggerAudioClue()" title="Listen to question">🔊</button>
+                <h3 id="level-indicator-title" style="color: var(--primary-dark); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">LEVEL 1</h3>
+                <h2 id="question-text-box" style="margin-bottom: 5px; font-size: 1.35rem;">Question prompt?</h2>
+                <div id="question-kinyarwanda-box" class="kinyarwanda-text" style="font-size:1.05rem; margin-bottom: 15px; font-weight: bold;">Kinyarwanda text...</div>
+            </div>
+
+            <div id="interaction-zone" style="width: 100%;"></div>
+            <div id="feedback-area">Feedback</div>
+
+            <button id="next-action-btn" class="btn-main" style="display: none;" onclick="advanceGameProgress()">
+                <span>Next Clue ➡️</span>
+                <span class="sub-lang">Ikimenyetso Gikurikira</span>
+            </button>
+        </div>
+
+        <div id="screen-timeout" class="screen">
+            <h1 style="color: var(--danger);">Time is Up! ⏱️</h1>
+            <h2 style="color: #546E7A;">Igihe Kirangiye!</h2>
+            <div style="font-size: 5rem; margin:15px 0;">😢🌲🌧️</div>
+            <p class="story-text" style="border-left-color: var(--danger);">Oh no! Time ran out. Let's try again to rescue them!</p>
+            <button class="btn-main" style="background: var(--danger); box-shadow: 0 6px 0 #D84315;" onclick="resetWholeGamePlaythrough()">
+                <span>Try Again 🔄</span>
+                <span class="sub-lang">Ongera Ugerageze</span>
+            </button>
+        </div>
+
+        <div id="screen-rescue" class="screen">
+            <h1 id="rescue-header-title">Safe at Home!</h1>
+            <h2 id="rescue-header-subtitle" style="font-size: 1.2rem; color: #546E7A; margin-top:-5px;">Yageze mu rugo amahoro!</h2>
+            <div id="rescue-avatar" style="font-size: 5.5rem; margin: 15px 0; animation: bounce-happy 0.4s infinite alternate;">🎉</div>
+            <p id="rescue-story-end" class="story-text"></p>
+            
+            <h3>Your Earned Tokens:</h3>
+            <div class="badge-rack">
+                <div class="badge-icon" id="b-1">🌱</div>
+                <div class="badge-icon" id="b-2">🧬</div>
+                <div class="badge-icon" id="b-3">🛡️</div>
+                <div class="badge-icon" id="b-4">👑</div>
+            </div>
+
+            <button class="btn-main" onclick="showSummaryReview()">
+                <span>See Final Score Summary 📊</span>
+                <span class="sub-lang">Reba Incamake Y'amanota</span>
+            </button>
+        </div>
+
+        <div id="screen-review" class="screen">
+            <h2>Classroom Report Card</h2>
+            <div class="theme-panel" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left;">
+                <div><strong>Rank / Urwego:</strong> <br><span id="summary-rank" style="color: var(--primary-dark); font-weight: bold;">-</span></div>
+                <div><strong>Time Left / Igihe:</strong> <br><span id="summary-time">-</span></div>
+                <div><strong>Correct / Nibyo:</strong> <br>👍 <span id="summary-correct">-</span></div>
+                <div><strong>Incorrect / Sabyo:</strong> <br>🔴 <span id="summary-wrong">-</span></div>
+            </div>
+            <div class="review-list" id="summary-review-box"></div>
+            <button class="btn-main" style="background: var(--accent); color: var(--text-dark); box-shadow: 0 6px 0 #FBC02D;" onclick="resetWholeGamePlaythrough()">
+                <span>Play Again 🔄</span>
+                <span class="sub-lang">Kina Ubwa Kabiri</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let isGamePaused = false;
+        let isAudioMuted = false;
+        let melodyInterval = null;
+        let melodyNoteIndex = 0;
+        let dynamicTempoMs = 450; 
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                startBackgroundMusic();
+            }
+        }
+
+        function toggleBackgroundAudio() {
+            initAudioContext();
+            isAudioMuted = !isAudioMuted;
+            const btn = document.getElementById("btn-audio-toggle");
+            const label = document.getElementById("audio-status-label");
+            
+            if (isAudioMuted) {
+                btn.textContent = "🔇 Unmute Music";
+                btn.classList.add("muted");
+                label.textContent = "🔇 Background Music Muted";
+            } else {
+                btn.textContent = "🔊 Mute Music";
+                btn.classList.remove("muted");
+                label.textContent = "🎵 Playful Background Music Active";
+            }
+        }
+
+        function adaptMusicTempo(currentLevelIdx) {
+            let targetTempo = (currentLevelIdx === 4 || currentLevelIdx === 5) ? 220 : 450;
+            if (dynamicTempoMs !== targetTempo) {
+                dynamicTempoMs = targetTempo;
+                if (melodyInterval) {
+                    clearInterval(melodyInterval);
+                    startBackgroundMusic();
+                }
+            }
+        }
+
+        function startBackgroundMusic() {
+            if (!audioCtx) return;
+            const dynamicMelody = [261.63, 293.66, 329.63, 349.23, 392.00, 349.23, 329.63, 293.66];
+            
+            melodyInterval = setInterval(() => {
+                if (isGamePaused || isAudioMuted || !audioCtx || audioCtx.state === 'suspended') return;
+                
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'triangle'; 
+                osc.frequency.setValueAtTime(dynamicMelody[melodyNoteIndex], now);
+                
+                gain.gain.setValueAtTime(0.02, now); 
+                gain.gain.exponentialRampToValueAtTime(0.001, now + (dynamicTempoMs / 1000) * 0.8);
+                
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + (dynamicTempoMs / 1000) * 0.9);
+                
+                melodyNoteIndex = (melodyNoteIndex + 1) % dynamicMelody.length;
+            }, dynamicTempoMs);
+        }
+
+        function playHarmonicChime(type) {
+            if (!audioCtx || isAudioMuted) return;
+            const now = audioCtx.currentTime;
+            if (type === "correct") {
+                [523.25, 659.25, 783.99].forEach((f, i) => {
+                    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                    o.frequency.setValueAtTime(f, now + i*0.08);
+                    g.gain.setValueAtTime(0.08, now + i*0.08);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + i*0.08 + 0.25);
+                    o.connect(g).connect(audioCtx.destination);
+                    o.start(now + i*0.08); o.stop(now + i*0.08 + 0.3);
+                });
+            } else {
+                [220.00, 180.00].forEach((f, i) => {
+                    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                    o.frequency.setValueAtTime(f, now + i*0.12);
+                    g.gain.setValueAtTime(0.12, now + i*0.12);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + i*0.12 + 0.3);
+                    o.connect(g).connect(audioCtx.destination);
+                    o.start(now + i*0.12); o.stop(now + i*0.12 + 0.35);
+                });
+            }
+        }
+
+        const ANIMAL_POOL = [
+            { id: "bee", name: "baby bee", rwName: "agapinge k'uruyuki", emoji: "🐝", group: "Insect", rwGroup: "Gakoko", movement: "fly", rwMovement: "kuguruka", clue: "stripes", rwClue: "imirongo", home: "hive", rwHome: "umuvumu", avoid: "spider", rwAvoid: "itangangurirwa", favPlace: "flowers", rwFavPlace: "indabo", helper: "butterfly", rwHelper: "ikinyugunyugu", wrongClues: [{e: "long wet tail", r: "umurizo muremure mubi"}, {e: "thick wool coat", r: "ubwoya bwinshi buyaga"}, {e: "sharp hard shells", r: "igikonoshwa gikomeye cyane"}], wrongGroups: [{e: "Bird", r: "Inyoni"}, {e: "Mammal", r: "Inyamaswa y'amashereka"}, {e: "Arachnid", r: "Itangangurirwa"}], wrongPlaces: [{e: "deep river", r: "uruzi rugari"}, {e: "dry desert", r: "ubutayu bwumye"}, {e: "dark cave bottom", r: "ikuzimu mu buvumo"}], wrongHelpers: [{e: "lizard", r: "umuserebanya"}, {e: "hungry frog", r: "igikeri gishonje"}, {e: "big hornet", r: "ivubi ry'inkazi"}] },
+            { id: "bird", name: "baby bird", rwName: "akanyoni gato", emoji: "🐦", group: "Bird", rwGroup: "Inyoni", movement: "fly", rwMovement: "kuguruka", clue: "feathers", rwClue: "amoya mato", home: "nest", rwHome: "icyari", avoid: "cat", rwAvoid: "pusi", favPlace: "tree branches", rwFavPlace: "amashami y'igiti", helper: "owl", rwHelper: "igihunyira", wrongClues: [{e: "fish scales", r: "amakorogoto y'ifi"}, {e: "slimy skin", r: "uruhu runyerera cyane"}, {e: "heavy horns", r: "amahembe aremereye"}], wrongGroups: [{e: "Insect", r: "Gakoko"}, {e: "Mammal", r: "Inyamaswa y'amashereka"}, {e: "Arachnid", r: "Itangangurirwa"}], wrongPlaces: [{e: "under mud", r: "muri mazi n'icyope"}, {e: "ocean floor", r: "ikuzimu mu nyanja"}, {e: "hot volcano side", r: "irushanwa ry'ikirunga"}], wrongHelpers: [{e: "fox", r: "imbwebwe"}, {e: "wild snake", r: "inzoka y'inkazi"}, {e: "climbing rat", r: "imbeba y'igiti"}] },
+            { id: "duck", name: "baby duck", rwName: "akana k'imbata", emoji: "🦆", group: "Bird", rwGroup: "Inyoni", movement: "swim", rwMovement: "kwoga", clue: "webbed feet", rwClue: "ibirenge bijejereye", home: "pond", rwHome: "ikidendezi", avoid: "fox", rwAvoid: "imbwebwe", favPlace: "cool lake", rwFavPlace: "ikiyaga gikonje", helper: "swan", rwHelper: "icyone", wrongClues: [{e: "thick wool fur", r: "ubwoya bwinshi bugaragara"}, {e: "spiky needles", r: "amahwa ababa cyane"}, {e: "soft feelers", r: "amahembe y'uruyuki"}], wrongGroups: [{e: "Insect", r: "Gakoko"}, {e: "Mammal", r: "Inyamaswa y'amashereka"}, {e: "Arachnid", r: "Itangangurirwa"}], wrongPlaces: [{e: "dry desert", r: "ubutayu bwumye"}, {e: "tall mountain peaks", r: "isonga y'umusozi"}, {e: "dusty farm road", r: "umuhanda w'ukungu"}], wrongHelpers: [{e: "crocodile", r: "ingona y'inkazi"}, {e: "snapping turtle", r: "akanyamasyo k'inkazi"}, {e: "big river hawk", r: "icyiyoni gihiga"}] },
+            { id: "rabbit", name: "baby rabbit", rwName: "akana k'urukwavu", emoji: "🐇", group: "Mammal", rwGroup: "Inyamaswa y'amashereka", movement: "hop", rwMovement: "gusimbuka", clue: "long ears", rwClue: "amatwi maremure", home: "burrow", rwHome: "umwobo", avoid: "wolf", rwAvoid: "ibirura", favPlace: "clover fields", rwFavPlace: "urwuri rw'ubwatsi", helper: "deer", rwHelper: "isha", wrongClues: [{e: "snail shell", r: "igikonoshwa cy'ikinyamushongo"}, {e: "gills for water", r: "amadozi yo kwogera"}, {e: "glowing tail", r: "umurizo umurika ucyeye"}], wrongGroups: [{e: "Bird", r: "Inyoni"}, {e: "Insect", r: "Gakoko"}, {e: "Arachnid", r: "Itangangurirwa"}], wrongPlaces: [{e: "lake floor", r: "pansi mu mazi"}, {e: "cloudy sky", r: "mu birere n'ibicu"}, {e: "deep ocean cave", r: "ubuvumo bwo mu nyanja"}], wrongHelpers: [{e: "hunting dog", r: "imbwa ihiga"}, {e: "wild badger", r: "isidha ry'ishyamba"}, {e: "mountain eagle", r: "inkazi y'ikinyoni"}] }
+        ];
+
+        let selectedAnimal = null, countdownTimer = null, totalSecondsLeft = 300, score = 0, currentQuestionIndex = 0, levelQuestionData = [], studentAnswersHistory = [], currentAvatarState = "idle", idleTimerTracker = null;
+        let isDraggingCharacter = false, characterOffsetX = 0, characterOffsetY = 0;
+
+        function togglePauseGame() {
+            if (document.getElementById("screen-gameplay").classList.contains("active")) {
+                isGamePaused = !isGamePaused;
+                document.getElementById("pause-overlay").style.display = isGamePaused ? "flex" : "none";
+                if (isGamePaused) {
+                    clearInterval(countdownTimer);
+                    clearTimeout(idleTimerTracker);
+                } else {
+                    resumeTimerClock();
+                    resetIdleTimerWatcher();
+                }
+            }
+        }
+
+        function resetIdleTimerWatcher() {
+            clearTimeout(idleTimerTracker);
+            if (!isGamePaused) {
+                idleTimerTracker = setTimeout(() => { triggerAudioClue(); }, 180000);
+            }
+        }
+
+        function initializeDraggableSystem() {
+            const stage = document.getElementById("stage-canvas-container");
+            const character = document.getElementById("live-animal-character");
+
+            function startDrag(e) {
+                if (isGamePaused) return;
+                isDraggingCharacter = true; initAudioContext(); resetIdleTimerWatcher();
+                const cX = e.touches ? e.touches[0].clientX : e.clientX;
+                const cY = e.touches ? e.touches[0].clientY : e.clientY;
+                const r = character.getBoundingClientRect();
+                characterOffsetX = cX - r.left; characterOffsetY = cY - r.top;
+                character.style.animation = "none";
+            }
+            function moveDrag(e) {
+                if (!isDraggingCharacter || isGamePaused) return;
+                e.preventDefault();
+                const cX = e.touches ? e.touches[0].clientX : e.clientX;
+                const cY = e.touches ? e.touches[0].clientY : e.clientY;
+                const sR = stage.getBoundingClientRect();
+                let tx = cX - sR.left - characterOffsetX, ty = cY - sR.top - characterOffsetY;
+                tx = Math.max(0, Math.min(tx, sR.width - character.offsetWidth));
+                ty = Math.max(0, Math.min(ty, sR.height - character.offsetHeight));
+                character.style.left = `${tx}px`; character.style.top = `${ty}px`;
+            }
+            function endDrag() { isDraggingCharacter = false; setAvatarExpression(currentAvatarState); }
+
+            character.addEventListener("mousedown", startDrag);
+            window.addEventListener("mousemove", moveDrag); window.addEventListener("mouseup", endDrag);
+            character.addEventListener("touchstart", startDrag, { passive: false });
+            window.addEventListener("touchmove", moveDrag, { passive: false }); window.addEventListener("touchend", endDrag);
+        }
+
+        function speakTTS(text) {
+            if ('speechSynthesis' in window && !isGamePaused) {
+                window.speechSynthesis.cancel();
+                const ut = new SpeechSynthesisUtterance(text);
+                ut.lang = 'en-US'; ut.rate = 0.95; window.speechSynthesis.speak(ut);
+            }
+        }
+
+        function triggerAudioClue() {
+            if(currentQuestionIndex < levelQuestionData.length && !isGamePaused) {
+                speakTTS(levelQuestionData[currentQuestionIndex].speakPrompt);
+            }
+        }
+
+        function startTimerClock() {
+            totalSecondsLeft = 300;
+            document.getElementById("timer-wrapper").classList.remove("hud-timer-alert");
+            resumeTimerClock();
+        }
+
+        function resumeTimerClock() {
+            clearInterval(countdownTimer);
+            updateTimerDisplay();
+            countdownTimer = setInterval(() => {
+                totalSecondsLeft--; updateTimerDisplay();
+                if (totalSecondsLeft <= 40) document.getElementById("timer-wrapper").classList.add("hud-timer-alert");
+                if (totalSecondsLeft <= 0) {
+                    clearInterval(countdownTimer); showScreen("screen-timeout"); document.body.className = "env-danger";
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            let m = Math.floor(totalSecondsLeft / 60).toString().padStart(2, '0');
+            let s = (totalSecondsLeft % 60).toString().padStart(2, '0');
+            document.getElementById("timer-val").textContent = `${m}:${s}`;
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(scr => scr.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function startIntroStage() {
+            initAudioContext();
+            isGamePaused = false;
+            document.getElementById("pause-overlay").style.display = "none";
+            document.body.className = "env-meadow";
+            selectedAnimal = ANIMAL_POOL[Math.floor(Math.random() * ANIMAL_POOL.length)];
+            document.getElementById("global-avatar").textContent = selectedAnimal.emoji;
+            document.getElementById("global-name").textContent = selectedAnimal.name;
+            document.getElementById("intro-avatar").textContent = selectedAnimal.emoji;
+            document.getElementById("intro-story-msg").innerHTML = `This is a <strong>${selectedAnimal.name}</strong>. Let's help them find home!<span class="kinyarwanda-text">Uyu ni <strong>${selectedAnimal.rwName}</strong>. Reka tumufashe gutaha!</span>`;
+            showScreen("screen-intro");
+            speakTTS(`This is a ${selectedAnimal.name}. Let's help them find home.`);
+            buildAdaptiveQuestionPath();
+            resetIdleTimerWatcher();
+        }
+
+        function shuffleArray(arr) {
+            let s = [...arr];
+            for (let i = s.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [s[i], s[j]] = [s[j], s[i]]; }
+            return s;
+        }
+
+        function drawCanvasBackground(themeId) {
+            const canvas = document.getElementById("game-canvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (themeId === "clue") {
+                let gr = ctx.createLinearGradient(0,0,0,240); gr.addColorStop(0, "#bae1ff"); gr.addColorStop(1, "#e8f5e9");
+                ctx.fillStyle = gr; ctx.fillRect(0,0,700,240);
+                ctx.fillStyle = "#81c784"; ctx.beginPath(); ctx.arc(200, 260, 160, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(550, 280, 200, 0, Math.PI*2); ctx.fill();
+            } 
+            else if (themeId === "movement") {
+                ctx.fillStyle = "#63c2de"; ctx.fillRect(0,0,700,240);
+                ctx.fillStyle = "rgba(255,255,255,0.7)";
+                ctx.beginPath(); ctx.arc(100,60,30,0,Math.PI*2); ctx.arc(140,60,45,0,Math.PI*2); ctx.arc(180,60,30,0,Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(480,80,25,0,Math.PI*2); ctx.arc(510,80,35,0,Math.PI*2); ctx.fill();
+            }
+            else if (themeId === "group") {
+                ctx.fillStyle = "#aed581"; ctx.fillRect(0,0,700,240);
+                ctx.fillStyle = "#795548"; ctx.fillRect(80,100,25,140); ctx.fillRect(580,80,30,160);
+                ctx.fillStyle = "#2e7d32"; 
+                ctx.beginPath(); ctx.arc(92,90,50,0,Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(595,70,60,0,Math.PI*2); ctx.fill();
+            }
+            else if (themeId === "place") {
+                ctx.fillStyle = "#c8e6c9"; ctx.fillRect(0,0,700,240);
+                ctx.fillStyle = "#4caf50";
+                for (let i = 0; i < 700; i += 90) {
+                    ctx.beginPath(); ctx.moveTo(i, 240); ctx.quadraticCurveTo(i+30, 140, i+10, 240); ctx.fill();
+                }
+            }
+            else if (themeId === "avoid") {
+                ctx.fillStyle = "#ffcc80"; ctx.fillRect(0,0,700,240);
+                ctx.fillStyle = "#b0bec5"; ctx.beginPath(); ctx.moveTo(0,240); ctx.lineTo(150,130); ctx.lineTo(300,240); ctx.fill();
+                ctx.fillStyle = "#90a4ae"; ctx.beginPath(); ctx.moveTo(450,240); ctx.lineTo(600,110); ctx.lineTo(700,240); ctx.fill();
+            }
+            else if (themeId === "threat") {
+                ctx.fillStyle = "#ffab91"; ctx.fillRect(0,0,700,240);
+                ctx.strokeStyle = "rgba(0,0,0,0.15)"; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(700,240); ctx.moveTo(700,0); ctx.lineTo(0,240);
+                ctx.moveTo(350,0); ctx.lineTo(350,240); ctx.stroke();
+            }
+            else if (themeId === "home") {
+                ctx.fillStyle = "#ffe082"; ctx.fillRect(0,0,700,240);
+                ctx.fillStyle = "#ff8a65"; ctx.beginPath(); ctx.moveTo(350,40); ctx.lineTo(250,110); ctx.lineTo(450,110); ctx.fill();
+                ctx.fillStyle = "#a1887f"; ctx.fillRect(270,110,160,110);
+                ctx.fillStyle = "#ffe082"; ctx.fillRect(330,150,40,70);
+            }
+            else if (themeId === "helper") {
+                ctx.fillStyle = "#e1f5fe"; ctx.fillRect(0,0,700,240);
+                ctx.fillStyle = "#fff9c4"; ctx.beginPath(); ctx.arc(350,120,45,0,Math.PI*2); ctx.fill();
+            }
+        }
+
+        function buildAdaptiveQuestionPath() {
+            const a = selectedAnimal;
+            levelQuestionData = [
+                { levelName: "LEVEL 1: CLUES", envClass: "env-sky", stageTheme: "clue", type: "mc", question: `Look at the body! What does it have?`, rwQuestion: `Reba umubiri! Ifite iki?`, speakPrompt: `Look at the body! What does it have?`, options: shuffleArray([{ text: `${a.clue}`, rwText: `${a.rwClue}`, correct: true, emoji: "❓" }, { text: `${a.wrongClues[0].e}`, rwText: `${a.wrongClues[0].r}`, correct: false, emoji: "❓" }, { text: `${a.wrongClues[1].e}`, rwText: `${a.wrongClues[1].r}`, correct: false, emoji: "❓" }, { text: `${a.wrongClues[2].e}`, rwText: `${a.wrongClues[2].r}`, correct: false, emoji: "❓" }]) },
+                { levelName: "LEVEL 1: MOVEMENTS", envClass: "env-sky", stageTheme: "movement", type: "tf", question: `Can this animal ${a.movement}?`, rwQuestion: `Mbese iyi nyamaswa ifite ubushobozi bwo ${a.rwMovement}?`, speakPrompt: `Can this animal ${a.movement}?`, options: shuffleArray([{ text: "Yes", rwText: "Yego / Nibyo", correct: true, emoji: "❓" }, { text: "No", rwText: "Oya / Sabyo", correct: false, emoji: "❓" }]) },
+                { levelName: "LEVEL 2: FAMILY", envClass: "env-forest", stageTheme: "group", type: "blank", question: `Choose the correct family group.`, rwQuestion: `Hitamo umuryango ukwiye.`, speakPrompt: `Choose the correct family group.`, sentencePattern: `It belongs to the ___ family.`, options: shuffleArray([{ text: `${a.group}`, rwText: `${a.rwGroup}`, correct: true, emoji: "❓" }, { text: `${a.wrongGroups[0].e}`, rwText: `${a.wrongGroups[0].r}`, correct: false, emoji: "❓" }, { text: `${a.wrongGroups[1].e}`, rwText: `${a.wrongGroups[1].r}`, correct: false, emoji: "❓" }, { text: `${a.wrongGroups[2].e}`, rwText: `${a.wrongGroups[2].r}`, correct: false, emoji: "❓" }]) },
+                { levelName: "LEVEL 2: NATURE VISITS", envClass: "env-forest", stageTheme: "place", type: "mc", question: `Where does it like to go?`, rwQuestion: `Ni he se ikunda kujya cyane?`, speakPrompt: `Where does it like to go?`, options: shuffleArray([{ text: `${a.favPlace}`, rwText: `${a.rwFavPlace}`, correct: true, emoji: "❓" }, { text: `${a.wrongPlaces[0].e}`, rwText: `${a.wrongPlaces[0].r}`, correct: false, emoji: "❓" }, { text: `${a.wrongPlaces[1].e}`, rwText: `${a.wrongPlaces[1].r}`, correct: false, emoji: "❓" }, { text: `${a.wrongPlaces[2].e}`, rwText: `${a.wrongPlaces[2].r}`, correct: false, emoji: "❓" }]) },
+                { levelName: "LEVEL 3: WARNINGS", envClass: "env-danger", stageTheme: "avoid", type: "mc", question: `Who is dangerous for this baby animal?`, rwQuestion: `Ni inde uteje akaga k'aka kana k'inyamaswa?`, speakPrompt: `Who is dangerous for this baby animal?`, options: shuffleArray([{ text: `${a.avoid}`, rwText: `${a.rwAvoid}`, correct: true, emoji: "❓" }, { text: "green leaf", rwText: "ikibabi kibisi", correct: false, emoji: "❓" }, { text: "morning dew", rwText: "itoto ryo mu gitondo", correct: false, emoji: "❓" }, { text: "field wind", rwText: "umuyaga w'akazuyazi", correct: false, emoji: "❓" }]) },
+                { levelName: "LEVEL 3: FRIEND OR DANGER", envClass: "env-danger", stageTheme: "threat", type: "tf", question: `Is the ${a.avoid} a safe friend?`, rwQuestion: `Mbese ${a.rwAvoid} ni incuti nziza iteza amahoro?`, speakPrompt: `Is the ${a.avoid} a safe friend?`, options: shuffleArray([{ text: "No, Dangerous!", rwText: "Oya, Biteje Akaga!", correct: true, emoji: "❓" }, { text: "Yes, Safe Friend", rwText: "Yego, Ni Incuti", correct: false, emoji: "❓" }]) },
+                { levelName: "LEVEL 4: COZY HOUSES", envClass: "env-home", stageTheme: "home", type: "blank", question: `Where is this baby animal's safe home?`, rwQuestion: `Ese urugo ruruse ruri he?`, speakPrompt: `Where is this baby animal's safe home?`, sentencePattern: `The safe space is the ___.`, options: shuffleArray([{ text: `${a.home}`, rwText: `${a.rwHome}`, correct: true, emoji: "❓" }, { text: `${a.wrongPlaces[0].e}`, rwText: `${a.wrongPlaces[0].r}`, correct: false, emoji: "❓" }, { text: `${a.wrongPlaces[1].e}`, rwText: `${a.wrongPlaces[1].r}`, correct: false, emoji: "❓" }, { text: `${a.wrongPlaces[2].e}`, rwText: `${a.wrongPlaces[2].r}`, correct: false, emoji: "❓" }]) },
+                { levelName: "LEVEL 4: HELPERS", envClass: "env-home", stageTheme: "helper", type: "mc", question: `Who is a kind friend that helps it get home?`, rwQuestion: `Ni iyihe ncuti nziza yayifasha gutaha?`, speakPrompt: `Who is a kind friend that helps it get home?`, options: shuffleArray([{ text: `${a.helper}`, rwText: `${a.rwHelper}`, correct: true, emoji: "❓" }, { text: `${a.wrongHelpers[0].e}`, rwText: `${a.wrongHelpers[0].r}`, correct: false, emoji: "❓" }, { text: `${a.wrongHelpers[1].e}`, rwText: `${a.wrongHelpers[1].r}`, correct: false, emoji: "❓" }, { text: `${a.wrongHelpers[2].e}`, rwText: `${a.wrongHelpers[2].r}`, correct: false, emoji: "❓" }]) }
+            ];
+        }
+
+        function startGameplay() {
+            score = 0; currentQuestionIndex = 0; studentAnswersHistory = []; isGamePaused = false;
+            document.getElementById("score-val").textContent = score;
+            document.querySelectorAll('.path-node').forEach(node => node.className = "path-node");
+            showScreen("screen-gameplay");
+            initializeDraggableSystem();
+            startTimerClock();
+            loadQuestion(currentQuestionIndex);
+        }
+
+        function setAvatarExpression(state) {
+            currentAvatarState = state;
+            const charEl = document.getElementById("live-animal-character");
+            const badgeEl = document.getElementById("live-expression-indicator");
+            charEl.classList.remove("state-idle", "state-happy", "state-sad", "state-scared");
+            badgeEl.style.display = "flex";
+
+            if (state === "idle") { charEl.classList.add("state-idle"); badgeEl.style.display = "none"; }
+            else if (state === "correct") { charEl.classList.add("state-happy"); badgeEl.textContent = "🥳"; }
+            else if (state === "wrong") { charEl.classList.add("state-sad"); badgeEl.textContent = "😭"; }
+            else if (state === "threatened") { charEl.classList.add("state-scared"); badgeEl.textContent = "😰"; }
+        }
+
+        function loadQuestion(index) {
+            if (isGamePaused) return;
+            resetIdleTimerWatcher();
+            adaptMusicTempo(index);
+            const qItem = levelQuestionData[index];
+            document.body.className = qItem.envClass;
+
+            drawCanvasBackground(qItem.stageTheme);
+
+            const character = document.getElementById("live-animal-character");
+            character.style.left = "calc(50% - 2.5rem)"; character.style.top = "calc(50% - 2.5rem)";
+            document.getElementById("live-animal-emoji").textContent = selectedAnimal.emoji;
+
+            setAvatarExpression(qItem.stageTheme === "threat" ? "threatened" : "idle");
+
+            document.querySelectorAll('.path-node').forEach((node, idx) => {
+                if (idx < index) node.className = "path-node done";
+                else if (idx === index) node.className = "path-node active";
+                else node.className = "path-node";
+            });
+
+            document.getElementById("level-indicator-title").textContent = qItem.levelName;
+            document.getElementById("question-text-box").textContent = qItem.question;
+            document.getElementById("question-kinyarwanda-box").textContent = qItem.rwQuestion;
+
+            document.getElementById("feedback-area").style.display = "none";
+            document.getElementById("next-action-btn").style.display = "none";
+
+            const izone = document.getElementById("interaction-zone"); izone.innerHTML = ""; 
+
+            if (qItem.type === "blank") {
+                const sBox = document.createElement("div"); sBox.className = "sentence-box";
+                sBox.innerHTML = qItem.sentencePattern.replace("___", "<span class='blank-space' id='blank-target'>_______</span>");
+                izone.appendChild(sBox);
+            }
+
+            const grid = document.createElement("div"); grid.className = "options-grid";
+            qItem.options.forEach(opt => {
+                const btn = document.createElement("div"); btn.className = "option-card";
+                btn.innerHTML = `<span class="option-emoji">${opt.emoji}</span><strong>${opt.text}</strong><span class="ans-rw">${opt.rwText}</span>`;
+                btn.onclick = () => evaluationSelection(btn, opt, qItem);
+                grid.appendChild(btn);
+            });
+            izone.appendChild(grid);
+            speakTTS(qItem.speakPrompt);
+        }
+
+        function evaluationSelection(selectedCard, optionObj, questionObj) {
+            if (isGamePaused) return;
+            clearTimeout(idleTimerTracker);
+            document.querySelectorAll(".option-card").forEach(c => c.style.pointerEvents = "none");
+            selectedCard.classList.add("selected");
+
+            if (questionObj.type === "blank") document.getElementById("blank-target").textContent = optionObj.text;
+
+            const fb = document.getElementById("feedback-area"); fb.style.display = "block";
+            let isCorrect = optionObj.correct;
+
+            studentAnswersHistory.push({ question: questionObj.question, selectedText: optionObj.text, wasCorrect: isCorrect });
+
+            if (isCorrect) {
+                score++; document.getElementById("score-val").textContent = score;
+                fb.className = "fb-correct"; fb.innerHTML = `✨ Great job! That is safe.<br><span style="font-size:0.95rem; font-weight:normal;">Nibyo rwose! Uko ni ugutekereza kwiza!</span>`;
+                setAvatarExpression("correct"); playHarmonicChime("correct"); speakTTS("Great job!");
+            } else {
+                fb.className = "fb-wrong"; fb.innerHTML = `🔴 That choice is wrong.<br><span style="font-size:0.95rem; font-weight:normal;">Oya! Ibyo biteje akaga k'aka kana.</span>`;
+                setAvatarExpression("wrong"); playHarmonicChime("wrong"); speakTTS("That choice is wrong.");
+            }
+            document.getElementById("next-action-btn").style.display = "inline-flex";
+        }
+
+        function advanceGameProgress() {
+            if (isGamePaused) return;
+            currentQuestionIndex++;
+            if (currentQuestionIndex < levelQuestionData.length) loadQuestion(currentQuestionIndex);
+            else endGameRescueScreen();
+        }
+
+        function endGameRescueScreen() {
+            clearInterval(countdownTimer); clearTimeout(idleTimerTracker);
+            if (melodyInterval) clearInterval(melodyInterval);
+            
+            document.body.className = "env-home"; 
+            showScreen("screen-rescue");
+
+            const hTitle = document.getElementById("rescue-header-title");
+            const hSub = document.getElementById("rescue-header-subtitle");
+            const avatarBox = document.getElementById("rescue-avatar");
+            const storyBox = document.getElementById("rescue-story-end");
+
+            if (score >= 5) {
+                hTitle.textContent = "Safe at Home!";
+                hTitle.style.color = "var(--primary-dark)";
+                hSub.textContent = "Yageze mu rugo amahoro!";
+                avatarBox.textContent = selectedAnimal.emoji + "🏡";
+                storyBox.innerHTML = `Hooray! The baby animal safely finds its house in its <strong>${selectedAnimal.home}</strong>!<span class="kinyarwanda-text">Yego ko! <strong>${selectedAnimal.rwName}</strong> yageze mu rugo rwe amahoro muri <strong>${selectedAnimal.home}</strong>!</span>`;
+                speakTTS("Hooray! Safe at home!");
+            } else {
+                hTitle.textContent = "Try Again!";
+                hTitle.style.color = "var(--danger)";
+                hSub.textContent = "Ongera Ugerageze!";
+                avatarBox.textContent = "😢" + selectedAnimal.emoji;
+                storyBox.innerHTML = `Oh no! The baby animal could not find its home. Let's practice and try again to rescue them!<span class="kinyarwanda-text">Oya! Akana k'inyamaswa ntigashoboye gutaha. Reka twongere wagerageze kandi ukine ubwa kabiri!</span>`;
+                speakTTS("The baby animal could not find its home. Try again!");
+            }
+            
+            document.getElementById("b-1").className = "badge-icon earned";
+            if (score >= 3) document.getElementById("b-2").className = "badge-icon earned";
+            if (score >= 5) document.getElementById("b-3").className = "badge-icon earned";
+            if (score >= 7) document.getElementById("b-4").className = "badge-icon earned";
+        }
+
+        function showSummaryReview() {
+            showScreen("screen-review");
+            let rStr = score === 8 ? "🏆 Super Rescuer" : score >= 5 ? "🌟 Kind Helper" : "🌱 Keep Trying Hero";
+            document.getElementById("summary-rank").textContent = rStr;
+            document.getElementById("summary-time").textContent = `${Math.floor(totalSecondsLeft/60)}m left`;
+            document.getElementById("summary-correct").textContent = score;
+            document.getElementById("summary-wrong").textContent = 8 - score;
+
+            const box = document.getElementById("summary-review-box"); box.innerHTML = ""; 
+            studentAnswersHistory.forEach((item, idx) => {
+                const row = document.createElement("div"); row.className = "review-item";
+                row.innerHTML = `<div><strong>Q${idx + 1}:</strong> ${item.question}</div><div style='margin-top:4px;'><span class='review-status-tag ${item.wasCorrect?'tag-correct':'tag-wrong'}'>${item.wasCorrect?'Correct':'Wrong'}</span>Chosen: <em>${item.selectedText}</em></div>`;
+                box.appendChild(row);
+            });
+        }
+
+        function resetWholeGamePlaythrough() {
+            document.querySelectorAll('.badge-icon').forEach(b => b.className = "badge-icon");
+            startIntroStage();
+        }
+    </script>
+</body>
+</html>

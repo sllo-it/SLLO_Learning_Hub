@@ -1,0 +1,1003 @@
+<!DOCTYPE html><html lang="en"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>The Pattern Bridge 🦓</title>
+<style>
+/* ================================================================
+   RESET & BASE
+================================================================ */
+*, *::before, *::after {
+  margin: 0; padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html { height: 100%; }
+body {
+  height: 100%;
+  background: #1a3a1a;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+/* ================================================================
+   APP SHELL
+================================================================ */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+/* ================================================================
+   HEADER
+================================================================ */
+#header {
+  flex-shrink: 0;
+  background: linear-gradient(120deg, #1b5e20 0%, #2e7d32 55%, #33691e 100%);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+  z-index: 30;
+}
+.app-title {
+  font-size: clamp(1.05rem, 4.2vw, 1.60rem);
+  font-weight: 900;
+  color: #e8f5e9;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.35);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+#scoreBadge {
+  background: linear-gradient(135deg, #ffd54f, #ffb300);
+  color: #1b5e20;
+  font-size: clamp(0.95rem, 3.8vw, 1.38rem);
+  font-weight: 900;
+  padding: 5px 16px;
+  border-radius: 50px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.30);
+  white-space: nowrap;
+  min-width: 90px;
+  text-align: center;
+}
+#scoreBadge.bump {
+  animation: scoreBump 0.40s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes scoreBump {
+  0%,100% { transform: scale(1.00); }
+  50%      { transform: scale(1.45); }
+}
+
+/* ================================================================
+   SCENE  (river crossing)
+================================================================ */
+#scene {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── SHORES ────────────────────────────────────────────── */
+.shore {
+  flex: 0 0 13%;
+  max-width: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  padding: 10px 4px;
+  z-index: 5;
+}
+.shore-left {
+  background: linear-gradient(174deg, #33691e 0%, #388e3c 45%, #2e7d32 100%);
+  box-shadow: 4px 0 16px rgba(0,0,0,0.35);
+}
+.shore-right {
+  background: linear-gradient(186deg, #33691e 0%, #388e3c 45%, #2e7d32 100%);
+  box-shadow: -4px 0 16px rgba(0,0,0,0.35);
+}
+.shore-deco {
+  font-size: clamp(1.4rem, 5.0vw, 2.4rem);
+  line-height: 1;
+  text-align: center;
+  animation: sway 3.2s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.shore-deco:nth-child(2) { animation-delay: 1.1s; }
+.shore-deco:nth-child(3) { animation-delay: 0.55s; }
+@keyframes sway {
+  from { transform: rotate(-2.5deg); }
+  to   { transform: rotate( 2.5deg); }
+}
+
+/* ── RIVER ─────────────────────────────────────────────── */
+#river {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Deep-water base gradient */
+#river::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    #01579b  0%, #0277bd 12%,
+    #0288d1 25%, #039be5 42%,
+    #4fc3f7 50%,
+    #039be5 58%, #0288d1 75%,
+    #0277bd 88%, #01579b 100%
+  );
+  z-index: 0;
+}
+/* Scrolling highlight stripes (animated water effect) */
+#river::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255,255,255,0.00)  0px,
+    rgba(255,255,255,0.075) 18px,
+    rgba(255,255,255,0.00)  36px
+  );
+  background-size: 72px 100%;
+  background-position: 0 0;
+  animation: waterFlow 3.8s linear infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+@keyframes waterFlow {
+  from { background-position:  0px 0; }
+  to   { background-position: 72px 0; }
+}
+
+/* ── STONES ROW ────────────────────────────────────────── */
+#stonesRow {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+  padding: 0 4px;
+}
+
+.stone {
+  position: relative;
+  flex-shrink: 0;
+  width:  clamp(44px, 12.5vw, 74px);
+  height: clamp(44px, 12.5vw, 74px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%,
+    #e0e0e0  0%,
+    #bdbdbd 32%,
+    #9e9e9e 58%,
+    #6d6d6d 100%
+  );
+  border: 2.5px solid #455a64;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 7px 18px rgba(0,0,0,0.55),
+    inset 0 -4px 7px rgba(0,0,0,0.28),
+    inset 0 3px 7px rgba(255,255,255,0.32);
+}
+/* Algae/moss tint at the base of each stone */
+.stone::after {
+  content: '';
+  position: absolute; inset: 3px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 64% 70%,
+    rgba(85,175,70,0.25) 0%, transparent 62%
+  );
+  pointer-events: none;
+}
+
+.snum {
+  position: relative;
+  z-index: 2;
+  font-size: clamp(0.88rem, 2.9vw, 1.52rem);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 1px 5px rgba(0,0,0,0.60);
+  line-height: 1;
+  text-align: center;
+  user-select: none;
+}
+.snum.question {
+  color: #ffe082;
+  font-size: clamp(1.25rem, 4.1vw, 2.05rem);
+  text-shadow: 0 0 9px rgba(255,224,130,0.85), 0 1px 3px rgba(0,0,0,0.50);
+  animation: qPulse 1.15s ease-in-out infinite alternate;
+}
+@keyframes qPulse {
+  from { transform: scale(0.87); opacity: 0.80; }
+  to   { transform: scale(1.13); opacity: 1.00; }
+}
+
+/* ── ZEBRA (absolutely positioned in #scene) ───────────── */
+#zebra {
+  position: absolute;
+  z-index: 15;
+  font-size: clamp(2.3rem, 8.0vw, 4.2rem);
+  line-height: 1;
+  /* left/top set by JS; transform centres the emoji on that x */
+  transform: translateX(-50%);
+  filter: drop-shadow(2px 5px 7px rgba(0,0,0,0.42));
+  user-select: none;
+  pointer-events: none;
+  /* smooth horizontal glide */
+  transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: left, transform;
+}
+/* hop arc animation (transform includes the translateX offset) */
+#zebra.hop {
+  animation: zebraHop 0.26s ease-in-out both;
+}
+@keyframes zebraHop {
+  0%   { transform: translateX(-50%) translateY(  0px) scaleY(1.00); }
+  38%  { transform: translateX(-50%) translateY(-28px) scaleY(0.90); }
+  70%  { transform: translateX(-50%) translateY(-10px) scaleY(1.03); }
+  100% { transform: translateX(-50%) translateY(  0px) scaleY(1.00); }
+}
+
+/* ── STAR REWARD OVERLAY ───────────────────────────────── */
+#starOverlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(5rem, 22vw, 9.5rem);
+  z-index: 22;
+  pointer-events: none;
+  opacity: 0;
+}
+#starOverlay.show {
+  opacity: 1;
+  animation: starPop 0.44s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+#starOverlay.fadeOut {
+  animation: starFadeOut 0.30s ease forwards;
+}
+@keyframes starPop {
+  0%   { transform: scale(0.0) rotate(-22deg); opacity: 0; }
+  60%  { transform: scale(1.18) rotate( 6deg); opacity: 1; }
+  100% { transform: scale(1.00) rotate( 0deg); opacity: 1; }
+}
+@keyframes starFadeOut {
+  from { transform: scale(1.0); opacity: 1; }
+  to   { transform: scale(1.5); opacity: 0; }
+}
+
+/* ── SMALL PATTERN HINT TAG (shows step direction) ─────── */
+#patternTag {
+  position: absolute;
+  top: 8px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  background: rgba(0,0,0,0.40);
+  color: #b3e5fc;
+  font-size: clamp(0.62rem, 2.2vw, 0.82rem);
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+  letter-spacing: 0.04em;
+}
+
+/* ================================================================
+   BOTTOM SECTION — instruction + choice buttons
+================================================================ */
+#bottom {
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+  padding: 8px 10px 12px;
+  z-index: 20;
+  box-shadow: 0 -3px 14px rgba(0,0,0,0.32);
+}
+#instruction {
+  text-align: center;
+  font-size: clamp(0.9rem, 3.4vw, 1.2rem);
+  font-weight: 800;
+  color: #c8e6c9;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  letter-spacing: 0.02em;
+  min-height: 1.5em;
+}
+#choicesRow {
+  display: flex;
+  gap: 9px;
+  justify-content: center;
+  align-items: stretch;
+}
+
+/* ── LEAF BUTTONS ──────────────────────────────────────── */
+.leaf-btn {
+  flex: 1;
+  max-width: 215px;
+  min-height: 74px;       /* guaranteed touch-target size */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: linear-gradient(152deg, #4caf50 0%, #2e7d32 100%);
+  border: 2.5px solid #81c784;
+  /* Organic leaf shape via asymmetric border-radius */
+  border-radius: 26px 6px 26px 6px;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: 0 5px 0 #1a4d1a, 0 8px 18px rgba(0,0,0,0.28);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+/* top-sheen highlight */
+.leaf-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 42%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 100%);
+  border-radius: 24px 4px 0 0;
+  pointer-events: none;
+}
+.leaf-btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #1a4d1a;
+}
+.leaf-btn:disabled {
+  opacity: 0.42;
+  cursor: default;
+  pointer-events: none;
+}
+/* Wrong-answer state — red + shake */
+.leaf-btn.wrong {
+  background: linear-gradient(152deg, #ef5350 0%, #b71c1c 100%);
+  border-color: #ef9a9a;
+  box-shadow: 0 5px 0 #7f0000, 0 8px 18px rgba(0,0,0,0.28);
+  animation: leafShake 0.46s ease both;
+}
+@keyframes leafShake {
+  0%,100% { transform: translateX( 0px); }
+  12%     { transform: translateX(-13px); }
+  25%     { transform: translateX( 13px); }
+  37%     { transform: translateX(-10px); }
+  50%     { transform: translateX( 10px); }
+  62%     { transform: translateX( -6px); }
+  75%     { transform: translateX(  6px); }
+  87%     { transform: translateX( -2px); }
+}
+.leaf-icon {
+  font-size: clamp(1.3rem, 4.5vw, 1.75rem);
+  line-height: 1;
+  pointer-events: none;
+}
+.leaf-num {
+  font-size: clamp(1.50rem, 5.8vw, 2.10rem);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.32);
+  line-height: 1.15;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     APP CONTAINER
+════════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- ── HEADER ──────────────────────────────────────── -->
+  <div id="header">
+    <div class="app-title">🌿 Pattern Bridge</div>
+    <div id="scoreBadge">⭐ Score: 0</div>
+  </div>
+
+  <!-- ── SCENE (river crossing) ──────────────────────── -->
+  <div id="scene">
+
+    <!-- Left green bank -->
+    <div class="shore shore-left">
+      <div class="shore-deco">🌿</div>
+      <div class="shore-deco">🌱</div>
+      <div class="shore-deco">🌿</div>
+    </div>
+
+    <!-- River with 5 stepping stones -->
+    <div id="river">
+
+      <!-- Pattern hint (e.g. "Count by 5") -->
+      <div id="patternTag">Count the pattern →</div>
+
+      <!-- Five stones; numbers/? injected by JS -->
+      <div id="stonesRow">
+        <div class="stone" id="st0"><span class="snum" id="sn0">-</span></div>
+        <div class="stone" id="st1"><span class="snum" id="sn1">-</span></div>
+        <div class="stone" id="st2"><span class="snum" id="sn2">-</span></div>
+        <div class="stone" id="st3"><span class="snum" id="sn3">-</span></div>
+        <div class="stone" id="st4"><span class="snum" id="sn4">-</span></div>
+      </div>
+    </div>
+
+    <!-- Right green bank (destination) -->
+    <div class="shore shore-right">
+      <div class="shore-deco">🌴</div>
+      <div class="shore-deco">🌺</div>
+      <div class="shore-deco">🌴</div>
+    </div>
+
+    <!-- Zebra player — absolutely positioned by JS -->
+    <div id="zebra">🦓</div>
+
+    <!-- Star reward overlay — shown on correct answer -->
+    <div id="starOverlay">⭐</div>
+
+  </div><!-- /#scene -->
+
+  <!-- ── BOTTOM: INSTRUCTION + CHOICE BUTTONS ────────── -->
+  <div id="bottom">
+    <div id="instruction">🔍 Find the missing number!</div>
+    <div id="choicesRow">
+      <button class="leaf-btn" id="btn0" type="button">
+        <span class="leaf-icon">🍃</span>
+        <span class="leaf-num" id="cn0">?</span>
+      </button>
+      <button class="leaf-btn" id="btn1" type="button">
+        <span class="leaf-icon">🍀</span>
+        <span class="leaf-num" id="cn1">?</span>
+      </button>
+      <button class="leaf-btn" id="btn2" type="button">
+        <span class="leaf-icon">🍃</span>
+        <span class="leaf-num" id="cn2">?</span>
+      </button>
+    </div>
+  </div>
+
+</div><!-- /#app -->
+
+<script>
+'use strict';
+
+/* ================================================================
+   GAME STATE
+================================================================ */
+let score         = 0;
+let correctBtnIdx = -1;   // index (0-2) of the button with the right answer
+let missingStIdx  = -1;   // which stone (0-4) displays "?"
+let puzzle        = null; // current puzzle data
+let inputLive     = true; // false while animating correct answer
+let winInProgress = false;// guards wrong-button cleanup after win
+
+/* ================================================================
+   WEB AUDIO API — 100% synthesised, no external audio files
+================================================================ */
+let _actx = null;
+
+/** Lazily create and resume the AudioContext. */
+function getCtx() {
+  if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_actx.state === 'suspended') _actx.resume();
+  return _actx;
+}
+
+/* ──────────────────────────────────────────────────────────
+   CLIP-CLOP  — two short burst of bandpass-filtered noise,
+   offset by ~110 ms to simulate alternating hooves.
+────────────────────────────────────────────────────────── */
+function playClipClop() {
+  try {
+    const ctx = getCtx();
+    [0.00, 0.11].forEach((offset, i) => {
+      const t   = ctx.currentTime + offset;
+      const dur = 0.058;
+      const len = Math.ceil(ctx.sampleRate * dur);
+
+      /* Short noise burst with exponential decay envelope */
+      const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      const d   = buf.getChannelData(0);
+      for (let j = 0; j < len; j++) {
+        d[j] = (Math.random() * 2 - 1) * Math.pow(1 - j / len, 2.6);
+      }
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+
+      /* Bandpass — different centre freq per "hoof" */
+      const bp = ctx.createBiquadFilter();
+      bp.type            = 'bandpass';
+      bp.frequency.value = 680 + i * 240;
+      bp.Q.value         = 3.2;
+
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.62, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur + 0.01);
+
+      src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+      src.start(t); src.stop(t + dur + 0.02);
+    });
+  } catch (e) { /* audio blocked — fail silently */ }
+}
+
+/* ──────────────────────────────────────────────────────────
+   SUCCESS CHIME — ascending C5→E5→G5→C6 on warm triangle
+   oscillators, with a bass C3/G3 swell underneath.
+────────────────────────────────────────────────────────── */
+function playSuccess() {
+  try {
+    const ctx = getCtx();
+    const now = ctx.currentTime;
+
+    /* Melody notes: [freq Hz, delay s, peak amp, decay s] */
+    [
+      [523,  0.00, 0.30, 0.50],
+      [659,  0.14, 0.28, 0.46],
+      [784,  0.28, 0.28, 0.50],
+      [1047, 0.44, 0.38, 0.82]
+    ].forEach(([f, d, a, r]) => {
+      const osc = ctx.createOscillator();
+      const g   = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.value = f;
+      g.gain.setValueAtTime(0, now + d);
+      g.gain.linearRampToValueAtTime(a, now + d + 0.014);
+      g.gain.exponentialRampToValueAtTime(0.001, now + d + r);
+      osc.start(now + d);
+      osc.stop(now + d + r + 0.05);
+    });
+
+    /* Warm bass chord (C3 + G3) swells under the final high C */
+    [131, 196].forEach(f => {
+      const osc = ctx.createOscillator();
+      const g   = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      g.gain.setValueAtTime(0,    now + 0.44);
+      g.gain.linearRampToValueAtTime(0.13, now + 0.46);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 1.26);
+      osc.start(now + 0.44);
+      osc.stop(now + 1.30);
+    });
+  } catch (e) {}
+}
+
+/* ──────────────────────────────────────────────────────────
+   SPLASH / BUZZ — descending noise burst + low triangle
+   "bwomp" tone for clear wrong-answer feedback.
+────────────────────────────────────────────────────────── */
+function playSplash() {
+  try {
+    const ctx = getCtx();
+    const now = ctx.currentTime;
+    const dur = 0.28;
+
+    /* White-noise splash with descending low-pass filter */
+    const len = Math.ceil(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d   = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.35);
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+
+    const lpf = ctx.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.setValueAtTime(1900, now);
+    lpf.frequency.exponentialRampToValueAtTime(210, now + dur);
+
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.32, now);
+    ng.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+    src.connect(lpf); lpf.connect(ng); ng.connect(ctx.destination);
+    src.start(now); src.stop(now + dur + 0.02);
+
+    /* Low "bwomp" tone */
+    const osc = ctx.createOscillator();
+    const og  = ctx.createGain();
+    osc.connect(og); og.connect(ctx.destination);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(192, now);
+    osc.frequency.exponentialRampToValueAtTime(62, now + 0.27);
+    og.gain.setValueAtTime(0.28, now);
+    og.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc.start(now); osc.stop(now + 0.30);
+  } catch (e) {}
+}
+
+/* ================================================================
+   PATTERN GENERATION
+================================================================ */
+
+/**
+ * PATTERN CATALOGUE
+ * Each entry: { step, asc (ascending?), sMin, sMax, label }
+ * sMin/sMax define the starting number range.
+ * All descending ranges guarantee every sequence value stays > 0.
+ */
+const PATTERNS = [
+  { step:  1, asc: true,  sMin:  1, sMax: 18, label: 'Count by 1s ➕'  },
+  { step:  2, asc: true,  sMin:  2, sMax: 14, label: 'Count by 2s ➕'  },
+  { step:  3, asc: true,  sMin:  3, sMax: 12, label: 'Count by 3s ➕'  },
+  { step:  4, asc: true,  sMin:  4, sMax: 12, label: 'Count by 4s ➕'  },
+  { step:  5, asc: true,  sMin:  5, sMax: 20, label: 'Count by 5s ➕'  },
+  { step: 10, asc: true,  sMin: 10, sMax: 40, label: 'Count by 10s ➕' },
+  { step:  1, asc: false, sMin:  5, sMax: 20, label: 'Count down by 1s ➖' },
+  { step:  2, asc: false, sMin: 10, sMax: 22, label: 'Count down by 2s ➖' },
+  { step:  3, asc: false, sMin: 15, sMax: 30, label: 'Count down by 3s ➖' },
+  { step:  5, asc: false, sMin: 25, sMax: 50, label: 'Count down by 5s ➖' },
+  { step: 10, asc: false, sMin: 50, sMax: 90, label: 'Count down by 10s ➖'},
+];
+
+function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = randInt(0, i);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * buildPuzzle — creates a complete puzzle object:
+ *   { seq, mIdx, answer, choices, cIdx, label }
+ *
+ * seq     — 5-element arithmetic sequence
+ * mIdx    — index (0-4) of the hidden stone
+ * answer  — correct value for the hidden stone
+ * choices — shuffled array of 3 values [wrong, wrong, answer]
+ * cIdx    — index (0-2) of correct answer in choices
+ * label   — hint string shown in patternTag
+ */
+function buildPuzzle() {
+  const pt    = PATTERNS[randInt(0, PATTERNS.length - 1)];
+  const start = randInt(pt.sMin, pt.sMax);
+
+  /* Build the 5-element sequence */
+  const seq = Array.from({ length: 5 }, (_, i) =>
+    pt.asc ? start + pt.step * i : start - pt.step * i
+  );
+
+  /* Pick a random stone to hide */
+  const mIdx   = randInt(0, 4);
+  const answer = seq[mIdx];
+
+  /* Generate exactly 2 plausible wrong answers:
+     - Different from answer and from each other
+     - Positive integers
+     - Close enough to be educationally challenging */
+  const wrongs = new Set();
+  const candidates = shuffle([
+    -1, 1, -2, 2, -3, 3,
+    pt.step + 1, -(pt.step + 1),
+    pt.step - 1, -(pt.step - 1),
+    pt.step * 2, -(pt.step * 2)
+  ]);
+  for (const off of candidates) {
+    if (wrongs.size >= 2) break;
+    const w = answer + off;
+    if (w > 0 && w !== answer && !wrongs.has(w)) wrongs.add(w);
+  }
+  /* Safety fallback (should rarely trigger) */
+  for (let k = 1; wrongs.size < 2; k++) {
+    const w = answer + (k % 2 === 0 ? k : -k) * 5;
+    if (w > 0 && w !== answer && !wrongs.has(w)) wrongs.add(w);
+  }
+
+  /* Build shuffled 3-choice array */
+  const choices = shuffle([...wrongs, answer]);
+  const cIdx    = choices.indexOf(answer);
+
+  return { seq, mIdx, answer, choices, cIdx, label: pt.label };
+}
+
+/* ================================================================
+   ZEBRA POSITION HELPERS
+   The zebra is absolute within #scene.  We compute pixel x-values
+   by reading each element's bounding rect relative to #scene.
+================================================================ */
+
+/**
+ * getStopX — returns the array of 7 x-positions (px from scene left):
+ *   [0] left bank, [1-5] stones 0-4, [6] right bank
+ */
+function getStopX() {
+  const scR  = document.getElementById('scene').getBoundingClientRect();
+  const stops = [];
+
+  /* Left shore centre */
+  const lR = document.querySelector('.shore-left').getBoundingClientRect();
+  stops.push(lR.left + lR.width / 2 - scR.left);
+
+  /* Each stone centre */
+  for (let i = 0; i < 5; i++) {
+    const sr = document.getElementById('st' + i).getBoundingClientRect();
+    stops.push(sr.left + sr.width / 2 - scR.left);
+  }
+
+  /* Right shore centre */
+  const rR = document.querySelector('.shore-right').getBoundingClientRect();
+  stops.push(rR.left + rR.width / 2 - scR.left);
+
+  return stops;
+}
+
+/**
+ * setZebraY — positions the zebra vertically so it sits just above
+ * stone 0.  Called once on init and again on window resize.
+ */
+function setZebraY() {
+  const scR  = document.getElementById('scene').getBoundingClientRect();
+  const stR  = document.getElementById('st0').getBoundingClientRect();
+  const zbEl = document.getElementById('zebra');
+  const zbH  = zbEl.offsetHeight || 52; /* fallback if not yet painted */
+
+  /* Bottom of zebra sits 6px above the stone top */
+  const stoneTopInScene = stR.top - scR.top;
+  const desiredTop      = stoneTopInScene - zbH - 6;
+  zbEl.style.top    = Math.max(2, desiredTop) + 'px';
+  zbEl.style.bottom = 'auto';
+}
+
+/* ================================================================
+   ZEBRA ANIMATION
+================================================================ */
+
+const pause = ms => new Promise(res => setTimeout(res, ms));
+
+/**
+ * hopTo — moves the zebra to targetX with a hop arc animation and
+ *   plays a clip-clop sound.  Returns a Promise that resolves when
+ *   the motion settles.
+ */
+async function hopTo(targetX) {
+  const zb = document.getElementById('zebra');
+  /* Start transition (horizontal glide) */
+  zb.style.left = targetX + 'px';
+  /* Trigger hop arc (restart animation by removing then re-adding) */
+  zb.classList.remove('hop');
+  void zb.offsetWidth;          /* force reflow to restart animation */
+  zb.classList.add('hop');
+  playClipClop();
+  await pause(280);             /* wait for transition + hop to finish */
+  zb.classList.remove('hop');
+}
+
+/**
+ * jumpAcross — hops the zebra from left bank across all 5 stones
+ *   to the right bank.  Total duration ≈ 1.9 s.
+ */
+async function jumpAcross() {
+  const stops = getStopX();
+  for (let i = 1; i <= 6; i++) {   /* stops[1-5] = stones; stops[6] = right bank */
+    await hopTo(stops[i]);
+    await pause(30);                /* tiny pause between hops */
+  }
+}
+
+/** resetZebra — teleports the zebra silently back to the left bank. */
+function resetZebra() {
+  const zb    = document.getElementById('zebra');
+  const stops = getStopX();
+  /* Remove transition temporarily so the reset is instant */
+  zb.style.transition = 'none';
+  zb.style.left       = stops[0] + 'px';
+  void zb.offsetWidth; /* flush */
+  zb.style.transition = ''; /* restore default transition */
+}
+
+/* ================================================================
+   UI HELPER FUNCTIONS
+================================================================ */
+
+function renderStones(seq, mIdx) {
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById('sn' + i);
+    if (i === mIdx) {
+      el.textContent = '?';
+      el.className   = 'snum question';
+    } else {
+      el.textContent = seq[i];
+      el.className   = 'snum';
+    }
+  }
+}
+
+function renderChoices(choices) {
+  const icons = ['🍃', '🍀', '🍃'];
+  for (let i = 0; i < 3; i++) {
+    const btn = document.getElementById('btn' + i);
+    btn.className = 'leaf-btn';
+    btn.disabled  = false;
+    document.getElementById('cn' + i).textContent = choices[i];
+    btn.querySelector('.leaf-icon').textContent    = icons[i];
+  }
+}
+
+function setInstruction(txt) {
+  document.getElementById('instruction').textContent = txt;
+}
+
+function setAllButtons(disabled) {
+  [0, 1, 2].forEach(i => {
+    document.getElementById('btn' + i).disabled = disabled;
+  });
+}
+
+/* ================================================================
+   GAME FLOW
+================================================================ */
+
+/** loadRound — generates a new puzzle and refreshes the UI. */
+function loadRound() {
+  winInProgress = false;
+  inputLive     = true;
+
+  puzzle        = buildPuzzle();
+  missingStIdx  = puzzle.mIdx;
+  correctBtnIdx = puzzle.cIdx;
+
+  renderStones(puzzle.seq, missingStIdx);
+  renderChoices(puzzle.choices);
+  setAllButtons(false);
+  setInstruction('🔍 Find the missing number!');
+  document.getElementById('patternTag').textContent = puzzle.label;
+}
+
+/**
+ * tryAnswer — central game logic called when a leaf button is tapped.
+ * @param {number} idx  0-2 (which button was pressed)
+ */
+async function tryAnswer(idx) {
+  if (!inputLive) return;
+
+  if (idx === correctBtnIdx) {
+    /* ─── ✅ CORRECT ANSWER ─────────────────────────── */
+    inputLive     = false;
+    winInProgress = true;
+    setAllButtons(true);
+    setInstruction('🎉 Excellent! Watch the zebra! 🦓');
+
+    /* Reveal the answer on the stone immediately */
+    const snEl = document.getElementById('sn' + missingStIdx);
+    snEl.textContent = puzzle.answer;
+    snEl.className   = 'snum';
+
+    /* Animate zebra hopping across all stones */
+    await jumpAcross();
+
+    /* Show star overlay + play success chime */
+    playSuccess();
+    const so = document.getElementById('starOverlay');
+    so.classList.remove('fadeOut', 'show');
+    void so.offsetWidth;   /* restart animation */
+    so.classList.add('show');
+
+    /* Increment score */
+    score++;
+    const sb = document.getElementById('scoreBadge');
+    sb.textContent = '⭐ Score: ' + score;
+    sb.classList.remove('bump');
+    void sb.offsetWidth;
+    sb.classList.add('bump');
+
+    await pause(1850);     /* let children enjoy the star */
+
+    /* Fade out star */
+    so.classList.remove('show');
+    so.classList.add('fadeOut');
+    await pause(320);
+    so.classList.remove('fadeOut');
+    so.style.opacity = '';  /* restore to base CSS (opacity:0) */
+
+    /* Instantly reset zebra to left bank */
+    resetZebra();
+    await pause(130);
+
+    /* Load the next round */
+    loadRound();
+
+  } else {
+    /* ─── ❌ WRONG ANSWER ───────────────────────────── */
+    playSplash();
+    const btn = document.getElementById('btn' + idx);
+    btn.classList.add('wrong');
+    setInstruction('❌ Not quite — try again!');
+
+    setTimeout(() => {
+      /* Skip cleanup if a win sequence started in the meantime */
+      if (winInProgress) return;
+      btn.classList.remove('wrong');
+      btn.disabled = true;    /* grey out this specific wrong button */
+      setInstruction('🔍 Find the missing number!');
+    }, 580);
+  }
+}
+
+/* ================================================================
+   EVENT WIRING — touch + click with ghost-click prevention
+================================================================ */
+(function wireButtons() {
+  let touchJustFired = false;
+
+  [0, 1, 2].forEach(i => {
+    const btn = document.getElementById('btn' + i);
+
+    /* touchstart fires instantly (no 300 ms delay); preventDefault
+       blocks the ghost click event that would otherwise follow. */
+    btn.addEventListener('touchstart', e => {
+      e.preventDefault();
+      touchJustFired = true;
+      setTimeout(() => { touchJustFired = false; }, 600);
+      tryAnswer(i);
+    }, { passive: false });
+
+    /* click fallback for desktop/mouse */
+    btn.addEventListener('click', () => {
+      if (touchJustFired) return;
+      tryAnswer(i);
+    });
+  });
+})();
+
+/* ================================================================
+   INITIALISATION
+================================================================ */
+function init() {
+  loadRound();
+
+  /* Double requestAnimationFrame ensures layout is fully painted
+     before we read bounding rects for zebra positioning. */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    setZebraY();
+    resetZebra();
+  }));
+}
+
+/* Recalculate zebra geometry on window resize or orientation change */
+window.addEventListener('resize', () => {
+  setZebraY();
+  if (inputLive) resetZebra();
+});
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    setZebraY();
+    if (inputLive) resetZebra();
+  }, 280); /* wait for orientation transition to complete */
+});
+
+/* Resume audio context after any user interaction
+   (required by some browsers' autoplay policies) */
+document.addEventListener('touchstart', () => getCtx(), { once: true });
+document.addEventListener('click',      () => getCtx(), { once: true });
+
+/* Boot */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+
+
+</body></html>

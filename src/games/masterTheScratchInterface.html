@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master the Scratch Interface</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+font-family: 'Segoe UI', Arial, sans-serif;
+overflow: hidden;
+width: 100vw;
+height: 100vh;
+background: #0f0f1a;
+}
+
+.lang-toggle {
+position: fixed;
+top: 12px;
+left: 12px;
+z-index: 10000;
+display: flex;
+border-radius: 16px;
+overflow: hidden;
+border: 1px solid rgba(255,255,255,0.2);
+backdrop-filter: blur(4px);
+}
+.lang-btn {
+padding: 6px 12px;
+font-size: 11px;
+font-weight: 800;
+border: none;
+cursor: pointer;
+background: rgba(255,255,255,0.05);
+color: rgba(255,255,255,0.5);
+transition: all 0.2s;
+}
+.lang-btn.active {
+background: rgba(124,77,255,0.6);
+color: white;
+}
+
+.music-toggle {
+position: fixed;
+top: 12px;
+right: 12px;
+z-index: 10000;
+width: 38px;
+height: 38px;
+border-radius: 50%;
+background: rgba(255,255,255,0.08);
+border: 1px solid rgba(255,255,255,0.2);
+color: white;
+font-size: 16px;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all 0.3s;
+backdrop-filter: blur(4px);
+}
+.music-toggle:hover { background: rgba(255,255,255,0.15); }
+.music-toggle.muted { opacity: 0.4; }
+
+.welcome-screen {
+position: fixed;
+inset: 0;
+z-index: 9999;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+transition: opacity 0.8s, transform 0.8s;
+}
+.welcome-screen.hidden { opacity: 0; transform: scale(1.05); pointer-events: none; }
+.welcome-logo { font-size: 64px; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+.welcome-screen h1 {
+color: white; font-size: 40px; font-weight: 900; text-align: center;
+background: linear-gradient(90deg, #4fc3f7, #ab47bc, #ff7043);
+-webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.welcome-screen .subtitle { color: rgba(255,255,255,0.6); font-size: 15px; margin: 10px 0 36px; text-align: center; padding: 0 20px; max-width: 500px; line-height: 1.7; }
+.start-btn {
+padding: 16px 48px; background: linear-gradient(135deg, #7c4dff, #536dfe); color: white; border: none;
+border-radius: 30px; font-size: 17px; font-weight: 800; cursor: pointer;
+box-shadow: 0 8px 30px rgba(124,77,255,0.4); transition: transform 0.2s, box-shadow 0.2s; letter-spacing: 0.5px;
+}
+.start-btn:hover { transform: scale(1.06) translateY(-2px); box-shadow: 0 12px 40px rgba(124,77,255,0.6); }
+
+.scratch-wrapper { width: 100%; height: 100%; position: relative; display: none; }
+.scratch-wrapper.active { display: block; }
+
+.scratch-app { width: 100%; height: 100%; display: flex; flex-direction: column; }
+
+.top-bar { height: 44px; min-height: 44px; background: #4D97FF; display: flex; align-items: center; padding: 0 10px; gap: 8px; }
+.scratch-logo { font-weight: 900; color: white; font-size: 13px; background: #855CD6; padding: 3px 8px; border-radius: 4px; }
+.menu-item { color: white; font-size: 12px; font-weight: 700; padding: 3px 6px; }
+.project-name-box { background: white; border: none; border-radius: 4px; padding: 5px 10px; font-size: 11px; width: 140px; }
+
+.tab-bar { height: 38px; min-height: 38px; background: #E8EDF1; display: flex; align-items: flex-end; padding-left: 56px; border-bottom: 1px solid #d0d0d0; }
+.tab { padding: 7px 12px; font-size: 11px; font-weight: 700; border-radius: 8px 8px 0 0; color: #575E75; background: transparent; cursor: pointer; }
+.tab.active { background: white; color: #4C97FF; }
+
+.main-area { flex: 1; display: flex; overflow: hidden; }
+
+.category-sidebar {
+width: 56px; min-width: 56px; background: white; border-right: 1px solid #e0e0e0;
+padding: 6px 2px; display: flex; flex-direction: column; align-items: center; gap: 0; overflow-y: auto;
+}
+.category-item { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 2px; border-radius: 6px; cursor: pointer; width: 100%; text-align: center; transition: background 0.2s; }
+.category-item.active { background: #e8f0ff; }
+.category-item:hover { background: #f0f0ff; }
+.category-dot { width: 20px; height: 20px; border-radius: 50%; }
+.category-dot.motion { background: #4C97FF; }
+.category-dot.looks { background: #9966FF; }
+.category-dot.sound { background: #CF63CF; }
+.category-dot.events { background: #FFBF00; }
+.category-dot.control { background: #FFAB19; }
+.category-dot.sensing { background: #5CB1D6; }
+.category-dot.operators { background: #59C059; }
+.category-dot.variables { background: #FF8C1A; }
+.category-dot.myblocks { background: #FF6680; }
+.category-label { font-size: 8px; font-weight: 700; color: #575E75; }
+
+.block-palette {
+width: 220px; min-width: 220px; background: #F9F9F9; padding: 8px 6px; overflow-y: auto; border-right: 1px solid #ddd;
+}
+.palette-title { font-size: 12px; font-weight: 700; color: #575E75; margin-bottom: 8px; }
+.scratch-block { margin: 3px 0; cursor: grab; }
+.block-body {
+padding: 6px 9px; color: white; font-size: 10px; font-weight: 600; min-height: 30px;
+display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
+border-radius: 4px; border-bottom: 2px solid rgba(0,0,0,0.15); position: relative;
+}
+.block-body.motion-color { background: #4C97FF; }
+.block-body.looks-color { background: #9966FF; }
+.block-body.sound-color { background: #CF63CF; }
+.block-body.events-color { background: #FFBF00; color: #333; }
+.block-body.control-color { background: #FFAB19; }
+.block-body.sensing-color { background: #5CB1D6; }
+.block-body.operators-color { background: #59C059; }
+.block-body.variables-color { background: #FF8C1A; }
+.block-body.hat-block { border-radius: 14px 14px 4px 4px; padding: 7px 12px; }
+.block-input { background: rgba(255,255,255,0.3); border-radius: 8px; padding: 1px 6px; font-size: 9px; font-weight: 700; min-width: 20px; text-align: center; }
+
+.coding-area { flex: 1; background: white; position: relative; overflow: hidden; min-width: 0; }
+.coding-grid {
+position: absolute; inset: 0; opacity: 0.03;
+background-image: linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px);
+background-size: 20px 20px;
+}
+.code-stack { position: absolute; top: 40px; left: 60px; }
+.code-stack .scratch-block { margin: 0; }
+
+.right-panel { width: 420px; min-width: 420px; display: flex; flex-direction: column; border-left: 1px solid #d0d0d0; }
+.stage-area { flex: 1; display: flex; flex-direction: column; background: white; }
+.stage-controls { height: 34px; display: flex; align-items: center; padding: 0 8px; gap: 6px; border-bottom: 1px solid #e8e8e8; }
+.green-flag-btn, .stop-btn { cursor: pointer; transition: transform 0.2s; }
+.green-flag-btn:hover, .stop-btn:hover { transform: scale(1.2); }
+.stage-canvas { flex: 1; background: white; position: relative; overflow: hidden; border-bottom: 1px solid #e0e0e0; }
+.stage-sprite { position: absolute; transition: all 0.8s ease; cursor: grab; }
+#catSprite { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+.speech-bubble {
+position: absolute; background: white; border: 2px solid #aaa; border-radius: 12px;
+padding: 6px 12px; font-size: 11px; font-weight: 700; color: #333;
+opacity: 0; transition: opacity 0.3s; white-space: nowrap; pointer-events: none;
+}
+.speech-bubble.visible { opacity: 1; }
+
+.coord-axes { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.5s; }
+.coord-axes.visible { opacity: 1; }
+.axis-line { position: absolute; background: rgba(76,151,255,0.5); }
+.axis-x { height: 2px; width: 100%; top: 50%; left: 0; }
+.axis-y { width: 2px; height: 100%; left: 50%; top: 0; }
+.axis-label { position: absolute; font-size: 11px; font-weight: 800; color: #4C97FF; background: rgba(255,255,255,0.85); padding: 1px 4px; border-radius: 3px; }
+
+.direction-compass {
+position: absolute; width: 70px; height: 70px; border: 3px dashed #4C97FF; border-radius: 50%;
+opacity: 0; transition: opacity 0.3s; background: rgba(255,255,255,0.9);
+}
+.direction-compass.visible { opacity: 1; }
+.compass-needle {
+position: absolute; top: 50%; left: 50%; width: 3px; height: 28px; background: #FF6F00;
+transform-origin: bottom center; transform: translateX(-50%) translateY(-100%) rotate(90deg);
+transition: transform 0.6s ease; border-radius: 2px;
+}
+.compass-needle::after {
+content: ''; position: absolute; top: -6px; left: -5px;
+border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid #FF6F00;
+}
+.compass-label { position: absolute; font-size: 10px; font-weight: 800; color: #4C97FF; }
+.compass-label.top { top: -16px; left: 50%; transform: translateX(-50%); }
+.compass-label.right { right: -18px; top: 50%; transform: translateY(-50%); }
+.compass-label.bottom { bottom: -16px; left: 50%; transform: translateX(-50%); }
+.compass-label.left-l { left: -22px; top: 50%; transform: translateY(-50%); }
+
+.sprite-panel { height: 130px; min-height: 130px; display: flex; flex-direction: column; background: #f9f9f9; border-top: 1px solid #d0d0d0; }
+.sprite-info-bar { display: flex; align-items: center; padding: 5px 8px; gap: 5px; background: white; border-bottom: 1px solid #e8e8e8; font-size: 10px; }
+.info-lbl { font-weight: 700; color: #575E75; font-size: 9px; }
+.info-val { border: 1px solid #e0e0e0; border-radius: 3px; padding: 2px 5px; font-size: 10px; width: 40px; text-align: center; background: white; transition: all 0.3s; }
+.info-val.name { width: 60px; text-align: left; }
+@keyframes input-pulse {
+    0%, 100% { box-shadow: 0 0 4px rgba(124,77,255,0.4); }
+    50% { box-shadow: 0 0 14px rgba(124,77,255,0.9); }
+}
+.info-val.highlighted {
+    border: 2px solid #7c4dff !important;
+    background: #ede7ff !important;
+    font-weight: 900 !important;
+    font-size: 12px !important;
+    color: #4C97FF !important;
+    animation: input-pulse 1s infinite;
+}
+
+.sprite-list-area { flex: 1; display: flex; overflow: hidden; }
+.sprite-list { flex: 1; padding: 6px; display: flex; gap: 6px; flex-wrap: wrap; align-content: flex-start; overflow-y: auto; }
+.sprite-thumb {
+width: 64px; height: 72px; background: white; border: 2px solid #ddd; border-radius: 6px;
+display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;
+}
+.sprite-thumb.selected { border-color: #4C97FF; border-width: 3px; }
+.sprite-thumb .thumb-name { font-size: 8px; font-weight: 600; color: #575E75; margin-top: 2px; }
+.sprite-actions { display: flex; flex-direction: column; align-items: center; padding: 6px 5px; gap: 4px; border-left: 1px solid #e0e0e0; }
+.add-sprite-btn {
+width: 34px; height: 34px; border-radius: 50%; background: #4C97FF;
+display: flex; align-items: center; justify-content: center; cursor: pointer;
+border: none; color: white; font-size: 18px; font-weight: 900; transition: transform 0.2s;
+}
+.add-sprite-btn:hover { transform: scale(1.1); }
+
+.stage-section { width: 70px; border-left: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; padding: 4px; background: #f9f9f9; }
+.stage-sect-label { font-size: 9px; font-weight: 700; color: #575E75; }
+.backdrop-mini { width: 52px; height: 38px; background: white; border: 1px solid #ddd; border-radius: 3px; margin: 3px 0; cursor: pointer; transition: border-color 0.2s; }
+.backdrop-mini:hover { border-color: #4C97FF; }
+.add-backdrop-btn { width: 28px; height: 28px; border-radius: 50%; background: #4CA6B0; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; color: white; font-size: 12px; font-weight: 700; }
+
+.highlight-box {
+position: fixed; border: 3px solid #7c4dff; border-radius: 8px; z-index: 2100;
+opacity: 0; pointer-events: none; transition: all 0.5s ease;
+box-shadow: 0 0 0 9999px rgba(0,0,0,0.6);
+}
+.highlight-box.visible { opacity: 1; animation: hl-pulse 1.5s infinite alternate; }
+@keyframes hl-pulse { from { border-color: #7c4dff; } to { border-color: #ab47bc; } }
+
+.callout {
+position: fixed; background: #1a1a2e; border: 1px solid rgba(124,77,255,0.3);
+border-radius: 16px; padding: 20px 24px;
+box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px rgba(124,77,255,0.1);
+max-width: 420px; min-width: 240px; z-index: 3000;
+opacity: 0; transform: translateY(8px); transition: all 0.4s ease; pointer-events: none;
+}
+.callout.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.callout h3 { font-size: 15px; font-weight: 800; color: #e0e0e0; margin-bottom: 8px; }
+.callout p { font-size: 12px; color: #aaa; line-height: 1.7; margin-bottom: 6px; }
+.callout p:last-of-type { margin-bottom: 0; }
+.callout p strong { color: #4fc3f7; }
+.callout .kin { font-size: 11px; color: #b388ff; font-style: italic; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px; margin-top: 8px; }
+.callout .arrow { position: absolute; width: 0; height: 0; }
+.callout .arrow.left { left: -12px; top: 50%; transform: translateY(-50%); border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 12px solid #1a1a2e; }
+.callout .arrow.right { right: -12px; top: 50%; transform: translateY(-50%); border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 12px solid #1a1a2e; }
+.callout .arrow.up { top: -12px; left: 30px; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 12px solid #1a1a2e; }
+.callout .arrow.down { bottom: -12px; left: 30px; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 12px solid #1a1a2e; }
+
+.drag-block {
+position: fixed; z-index: 5000; pointer-events: none; opacity: 0;
+filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35)); transition: opacity 0.3s;
+}
+.drag-block.visible { opacity: 1; }
+.drag-block .block-body { font-size: 11px; padding: 8px 12px; }
+
+.anim-cursor {
+position: fixed; z-index: 5100; pointer-events: none; opacity: 0; transition: opacity 0.3s; font-size: 24px;
+}
+.anim-cursor.visible { opacity: 1; }
+
+.dim-overlay {
+position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000;
+opacity: 0; pointer-events: none; transition: opacity 0.5s;
+}
+.dim-overlay.visible { opacity: 1; }
+
+.control-bar {
+position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+display: none; gap: 8px; align-items: center; z-index: 8000;
+background: rgba(15,15,26,0.95); padding: 8px 16px; border-radius: 24px;
+border: 1px solid rgba(124,77,255,0.3); box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+}
+.ctrl-btn {
+padding: 7px 14px; border: none; border-radius: 16px; font-size: 12px; font-weight: 700;
+cursor: pointer; font-family: inherit; transition: transform 0.15s;
+}
+.ctrl-btn:hover { transform: scale(1.05); }
+.ctrl-btn.prev { background: #333; color: #ccc; }
+.ctrl-btn.next { background: linear-gradient(135deg, #7c4dff, #536dfe); color: white; }
+.ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+.step-info { color: #aaa; font-size: 11px; font-weight: 700; padding: 0 10px; min-width: 60px; text-align: center; }
+.section-title { color: #b388ff; font-size: 9px; font-weight: 600; }
+
+.transition-screen {
+position: fixed; inset: 0; z-index: 9500; display: none; flex-direction: column;
+align-items: center; justify-content: center;
+background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+color: white; text-align: center; padding: 20px;
+}
+.transition-screen.active { display: flex; }
+.transition-screen h1 {
+font-size: 38px; font-weight: 900; margin-bottom: 8px;
+background: linear-gradient(90deg, #4fc3f7, #ab47bc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.transition-screen p { font-size: 15px; color: rgba(255,255,255,0.7); margin-bottom: 30px; max-width: 480px; line-height: 1.7; }
+.transition-screen .kin-sub { font-size: 13px; color: #b388ff; font-style: italic; margin-top: -20px; margin-bottom: 30px; max-width: 480px; line-height: 1.6; }
+.transition-screen button {
+padding: 14px 40px; background: linear-gradient(135deg, #7c4dff, #536dfe); color: white; border: none;
+border-radius: 24px; font-size: 16px; font-weight: 700; cursor: pointer;
+box-shadow: 0 6px 24px rgba(124,77,255,0.4); transition: transform 0.2s;
+}
+.transition-screen button:hover { transform: scale(1.06); }
+
+.level-complete {
+position: fixed; inset: 0; z-index: 9600; display: none; flex-direction: column;
+align-items: center; justify-content: center;
+background: linear-gradient(135deg, #0f0c29, #1a2a6c, #0f0c29); color: white; text-align: center; padding: 20px;
+}
+.level-complete.active { display: flex; }
+.lc-badge { font-size: 72px; margin-bottom: 10px; animation: float 2s ease-in-out infinite; }
+.lc-title { font-size: 36px; font-weight: 900; margin-bottom: 6px; background: linear-gradient(90deg, #ffd54f, #ffab40); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.lc-subtitle { color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 24px; }
+.lc-stats { display: flex; gap: 24px; margin-bottom: 30px; }
+.lc-stat { display: flex; flex-direction: column; align-items: center; }
+.lc-stat-value { font-size: 32px; font-weight: 900; color: #4fc3f7; }
+.lc-stat-label { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; }
+.lc-buttons { display: flex; gap: 12px; }
+.lc-btn { padding: 12px 28px; border: none; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer; transition: transform 0.2s; }
+.lc-btn:hover { transform: scale(1.05); }
+.lc-btn.primary { background: linear-gradient(135deg, #7c4dff, #536dfe); color: white; box-shadow: 0 4px 16px rgba(124,77,255,0.4); }
+.lc-btn.secondary { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+
+/* SANDBOX */
+.sandbox { position: fixed; inset: 0; display: none; flex-direction: column; background: #E8EDF1; z-index: 9000; }
+.sandbox.active { display: flex; }
+.sb-top { height: 44px; background: linear-gradient(90deg, #1a1a2e, #302b63); display: flex; align-items: center; padding: 0 14px; gap: 10px; }
+.sb-top h2 { color: white; font-size: 14px; font-weight: 800; }
+.sb-level-badge { background: linear-gradient(135deg, #7c4dff, #536dfe); color: white; padding: 3px 10px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+.sb-score { margin-left: auto; color: white; font-size: 13px; font-weight: 700; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 12px; }
+.sb-main { flex: 1; display: flex; overflow: hidden; }
+.task-panel { width: 260px; min-width: 260px; background: #1a1a2e; border-right: 1px solid rgba(124,77,255,0.2); display: flex; flex-direction: column; overflow: hidden; }
+.task-header { padding: 14px 16px; background: linear-gradient(135deg, rgba(124,77,255,0.2), rgba(83,109,254,0.1)); border-bottom: 1px solid rgba(124,77,255,0.2); }
+.task-header h3 { font-size: 13px; font-weight: 800; color: #e0e0e0; margin-bottom: 2px; }
+.task-header p { font-size: 10px; color: rgba(255,255,255,0.5); }
+.task-list { flex: 1; padding: 10px; overflow-y: auto; }
+.task-item { display: flex; align-items: flex-start; gap: 8px; padding: 10px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); transition: all 0.3s; }
+.task-item.active { border-color: rgba(124,77,255,0.5); background: rgba(124,77,255,0.08); box-shadow: 0 2px 12px rgba(124,77,255,0.15); }
+.task-item.done { border-color: rgba(76,175,80,0.3); background: rgba(76,175,80,0.08); }
+.task-item.locked { opacity: 0.3; }
+.task-check { width: 20px; height: 20px; min-width: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 11px; margin-top: 1px; transition: all 0.3s; }
+.task-item.active .task-check { border-color: #7c4dff; }
+.task-item.done .task-check { border-color: #4CAF50; background: #4CAF50; color: white; }
+.task-content h4 { font-size: 11px; font-weight: 700; color: #ccc; margin-bottom: 2px; }
+.task-content p { font-size: 9.5px; color: rgba(255,255,255,0.4); line-height: 1.4; }
+.task-item.active .task-content h4 { color: #b388ff; }
+.task-item.done .task-content h4 { color: #81c784; }
+.task-progress { padding: 10px 14px; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05); }
+.progress-bar-bg { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #7c4dff, #536dfe); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
+.progress-text { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); margin-top: 4px; text-align: center; }
+
+.sb-palette { width: 180px; background: #F4F4F4; border-right: 2px solid #d0d0d0; padding: 8px 6px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
+.sb-palette-title { font-size: 10px; font-weight: 800; color: #575E75; margin: 5px 0 3px; }
+.sb-block { padding: 7px 10px; color: white; font-size: 10px; font-weight: 600; border-radius: 5px; border-bottom: 2px solid rgba(0,0,0,0.15); cursor: grab; user-select: none; white-space: nowrap; transition: transform 0.1s, box-shadow 0.1s; }
+.sb-block:hover { transform: scale(1.03); box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
+.sb-block.motion { background: #4C97FF; }
+.sb-block.looks { background: #9966FF; }
+.sb-block.events { background: #FFBF00; color: #333; }
+.sb-block.control { background: #FFAB19; }
+.sb-block.sound { background: #CF63CF; }
+
+.sb-script-area { flex: 1; background: white; position: relative; overflow: hidden; min-width: 0; }
+.sb-script-grid { position: absolute; inset: 0; opacity: 0.04; background-image: linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px); background-size: 24px 24px; }
+.sb-script-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #bbb; font-size: 13px; font-weight: 700; pointer-events: none; text-align: center; }
+.sb-script-stack { position: absolute; top: 30px; left: 30px; display: flex; flex-direction: column; }
+.sb-placed-block { padding: 8px 12px; color: white; font-size: 10px; font-weight: 600; border-radius: 5px; border-bottom: 2px solid rgba(0,0,0,0.15); margin-top: -1px; animation: snap-in 0.3s ease; position: relative; cursor: pointer; }
+.sb-placed-block.motion { background: #4C97FF; }
+.sb-placed-block.looks { background: #9966FF; }
+.sb-placed-block.events { background: #FFBF00; color: #333; border-radius: 14px 14px 5px 5px; }
+.sb-placed-block.control { background: #FFAB19; }
+.sb-placed-block.sound { background: #CF63CF; }
+.sb-placed-block .remove-block { position: absolute; top: 2px; right: 4px; font-size: 10px; cursor: pointer; opacity: 0.4; color: white; }
+.sb-placed-block .remove-block:hover { opacity: 1; }
+@keyframes snap-in { 0% { transform: scale(1.12); opacity: 0.7; } 60% { transform: scale(0.95); } 100% { transform: scale(1); opacity: 1; } }
+.sb-drop-zone { min-height: 36px; border: 2px dashed #ccc; border-radius: 6px; margin-top: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #aaa; transition: all 0.2s; position: absolute; bottom: 20px; left: 30px; right: 30px; }
+.sb-drop-zone.over { border-color: #7c4dff; background: rgba(124,77,255,0.05); }
+
+.sb-right { width: 340px; min-width: 340px; display: flex; flex-direction: column; border-left: 2px solid #d0d0d0; }
+.sb-stage-controls { height: 38px; display: flex; align-items: center; padding: 0 10px; gap: 8px; background: white; border-bottom: 1px solid #e0e0e0; }
+.sb-flag-btn { width: 30px; height: 30px; background: #e8ffe8; border: 2px solid #4CBB17; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
+.sb-flag-btn:hover { background: #4CBB17; }
+.sb-flag-btn.running { background: #4CBB17; animation: pulse-flag 0.5s infinite alternate; }
+@keyframes pulse-flag { from { transform: scale(1); } to { transform: scale(1.1); } }
+.sb-stop-btn { width: 30px; height: 30px; background: #ffe8e8; border: 2px solid #EC5959; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.2s; }
+.sb-stop-btn:hover { background: #EC5959; }
+.sb-key-listener { font-size: 10px; color: #888; margin-left: auto; padding: 3px 8px; background: #f0f0f0; border-radius: 6px; display: none; }
+.sb-key-listener.active { display: block; }
+
+.sb-stage { flex: 1; background: white; position: relative; overflow: hidden; }
+.sb-stage-bg { position: absolute; inset: 0; transition: background 0.5s; }
+.sb-stage-sprite { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); transition: all 0.4s ease; }
+.sb-stage-bubble { position: absolute; background: white; border: 2px solid #aaa; border-radius: 12px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: #333; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.sb-stage-bubble.visible { opacity: 1; }
+
+.sb-controls { height: 190px; min-height: 190px; background: #f4f4f4; border-top: 2px solid #d0d0d0; padding: 8px 10px; overflow-y: auto; }
+.sb-ctrl-row { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; flex-wrap: wrap; }
+.sb-ctrl-label { font-size: 10px; font-weight: 700; color: #575E75; min-width: 55px; }
+.sb-ctrl-input { width: 45px; padding: 3px 5px; border: 2px solid #d0d0d0; border-radius: 6px; font-size: 10px; text-align: center; font-weight: 700; }
+.sb-ctrl-input:focus { border-color: #7c4dff; outline: none; }
+.sb-ctrl-btn { padding: 4px 9px; border: none; border-radius: 6px; font-size: 9px; font-weight: 700; cursor: pointer; transition: transform 0.1s; }
+.sb-ctrl-btn:hover { transform: scale(1.05); }
+.sb-ctrl-btn.blue { background: #4C97FF; color: white; }
+.sb-ctrl-btn.purple { background: #7c4dff; color: white; }
+.sb-sprite-select { display: flex; gap: 5px; flex-wrap: wrap; }
+.sb-sprite-option { width: 36px; height: 36px; border: 2px solid #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; background: white; transition: all 0.2s; }
+.sb-sprite-option:hover { border-color: #7c4dff; }
+.sb-sprite-option.selected { border-color: #7c4dff; border-width: 3px; background: #f3e8ff; }
+.sb-backdrop-select { display: flex; gap: 5px; flex-wrap: wrap; }
+.sb-backdrop-option { width: 44px; height: 30px; border: 2px solid #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.sb-backdrop-option:hover { border-color: #7c4dff; }
+.sb-backdrop-option.selected { border-color: #7c4dff; border-width: 3px; }
+
+.confetti-piece { position: fixed; pointer-events: none; z-index: 9900; animation: fall 3s forwards; font-size: 20px; }
+@keyframes fall { 0% { opacity: 1; transform: translateY(-30px) rotate(0) scale(0); } 15% { transform: translateY(0) rotate(40deg) scale(1); } 100% { opacity: 0; transform: translateY(100vh) rotate(600deg) scale(0.4); } }
+.toast { position: fixed; top: 56px; left: 50%; transform: translateX(-50%) translateY(-80px); background: #1a1a2e; color: white; padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: 700; z-index: 9800; transition: transform 0.4s ease; white-space: nowrap; border: 1px solid rgba(124,77,255,0.3); }
+.toast.visible { transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: rgba(76,175,80,0.5); background: rgba(20,60,20,0.95); }
+.toast.info { border-color: rgba(79,195,247,0.5); background: rgba(20,40,60,0.95); }
+.toast.warn { border-color: rgba(255,152,0,0.5); background: rgba(60,40,10,0.95); }
+
+.pos-indicator {
+    position: absolute; background: rgba(124,77,255,0.9); color: white; font-size: 10px; font-weight: 800;
+    padding: 3px 8px; border-radius: 10px; pointer-events: none; opacity: 0; transition: opacity 0.4s;
+    white-space: nowrap;
+}
+.pos-indicator.visible { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="lang-toggle" id="langToggle">
+<button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+<button class="lang-btn" data-lang="kin" onclick="setLang('kin')">KIN</button>
+</div>
+<button class="music-toggle" id="musicToggle" onclick="toggleMusic()">🎵</button>
+
+<div class="welcome-screen" id="welcomeScreen">
+<div class="welcome-logo">🧩</div>
+<h1>Master the Scratch Interface</h1>
+<p class="subtitle">Explore every part of the Scratch editor — the Stage, sprites, blocks, and coding area — then build projects hands-on.<br><br><em style="color:#b388ff;">Menya neza igice cyose cya Scratch editor — Stage, sprites, blocks, na coding area — hanyuma ukore porogaramu.</em></p>
+<button class="start-btn" onclick="startTour()">Explore the Interface → / Reba Interface →</button>
+</div>
+
+<div class="scratch-wrapper" id="tourWrapper">
+<div class="scratch-app">
+<div class="top-bar" id="topBar">
+<div class="scratch-logo">Scratch</div>
+<div class="menu-item">File</div>
+<div class="menu-item">Edit</div>
+<div class="menu-item">Tutorials</div>
+<input class="project-name-box" value="My First Project" readonly>
+</div>
+<div class="tab-bar" id="tabBar">
+<div class="tab active" id="codeTab">💻 Code</div>
+<div class="tab" id="costumesTab">✂ Costumes</div>
+<div class="tab" id="soundsTab">🔊 Sounds</div>
+</div>
+<div class="main-area">
+<div class="category-sidebar" id="categorySidebar">
+<div class="category-item active" data-cat="motion" id="catMotion"><div class="category-dot motion"></div><span class="category-label">Motion</span></div>
+<div class="category-item" data-cat="looks" id="catLooks"><div class="category-dot looks"></div><span class="category-label">Looks</span></div>
+<div class="category-item" data-cat="sound" id="catSound"><div class="category-dot sound"></div><span class="category-label">Sound</span></div>
+<div class="category-item" data-cat="events" id="catEvents"><div class="category-dot events"></div><span class="category-label">Events</span></div>
+<div class="category-item" data-cat="control" id="catControl"><div class="category-dot control"></div><span class="category-label">Control</span></div>
+<div class="category-item" data-cat="sensing" id="catSensing"><div class="category-dot sensing"></div><span class="category-label">Sensing</span></div>
+<div class="category-item" data-cat="operators" id="catOperators"><div class="category-dot operators"></div><span class="category-label">Operators</span></div>
+<div class="category-item" data-cat="variables" id="catVariables"><div class="category-dot variables"></div><span class="category-label">Variables</span></div>
+<div class="category-item" data-cat="myblocks" id="catMyblocks"><div class="category-dot myblocks"></div><span class="category-label">My Blocks</span></div>
+</div>
+<div class="block-palette" id="blockPalette">
+<div class="palette-title" id="paletteTitle">Motion</div>
+<div class="scratch-block" id="moveBlock"><div class="block-body motion-color">move <span class="block-input">10</span> steps</div></div>
+<div class="scratch-block"><div class="block-body motion-color">turn ↻ <span class="block-input">15</span> degrees</div></div>
+<div class="scratch-block"><div class="block-body motion-color">turn ↺ <span class="block-input">15</span> degrees</div></div>
+<div class="scratch-block"><div class="block-body motion-color">go to x: <span class="block-input">0</span> y: <span class="block-input">0</span></div></div>
+<div class="scratch-block"><div class="block-body motion-color">glide <span class="block-input">1</span> secs to x:<span class="block-input">100</span></div></div>
+<div class="scratch-block"><div class="block-body motion-color">point in direction <span class="block-input">90</span></div></div>
+</div>
+<div class="coding-area" id="codingArea">
+<div class="coding-grid"></div>
+<div class="code-stack" id="codeStack">
+<div class="scratch-block"><div class="block-body events-color hat-block">when 🏴 clicked</div></div>
+<div class="scratch-block" style="margin-top:-1px;"><div class="block-body motion-color">move <span class="block-input">10</span> steps</div></div>
+</div>
+</div>
+<div class="right-panel" id="rightPanel">
+<div class="stage-area" id="stageArea">
+<div class="stage-controls" id="stageControls">
+<div class="green-flag-btn" id="greenFlag">
+<svg viewBox="0 0 20 20" width="20" height="20"><path d="M4 3v14" stroke="#4CBB17" stroke-width="2" fill="none"/><path d="M4 3h11v7H4z" fill="#4CBB17"/></svg>
+</div>
+<div class="stop-btn" id="stopBtn">
+<svg viewBox="0 0 20 20" width="20" height="20"><polygon points="6,2 14,2 18,6 18,14 14,18 6,18 2,14 2,6" fill="#EC5959"/></svg>
+</div>
+</div>
+<div class="stage-canvas" id="stageCanvas">
+<div class="coord-axes" id="coordAxes">
+<div class="axis-line axis-x"></div>
+<div class="axis-line axis-y"></div>
+<span class="axis-label" style="top:calc(50% + 6px);right:8px;">+x (240)</span>
+<span class="axis-label" style="top:calc(50% + 6px);left:8px;">-x (-240)</span>
+<span class="axis-label" style="top:8px;left:calc(50% + 8px);">+y (180)</span>
+<span class="axis-label" style="bottom:8px;left:calc(50% + 8px);">-y (-180)</span>
+</div>
+<div class="stage-sprite" id="catSprite">
+<svg class="cat-svg" id="catSvg" viewBox="0 0 80 96" width="52" height="62">
+<ellipse cx="40" cy="62" rx="20" ry="22" fill="#FFAB19"/>
+<ellipse cx="40" cy="34" rx="17" ry="16" fill="#FFAB19"/>
+<polygon points="26,22 29,8 35,20" fill="#FFAB19"/>
+<polygon points="54,22 51,8 45,20" fill="#FFAB19"/>
+<polygon points="27,20 30,10 33,19" fill="#FF8C1A"/>
+<polygon points="53,20 50,10 47,19" fill="#FF8C1A"/>
+<ellipse cx="34" cy="32" rx="5" ry="5.5" fill="white"/>
+<ellipse cx="46" cy="32" rx="5" ry="5.5" fill="white"/>
+<ellipse cx="35" cy="33" rx="2.5" ry="3" fill="#333"/>
+<ellipse cx="47" cy="33" rx="2.5" ry="3" fill="#333"/>
+<circle cx="36" cy="31" r="1" fill="white"/>
+<circle cx="48" cy="31" r="1" fill="white"/>
+<ellipse cx="40" cy="38" rx="2" ry="1.5" fill="#B37119"/>
+<path d="M37 40 Q40 43 43 40" fill="none" stroke="#B37119" stroke-width="1"/>
+<ellipse cx="40" cy="64" rx="11" ry="13" fill="#FFC85C"/>
+</svg>
+</div>
+<div class="pos-indicator" id="posIndicator" style="bottom:8px;left:50%;transform:translateX(-50%);">x: 0, y: 0</div>
+<div class="speech-bubble" id="speechBubble" style="top:15%;left:58%;">Hello!</div>
+<div class="direction-compass" id="dirCompass" style="top:22%;left:10%;">
+<span class="compass-label top">0°</span>
+<span class="compass-label right">90°</span>
+<span class="compass-label bottom">180°</span>
+<span class="compass-label left-l">-90°</span>
+<div class="compass-needle" id="compassNeedle"></div>
+</div>
+</div>
+</div>
+<div class="sprite-panel" id="spritePanel">
+<div class="sprite-info-bar" id="spriteInfoBar">
+<span class="info-lbl">Sprite</span>
+<input class="info-val name" id="spriteName" value="Sprite1" readonly>
+<span class="info-lbl">x</span>
+<input class="info-val" id="xVal" value="0" readonly>
+<span class="info-lbl">y</span>
+<input class="info-val" id="yVal" value="0" readonly>
+<span class="info-lbl">Dir</span>
+<input class="info-val" id="dirVal" value="90" readonly>
+</div>
+<div class="sprite-list-area">
+<div class="sprite-list" id="spriteList">
+<div class="sprite-thumb selected" id="sprite1Thumb">
+<svg viewBox="0 0 80 96" width="28" height="34"><ellipse cx="40" cy="62" rx="20" ry="22" fill="#FFAB19"/><ellipse cx="40" cy="34" rx="17" ry="16" fill="#FFAB19"/><polygon points="26,22 29,8 35,20" fill="#FFAB19"/><polygon points="54,22 51,8 45,20" fill="#FFAB19"/></svg>
+<span class="thumb-name">Sprite1</span>
+</div>
+</div>
+<div class="sprite-actions" id="spriteActions">
+<div class="add-sprite-btn" id="addSpriteBtn">+</div>
+</div>
+<div class="stage-section" id="stageSection">
+<span class="stage-sect-label">Stage</span>
+<div class="backdrop-mini" id="backdropMini"></div>
+<span style="font-size:8px;color:#888;">Backdrops</span>
+<div class="add-backdrop-btn" id="addBackdropBtn">+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="drag-block" id="dragBlock"><div class="block-body motion-color">turn ↻ <span class="block-input">15</span> degrees</div></div>
+<div class="anim-cursor" id="animCursor">🖱️</div>
+<div class="dim-overlay" id="dimOverlay"></div>
+<div class="highlight-box" id="highlightBox"></div>
+<div class="callout" id="callout"><div class="arrow" id="calloutArrow"></div><h3 id="calloutTitle"></h3><div id="calloutBody"></div></div>
+
+<div class="control-bar" id="controlBar">
+<button class="ctrl-btn prev" onclick="prevStep()">←</button>
+<div style="display:flex;flex-direction:column;align-items:center;">
+<span class="section-title" id="sectionTitle">Introduction</span>
+<span class="step-info" id="stepInfo">1/16</span>
+</div>
+<button class="ctrl-btn next" onclick="nextStep()" id="nextBtn">Next →</button>
+</div>
+
+<div class="transition-screen" id="transitionScreen">
+<div style="font-size:56px;margin-bottom:10px;">🧩</div>
+<h1>Your Turn / Igihe Cyawe</h1>
+<p>You've explored the Scratch interface. Now use what you learned — build something yourself, step by step, in guided levels.</p>
+<p class="kin-sub">Wabonye uko interface ya Scratch ikora. Noneho koresha ibyo wize — kora ikintu wenyine, intambwe ku yindi.</p>
+<button onclick="startSandbox(1)">Start Level 1 → / Tangira →</button>
+</div>
+
+<div class="level-complete" id="levelComplete">
+<div class="lc-badge" id="lcBadge">🏅</div>
+<div class="lc-title" id="lcTitle">Level Complete</div>
+<div class="lc-subtitle" id="lcSubtitle">Great work!</div>
+<div class="lc-stats">
+<div class="lc-stat"><div class="lc-stat-value" id="lcPoints">0</div><div class="lc-stat-label">POINTS</div></div>
+<div class="lc-stat"><div class="lc-stat-value" id="lcBlocks">0</div><div class="lc-stat-label">BLOCKS</div></div>
+<div class="lc-stat"><div class="lc-stat-value" id="lcTasks">0</div><div class="lc-stat-label">TASKS</div></div>
+</div>
+<div class="lc-buttons">
+<button class="lc-btn secondary" onclick="replayLevel()">Replay</button>
+<button class="lc-btn primary" id="lcNextBtn" onclick="nextLevel()">Next Level →</button>
+</div>
+</div>
+
+<div class="sandbox" id="sandbox">
+<div class="sb-top">
+<h2>🧩 Scratch Interface Builder</h2>
+<div class="sb-level-badge" id="sbLevelBadge">Level 1</div>
+<div class="sb-score" id="sbScore">0 pts</div>
+</div>
+<div class="sb-main">
+<div class="task-panel" id="taskPanel">
+<div class="task-header"><h3 id="taskHeaderTitle">Level 1</h3><p id="taskHeaderDesc">Build a simple animation.</p></div>
+<div class="task-list" id="taskList"></div>
+<div class="task-progress"><div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">0 / 0</div></div>
+</div>
+<div class="sb-palette" id="sbPalette"></div>
+<div class="sb-script-area" id="sbScriptArea">
+<div class="sb-script-grid"></div>
+<div class="sb-script-hint" id="sbHint">drag blocks here →</div>
+<div class="sb-script-stack" id="sbStack"></div>
+<div class="sb-drop-zone" id="sbDropZone">drop here</div>
+</div>
+<div class="sb-right">
+<div class="sb-stage-controls">
+<div class="sb-flag-btn" id="sbFlagBtn" onclick="runSandboxCode()">🏴</div>
+<div class="sb-stop-btn" id="sbStopBtn" onclick="stopSandboxCode()">⏹</div>
+<span class="sb-key-listener" id="sbKeyListener">⌨️ Listening...</span>
+</div>
+<div class="sb-stage" id="sbStage">
+<div class="sb-stage-bg" id="sbStageBg"></div>
+<div class="sb-stage-sprite" id="sbSprite">
+<svg viewBox="0 0 80 96" width="52" height="62"><ellipse cx="40" cy="62" rx="20" ry="22" fill="#FFAB19"/><ellipse cx="40" cy="34" rx="17" ry="16" fill="#FFAB19"/><polygon points="26,22 29,8 35,20" fill="#FFAB19"/><polygon points="54,22 51,8 45,20" fill="#FFAB19"/><ellipse cx="34" cy="32" rx="5" ry="5.5" fill="white"/><ellipse cx="46" cy="32" rx="5" ry="5.5" fill="white"/><ellipse cx="35" cy="33" rx="2.5" ry="3" fill="#333"/><ellipse cx="47" cy="33" rx="2.5" ry="3" fill="#333"/><ellipse cx="40" cy="38" rx="2" ry="1.5" fill="#B37119"/><path d="M37 40 Q40 43 43 40" fill="none" stroke="#B37119" stroke-width="1"/><ellipse cx="40" cy="64" rx="11" ry="13" fill="#FFC85C"/></svg>
+</div>
+<div class="sb-stage-bubble" id="sbBubble" style="top:20px;left:55%;">Hello!</div>
+</div>
+<div class="sb-controls" id="sbControls">
+<div class="sb-ctrl-row"><span class="sb-ctrl-label">Sprite:</span><div class="sb-sprite-select" id="sbSpriteSelect"><div class="sb-sprite-option selected" data-sprite="cat" onclick="selectSprite('cat')">🐱</div><div class="sb-sprite-option" data-sprite="dog" onclick="selectSprite('dog')">🐶</div><div class="sb-sprite-option" data-sprite="robot" onclick="selectSprite('robot')">🤖</div><div class="sb-sprite-option" data-sprite="rocket" onclick="selectSprite('rocket')">🚀</div><div class="sb-sprite-option" data-sprite="star" onclick="selectSprite('star')">⭐</div><div class="sb-sprite-option" data-sprite="dino" onclick="selectSprite('dino')">🦖</div></div></div>
+<div class="sb-ctrl-row"><span class="sb-ctrl-label">Backdrop:</span><div class="sb-backdrop-select" id="sbBackdropSelect"><div class="sb-backdrop-option selected" data-bg="white" onclick="selectBackdrop('white')" style="background:white;">—</div><div class="sb-backdrop-option" data-bg="sky" onclick="selectBackdrop('sky')" style="background:linear-gradient(#87CEEB,#E0F7FA);">☀</div><div class="sb-backdrop-option" data-bg="space" onclick="selectBackdrop('space')" style="background:linear-gradient(#0a0a2e,#1a1a4e);">🌌</div><div class="sb-backdrop-option" data-bg="forest" onclick="selectBackdrop('forest')" style="background:linear-gradient(#2d5016,#4a7c23);">🌲</div><div class="sb-backdrop-option" data-bg="ocean" onclick="selectBackdrop('ocean')" style="background:linear-gradient(#006994,#40E0D0);">🌊</div><div class="sb-backdrop-option" data-bg="sunset" onclick="selectBackdrop('sunset')" style="background:linear-gradient(#FF6B35,#FFC300);">🌅</div></div></div>
+<div class="sb-ctrl-row"><span class="sb-ctrl-label">x / y:</span><input class="sb-ctrl-input" id="sbXInput" type="number" value="0"><input class="sb-ctrl-input" id="sbYInput" type="number" value="0"><button class="sb-ctrl-btn blue" onclick="updateSpritePos()">Set</button></div>
+<div class="sb-ctrl-row"><span class="sb-ctrl-label">Dir °:</span><input class="sb-ctrl-input" id="sbDirInput" type="number" value="90"><button class="sb-ctrl-btn blue" onclick="updateSpriteDir()">Set</button><button class="sb-ctrl-btn purple" onclick="clearBlocks()">Clear</button></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== GLOBALS =====
+let lang = 'en';
+let step = 0;
+let timeouts = [];
+
+function setLang(l) {
+lang = l;
+document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === l));
+}
+
+// ===== AUDIO =====
+let audioCtx = null, musicPlaying = false, musicGain = null, beatInterval = null, beatCount = 0, currentTrack = 'tour';
+function initAudio() { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); musicGain = audioCtx.createGain(); musicGain.gain.value = 0.12; musicGain.connect(audioCtx.destination); }
+function ensureAudio() { if (!audioCtx) initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
+function playTourBeat() {
+if (!audioCtx || !musicPlaying) return;
+const now = audioCtx.currentTime; const pat = beatCount % 8;
+if ([0,3,4,6].includes(pat)) { const k=audioCtx.createOscillator(),e=audioCtx.createGain(); k.type='sine'; k.frequency.setValueAtTime(180,now); k.frequency.exponentialRampToValueAtTime(50,now+0.06); e.gain.setValueAtTime(0.5,now); e.gain.exponentialRampToValueAtTime(0.001,now+0.12); k.connect(e); e.connect(musicGain); k.start(now); k.stop(now+0.15); }
+if ([2,6].includes(pat)) { const n=audioCtx.createBufferSource(),b=audioCtx.createBuffer(1,audioCtx.sampleRate*0.08,audioCtx.sampleRate),d=b.getChannelData(0); for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*0.4; n.buffer=b; const f=audioCtx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=3000; const e=audioCtx.createGain(); e.gain.setValueAtTime(0.25,now); e.gain.exponentialRampToValueAtTime(0.001,now+0.08); n.connect(f); f.connect(e); e.connect(musicGain); n.start(now); n.stop(now+0.1); }
+const bass=[130.81,0,164.81,130.81,0,174.61,0,146.83]; if(bass[pat]>0){const o=audioCtx.createOscillator(),e=audioCtx.createGain();o.type='sawtooth';o.frequency.value=bass[pat];const l=audioCtx.createBiquadFilter();l.type='lowpass';l.frequency.value=400;e.gain.setValueAtTime(0.18,now);e.gain.exponentialRampToValueAtTime(0.001,now+0.4);o.connect(l);l.connect(e);e.connect(musicGain);o.start(now);o.stop(now+0.5);}
+if(pat===0&&beatCount%16===0){[[261,329,392],[293,349,440]][Math.floor(beatCount/16)%2].forEach(f=>{const o=audioCtx.createOscillator(),e=audioCtx.createGain();o.type='square';o.frequency.value=f;e.gain.setValueAtTime(0.04,now);e.gain.exponentialRampToValueAtTime(0.001,now+1);o.connect(e);e.connect(musicGain);o.start(now);o.stop(now+1.2);});}
+beatCount++;
+}
+
+function playLevel1Beat() {
+if (!audioCtx || !musicPlaying) return;
+const now = audioCtx.currentTime; const pat = beatCount % 16;
+if(pat%4===0){const k=audioCtx.createOscillator(),e=audioCtx.createGain();k.type='sine';k.frequency.setValueAtTime(200,now);k.frequency.exponentialRampToValueAtTime(40,now+0.07);e.gain.setValueAtTime(0.6,now);e.gain.exponentialRampToValueAtTime(0.001,now+0.15);k.connect(e);e.connect(musicGain);k.start(now);k.stop(now+0.18);}
+if(pat===4||pat===12){const n=audioCtx.createBufferSource(),b=audioCtx.createBuffer(1,audioCtx.sampleRate*0.1,audioCtx.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*0.5;n.buffer=b;const f=audioCtx.createBiquadFilter();f.type='bandpass';f.frequency.value=4000;const e=audioCtx.createGain();e.gain.setValueAtTime(0.3,now);e.gain.exponentialRampToValueAtTime(0.001,now+0.09);n.connect(f);f.connect(e);e.connect(musicGain);n.start(now);n.stop(now+0.12);}
+const bn=[196,196,0,196,0,233,233,0,261,261,0,261,0,220,220,0][pat]; if(bn>0){const o=audioCtx.createOscillator(),e=audioCtx.createGain();o.type='square';o.frequency.value=bn;const l=audioCtx.createBiquadFilter();l.type='lowpass';l.frequency.setValueAtTime(800,now);l.frequency.exponentialRampToValueAtTime(200,now+0.3);e.gain.setValueAtTime(0.14,now);e.gain.exponentialRampToValueAtTime(0.001,now+0.35);o.connect(l);l.connect(e);e.connect(musicGain);o.start(now);o.stop(now+0.4);}
+if(pat===0||pat===6||pat===10){[392,494,587].forEach(f=>{const o=audioCtx.createOscillator(),e=audioCtx.createGain();o.type='sawtooth';o.frequency.value=f;const l=audioCtx.createBiquadFilter();l.type='lowpass';l.frequency.value=2000;e.gain.setValueAtTime(0.04,now);e.gain.exponentialRampToValueAtTime(0.001,now+0.3);o.connect(l);l.connect(e);e.connect(musicGain);o.start(now);o.stop(now+0.35);});}
+beatCount++;
+}
+
+function playLevel2Beat() {
+if (!audioCtx || !musicPlaying) return;
+const now = audioCtx.currentTime;
+const pat = beatCount % 16;
+const bar = Math.floor(beatCount / 16) % 4;
+
+const kickPattern = [1,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0];
+if (kickPattern[pat]) {
+    const k = audioCtx.createOscillator(), e = audioCtx.createGain();
+    k.type = 'sine';
+    k.frequency.setValueAtTime(150, now);
+    k.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+    e.gain.setValueAtTime(0.55, now);
+    e.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    k.connect(e); e.connect(musicGain);
+    k.start(now); k.stop(now + 0.18);
+}
+
+if (pat === 4 || pat === 12) {
+    const n = audioCtx.createBufferSource();
+    const b = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.1, audioCtx.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * 0.5;
+    n.buffer = b;
+    const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 3500;
+    const e = audioCtx.createGain();
+    e.gain.setValueAtTime(0.3, now);
+    e.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+    n.connect(f); f.connect(e); e.connect(musicGain);
+    n.start(now); n.stop(now + 0.12);
+}
+
+if (pat % 2 === 0) {
+    const vol = (pat % 4 === 0) ? 0.12 : 0.06;
+    const n = audioCtx.createBufferSource();
+    const b = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.02, audioCtx.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * vol;
+    n.buffer = b;
+    const f = audioCtx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 8000;
+    const e = audioCtx.createGain();
+    e.gain.setValueAtTime(vol, now);
+    e.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+    n.connect(f); f.connect(e); e.connect(musicGain);
+    n.start(now); n.stop(now + 0.03);
+}
+
+const bassNotes = [
+    [82,82,0,82,0,0,110,0, 98,98,0,98,0,0,82,0],
+    [82,82,0,82,0,0,73,0, 82,82,0,98,0,0,110,0],
+    [110,110,0,110,0,0,98,0, 82,82,0,82,0,0,73,0],
+    [82,82,0,82,0,0,98,0, 110,110,0,110,0,0,82,0]
+][bar];
+const bn = bassNotes[pat];
+if (bn > 0) {
+    const o = audioCtx.createOscillator(), e = audioCtx.createGain();
+    o.type = 'sawtooth'; o.frequency.value = bn;
+    const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(600, now);
+    lp.frequency.exponentialRampToValueAtTime(200, now + 0.25);
+    e.gain.setValueAtTime(0.14, now);
+    e.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    o.connect(lp); lp.connect(e); e.connect(musicGain);
+    o.start(now); o.stop(now + 0.3);
+}
+
+if (pat === 0 || pat === 8) {
+    const chords = [
+        [329, 392, 494],
+        [261, 329, 392],
+        [392, 494, 587],
+        [293, 370, 440]
+    ][bar];
+    chords.forEach(f => {
+        const o = audioCtx.createOscillator(), e = audioCtx.createGain();
+        o.type = 'square'; o.frequency.value = f;
+        e.gain.setValueAtTime(0.03, now);
+        e.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        o.connect(e); e.connect(musicGain);
+        o.start(now); o.stop(now + 0.25);
+    });
+}
+
+if (beatCount % 32 >= 16) {
+    const melody = [
+        659, 0, 587, 494, 0, 392, 494, 0,
+        587, 0, 494, 392, 0, 329, 392, 0
+    ][pat];
+    if (melody > 0) {
+        const o = audioCtx.createOscillator(), e = audioCtx.createGain();
+        o.type = 'sine'; o.frequency.value = melody;
+        e.gain.setValueAtTime(0.07, now);
+        e.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+        o.connect(e); e.connect(musicGain);
+        o.start(now); o.stop(now + 0.22);
+    }
+}
+
+beatCount++;
+}
+
+function startMusic() { ensureAudio(); musicPlaying = true; document.getElementById('musicToggle').classList.remove('muted'); beatCount = 0; const bpms = {tour:118,level1:128,level2:135}; const fns = {tour:playTourBeat,level1:playLevel1Beat,level2:playLevel2Beat}; fns[currentTrack](); beatInterval = setInterval(fns[currentTrack], (60/bpms[currentTrack]/2)*1000); }
+function stopMusic() { musicPlaying = false; document.getElementById('musicToggle').classList.add('muted'); if(beatInterval){clearInterval(beatInterval);beatInterval=null;} }
+function switchTrack(t) { if(currentTrack===t&&musicPlaying)return; const w=musicPlaying; if(musicPlaying)stopMusic(); currentTrack=t; if(w)setTimeout(()=>startMusic(),150); }
+function toggleMusic() { if(musicPlaying)stopMusic();else startMusic(); }
+
+function playClick() { ensureAudio(); const o=audioCtx.createOscillator(),e=audioCtx.createGain(); o.type='sine'; o.frequency.value=1200; e.gain.setValueAtTime(0.08,audioCtx.currentTime); e.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.05); o.connect(e); e.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.06); }
+function playSnap() { ensureAudio(); const now=audioCtx.currentTime,o=audioCtx.createOscillator(),e=audioCtx.createGain(); o.type='triangle'; o.frequency.setValueAtTime(400,now); o.frequency.exponentialRampToValueAtTime(900,now+0.04); e.gain.setValueAtTime(0.15,now); e.gain.exponentialRampToValueAtTime(0.001,now+0.1); o.connect(e); e.connect(audioCtx.destination); o.start(now); o.stop(now+0.12); }
+function playSuccess() { ensureAudio(); const now=audioCtx.currentTime; [523,659,784,1047].forEach((f,i)=>{const o=audioCtx.createOscillator(),e=audioCtx.createGain();o.type='sine';o.frequency.value=f;const t=now+i*0.07;e.gain.setValueAtTime(0.12,t);e.gain.exponentialRampToValueAtTime(0.001,t+0.2);o.connect(e);e.connect(audioCtx.destination);o.start(t);o.stop(t+0.25);}); }
+function playLevelUp() { ensureAudio(); const now=audioCtx.currentTime; [392,523,659,784,1047].forEach((f,i)=>{const o=audioCtx.createOscillator(),e=audioCtx.createGain();o.type='square';o.frequency.value=f;const t=now+i*0.1;e.gain.setValueAtTime(0.08,t);e.gain.exponentialRampToValueAtTime(0.001,t+0.35);o.connect(e);e.connect(audioCtx.destination);o.start(t);o.stop(t+0.4);}); }
+
+function showToast(msg, type='info', dur=2200) { const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+type+' visible'; setTimeout(()=>t.classList.remove('visible'),dur); }
+function celebrate() { ['⚡','✨','🔥','💎','🎯','🚀','💜','🎵','⭐','🧩'].forEach((e,i)=>{setTimeout(()=>{const el=document.createElement('div');el.className='confetti-piece';el.textContent=e;el.style.left=(5+Math.random()*90)+'%';el.style.top='5%';document.body.appendChild(el);setTimeout(()=>el.remove(),3500);},i*100);}); }
+
+// ===== TOUR SYSTEM =====
+const dimOverlay = document.getElementById('dimOverlay');
+const highlightBox = document.getElementById('highlightBox');
+const callout = document.getElementById('callout');
+const controlBar = document.getElementById('controlBar');
+const nextBtn = document.getElementById('nextBtn');
+
+function clearTimeouts() { timeouts.forEach(t => clearTimeout(t)); timeouts = []; }
+function delay(fn, ms) { timeouts.push(setTimeout(fn, ms)); }
+
+function highlightInputs(ids) {
+    ids.forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('highlighted'); });
+}
+function resetInputHighlights() {
+    ['xVal','yVal','dirVal'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('highlighted'); });
+}
+
+function resetVisuals() {
+clearTimeouts();
+dimOverlay.classList.remove('visible');
+highlightBox.classList.remove('visible');
+callout.classList.remove('visible');
+document.getElementById('animCursor').classList.remove('visible');
+document.getElementById('dragBlock').classList.remove('visible');
+document.getElementById('speechBubble').classList.remove('visible');
+document.getElementById('dirCompass').classList.remove('visible');
+document.getElementById('coordAxes').classList.remove('visible');
+document.getElementById('posIndicator').classList.remove('visible');
+callout.style.transform = '';
+resetInputHighlights();
+const cat = document.getElementById('catSprite');
+cat.style.left = '50%'; cat.style.top = '50%'; cat.style.transform = 'translate(-50%, -50%)';
+document.getElementById('catSvg').style.transform = '';
+document.getElementById('xVal').value = '0'; document.getElementById('yVal').value = '0'; document.getElementById('dirVal').value = '90';
+document.getElementById('stageCanvas').style.background = '';
+}
+
+function highlight(elId, pad=6) {
+const el=document.getElementById(elId); if(!el)return;
+const r=el.getBoundingClientRect();
+highlightBox.style.top=(r.top-pad)+'px'; highlightBox.style.left=(r.left-pad)+'px';
+highlightBox.style.width=(r.width+pad*2)+'px'; highlightBox.style.height=(r.height+pad*2)+'px';
+highlightBox.classList.add('visible');
+}
+
+function showCallout(config) {
+const {title,desc,kin,x,y,arrow} = config;
+document.getElementById('calloutTitle').textContent = title;
+let bodyHTML = `<p>${desc}</p>`;
+if (kin) bodyHTML += `<p class="kin">${kin}</p>`;
+document.getElementById('calloutBody').innerHTML = bodyHTML;
+callout.style.left = x+'px'; callout.style.top = y+'px'; callout.style.transform = '';
+const arrowEl = document.getElementById('calloutArrow');
+arrowEl.className = 'arrow'; if(arrow) arrowEl.classList.add(arrow);
+delay(() => callout.classList.add('visible'), 250);
+}
+
+function showCalloutCenter(config) {
+const {title,desc,kin} = config;
+document.getElementById('calloutTitle').textContent = title;
+let bodyHTML = `<p>${desc}</p>`;
+if(kin) bodyHTML += `<p class="kin">${kin}</p>`;
+document.getElementById('calloutBody').innerHTML = bodyHTML;
+callout.style.left = '50%'; callout.style.top = '50%'; callout.style.transform = 'translate(-50%,-50%)';
+document.getElementById('calloutArrow').className = 'arrow';
+delay(() => callout.classList.add('visible'), 250);
+}
+
+function showCalloutNear(elId, config, pos='right') {
+const el=document.getElementById(elId); if(!el)return;
+const r=el.getBoundingClientRect();
+let x,y,arrow;
+if(pos==='right'){x=r.right+18;y=r.top+r.height/2-60;arrow='left';}
+else if(pos==='left'){x=r.left-420;y=r.top+r.height/2-60;arrow='right';}
+else if(pos==='below'){x=r.left;y=r.bottom+18;arrow='up';}
+else if(pos==='above'){x=r.left;y=r.top-180;arrow='down';}
+x=Math.max(10,Math.min(x,window.innerWidth-440));
+y=Math.max(10,Math.min(y,window.innerHeight-250));
+showCallout({...config, x, y, arrow});
+}
+
+// ===== TOUR STEPS =====
+const tourSections = [
+{ section: 'Introduction', fn: () => {
+    dimOverlay.classList.add('visible');
+    showCalloutCenter({title:'Welcome to the Scratch Interface! 🧩', desc:'Before we create games and animations, we need to learn how the Scratch interface works. The interface is made up of different parts that work together like a team. Today we\'ll explore: <strong>the Stage, sprites, backgrounds, the coding area, coloured blocks, movement,</strong> and <strong>how to build programs</strong>.', kin:'Mbere yo gukora imikino na animation, tugomba kwiga uko interface ya Scratch ikora. Uyu munsi tuziga: Stage, sprites, backgrounds, coding area, blocks z\'amabara, n\'uko gukora porogaramu.'});
+}},
+{ section: 'The Stage', fn: () => {
+    highlight('stageCanvas');
+    showCalloutNear('stageCanvas', {title:'The Stage 🎭', desc:'This area is called the <strong>Stage</strong>. It\'s where everything in your project happens — like a football field where players move, or a theatre stage where actors perform. When characters move, talk, or dance, you see it here.', kin:'Aha hantu hitwa <strong>Stage</strong>. Niho ibintu byose bibera — nk\'ikibuga cya football cyangwa stage y\'abakinnyi.'}, 'left');
+}},
+{ section: 'Sprites', fn: () => {
+    highlight('catSprite', 12);
+    showCalloutNear('stageCanvas', {title:'Sprites 🐱👦🐶⚽', desc:'<strong>Sprites</strong> are the characters and objects in Scratch. The cat is a sprite! A sprite can: move, talk, jump, hide, dance, change direction, and play sounds. You add new sprites with the <strong>blue + button</strong> at the bottom right.', kin:'<strong>Sprites</strong> ni abakinnyi n\'ibintu biri muri Scratch. Injangwe ni sprite! Sprite ishobora: kugenda, kuvuga, gusimbuka, kwihisha, no gukinisha amajwi.'}, 'left');
+}},
+{ section: 'Backdrops', fn: () => {
+    highlight('stageSection');
+    showCalloutNear('stageSection', {title:'Backdrops (Backgrounds) 🌍', desc:'A <strong>Backdrop</strong> changes the environment. You can make the Stage look like: a classroom, a village, outer space, a football field, or a forest. Backdrops help tell a story or create different scenes.', kin:'<strong>Backdrop</strong> ihindura ibidukikije. Ushobora gutuma Stage isa nk\'ishuri, umudugudu, umwanya w\'inyenyeri, ikibuga, cyangwa ishyamba.'}, 'left');
+}},
+{ section: 'Running Programs', fn: () => {
+    highlight('stageControls', 8);
+    showCalloutNear('stageControls', {title:'Green Flag & Stop 🏴', desc:'The <strong>green flag</strong> starts your program. Any code beginning with "when 🏴 clicked" will run. The <strong>red stop</strong> button stops everything. Without clicking the green flag, most programs won\'t start!', kin:'<strong>Ibendera ry\'icyatsi</strong> ritangira porogaramu yawe. Code yose itangirira "when 🏴 clicked" irakora. <strong>Igitukura</strong> gihagarika byose.'}, 'below');
+}},
+{ section: 'Position & Direction', fn: () => {
+    document.getElementById('coordAxes').classList.add('visible');
+    document.getElementById('posIndicator').classList.add('visible');
+    highlight('rightPanel', 4);
+    highlightInputs(['xVal', 'yVal']);
+    showCalloutNear('stageCanvas', {title:'X / Y Position 🧭', desc:'Every sprite has a <strong>position</strong> on the Stage measured in coordinates. <strong>X</strong> = left/right (-240 to 240). <strong>Y</strong> = up/down (-180 to 180). Center = (0, 0). Watch the highlighted values change as the cat moves!', kin:'Buri sprite ifite <strong>aho iherereye</strong> kuri Stage. <strong>X</strong> = ibumoso/iburyo (-240 kugeza 240). <strong>Y</strong> = hejuru/hasi (-180 kugeza 180). Hagati = (0, 0).'}, 'left');
+    const cat = document.getElementById('catSprite');
+    const posInd = document.getElementById('posIndicator');
+    delay(() => { cat.style.left='75%'; document.getElementById('xVal').value='120'; posInd.textContent='x: 120, y: 0'; }, 2000);
+    delay(() => { cat.style.top='25%'; document.getElementById('yVal').value='90'; posInd.textContent='x: 120, y: 90'; }, 3800);
+    delay(() => { cat.style.left='25%'; document.getElementById('xVal').value='-120'; posInd.textContent='x: -120, y: 90'; }, 5600);
+    delay(() => { cat.style.left='50%'; cat.style.top='50%'; document.getElementById('xVal').value='0'; document.getElementById('yVal').value='0'; posInd.textContent='x: 0, y: 0 (center)'; }, 7400);
+}},
+{ section: 'Position & Direction', fn: () => {
+    document.getElementById('dirCompass').classList.add('visible');
+    highlight('rightPanel', 4);
+    highlightInputs(['dirVal']);
+    showCalloutNear('stageCanvas', {title:'Direction 🧭', desc:'Sprites face a <strong>direction in degrees</strong>. <strong>90°</strong> = right, <strong>0°</strong> = up, <strong>-90°</strong> = left, <strong>180°</strong> = down. "Move" blocks make the sprite go wherever it\'s pointing. Watch the compass and the cat rotate!', kin:'Sprites zerekeza mu <strong>cyerekezo cy\'amadigere</strong>. 90° = iburyo, 0° = hejuru, -90° = ibumoso, 180° = hasi.'}, 'left');
+    const needle = document.getElementById('compassNeedle');
+    const catSvg = document.getElementById('catSvg');
+    delay(() => { needle.style.transform='translateX(-50%) translateY(-100%) rotate(0deg)'; catSvg.style.transform='rotate(-90deg)'; document.getElementById('dirVal').value='0'; }, 2000);
+    delay(() => { needle.style.transform='translateX(-50%) translateY(-100%) rotate(-90deg)'; catSvg.style.transform='rotate(-180deg)'; document.getElementById('dirVal').value='-90'; }, 4000);
+    delay(() => { needle.style.transform='translateX(-50%) translateY(-100%) rotate(180deg)'; catSvg.style.transform='rotate(90deg)'; document.getElementById('dirVal').value='180'; }, 6000);
+    delay(() => { needle.style.transform='translateX(-50%) translateY(-100%) rotate(90deg)'; catSvg.style.transform=''; document.getElementById('dirVal').value='90'; }, 8000);
+}},
+{ section: 'Coloured Blocks', fn: () => {
+    highlight('categorySidebar', 4);
+    showCalloutNear('categorySidebar', {title:'The Coloured Blocks 🌈', desc:'On the left you see coloured categories. Each colour = a different type of instruction: <strong>Blue</strong> = Motion, <strong>Purple</strong> = Looks, <strong>Pink</strong> = Sound, <strong>Yellow</strong> = Events (triggers), <strong>Orange</strong> = Control (loops/waits), <strong>Green</strong> = Operators, <strong>Light Blue</strong> = Sensing.', kin:'Ibumoso ubona amabara atandukanye. Buri bara = ubwoko bw\'amabwiriza butandukanye.'}, 'right');
+}},
+{ section: 'Block Palette', fn: () => {
+    highlight('blockPalette', 4);
+    showCalloutNear('blockPalette', {title:'Block Palette 🧱', desc:'This area shows available blocks for the selected category. These are your <strong>instructions</strong>. You drag them to the coding area to build programs. Each block does one specific thing — like "move 10 steps" or "turn 15 degrees".', kin:'Aha hagaragara blocks za category wahisemo. Izi ni <strong>amabwiriza</strong> yawe. Uzikurura uzijyane aho wandika code.'}, 'right');
+}},
+{ section: 'Coding Area', fn: () => {
+    highlight('codingArea', 4);
+    showCalloutNear('codingArea', {title:'The Coding Area 🧩', desc:'The middle area is the <strong>Coding Area</strong> — where you build programs! Drag blocks here, connect them together, and they form a sequence. Blocks execute <strong>top to bottom</strong>, like reading a recipe: do this first, then that.', kin:'Hagati hari <strong>Coding Area</strong> — aho ukora porogaramu! Kururayo blocks, uzihuze, zigakurikirana. Zikora <strong>uhereye hejuru ujya hasi</strong>.'}, 'left');
+}},
+{ section: 'Coding Area', fn: () => {
+    dimOverlay.classList.add('visible');
+    showCalloutCenter({title:'Drag & Drop 🖱️', desc:'Watch: we grab a block from the palette and snap it onto the script. That\'s how you build programs! Blocks connect by fitting into each other like puzzle pieces.', kin:'Reba: dufata block tukaiyisangiza na script. Uko nibwo ukora porogaramu! Blocks zihuza nk\'uduce tw\'urujijo.'});
+    const paletteBlock = document.querySelector('#blockPalette .scratch-block:nth-child(3)');
+    const stackEl = document.getElementById('codeStack');
+    const paletteRect = paletteBlock.getBoundingClientRect();
+    const stackRect = stackEl.getBoundingClientRect();
+    const dragEl = document.getElementById('dragBlock');
+    const cursor = document.getElementById('animCursor');
+    delay(() => { cursor.style.left=(paletteRect.left+40)+'px'; cursor.style.top=(paletteRect.top+12)+'px'; cursor.style.transition='none'; cursor.classList.add('visible'); }, 1200);
+    delay(() => { dragEl.style.left=paletteRect.left+'px'; dragEl.style.top=paletteRect.top+'px'; dragEl.style.transition='none'; dragEl.classList.add('visible'); }, 1800);
+    delay(() => { dragEl.style.transition='left 1.5s ease-in-out,top 1.5s ease-in-out'; cursor.style.transition='left 1.5s ease-in-out,top 1.5s ease-in-out'; dragEl.style.left=stackRect.left+'px'; dragEl.style.top=stackRect.bottom+'px'; cursor.style.left=(stackRect.left+40)+'px'; cursor.style.top=(stackRect.bottom+12)+'px'; }, 2200);
+    delay(() => { dragEl.classList.remove('visible'); cursor.classList.remove('visible'); playSnap(); }, 4000);
+}},
+{ section: 'Block Types', fn: () => {
+    highlight('catEvents');
+    showCalloutNear('categorySidebar', {title:'Events ⚡ (Yellow)', desc:'Yellow blocks are <strong>Events</strong> — they START actions. They tell Scratch: "When THIS happens, begin the instructions." Examples: <strong>when green flag clicked</strong>, when sprite clicked, when key pressed. Without an event block, programs won\'t start!', kin:'Blocks z\'umuhondo ni <strong>Events</strong> — zitangira ibikorwa. Zibwira Scratch: "Ibi nibimara kubaho, tangira amabwiriza."'}, 'right');
+}},
+{ section: 'Block Types', fn: () => {
+    highlight('catMotion');
+    document.querySelectorAll('.category-item').forEach(i=>i.classList.remove('active'));
+    document.getElementById('catMotion').classList.add('active');
+    showCalloutNear('categorySidebar', {title:'Motion 🏃 (Blue) & Looks 👀 (Purple)', desc:'<strong>Blue = Motion</strong>: move steps, turn, glide, go to positions.<br><strong>Purple = Looks</strong>: say/think things, hide, show, change costumes.<br><strong>Pink = Sound</strong>: play music, change volume.', kin:'<strong>Ubururu = Motion</strong>: kugenda, kuzunguruka. <strong>Purple = Looks</strong>: kuvuga, kwihisha. <strong>Pink = Sound</strong>: gukina umuziki.'}, 'right');
+}},
+{ section: 'Block Types', fn: () => {
+    highlight('catControl');
+    showCalloutNear('categorySidebar', {title:'Control 🔁 & Others', desc:'<strong>Orange = Control</strong>: wait, repeat, forever, if/then.<br><strong>Green = Operators</strong>: math (+, -, >, random).<br><strong>Light Blue = Sensing</strong>: touching? key pressed?<br><strong>Dark Orange = Variables</strong>: store data (score, lives).<br><br>You\'ll use all of these as you build projects!', kin:'<strong>Orange = Control</strong>: gutegereza, gusubiramo. <strong>Icyatsi = Operators</strong>: imibare. <strong>Ubururu = Sensing</strong>: kumenya ibintu. <strong>Variables</strong>: kubika amakuru.'}, 'right');
+}},
+{ section: 'Building Scripts', fn: () => {
+    highlight('codeStack', 12);
+    showCalloutNear('codingArea', {title:'How Scripts Work 📋', desc:'A <strong>script</strong> = a stack of connected blocks. The yellow "hat" block at top is the <strong>trigger</strong> (when does this run?). Everything below = what happens, in order. This script says: when flag clicked → move 10 steps. Simple!', kin:'<strong>Script</strong> = blocks zihurijwe hamwe. Block y\'umuhondo hejuru ni <strong>trigger</strong>. Ibiri munsi = ibiba, mu mutongo.'}, 'left');
+}},
+{ section: 'Summary', fn: () => {
+    dimOverlay.classList.add('visible');
+    showCalloutCenter({title:'Interface Mastered! 🌟', desc:'You now know: ✅ the Stage ✅ sprites ✅ backdrops ✅ the green flag ✅ x/y coordinates ✅ direction ✅ coloured block categories ✅ the coding area ✅ drag & drop ✅ building scripts.<br><br><strong>Now it\'s time to use the interface and build your own projects!</strong>', kin:'Wize: Stage, sprites, backdrops, ibendera ry\'icyatsi, x/y, icyerekezo, blocks, coding area, na scripts. <strong>Noneho ni igihe cyo gukoresha interface no kubaka ibintu byawe!</strong>'});
+}},
+];
+
+function showStep(i) {
+if (i < 0 || i >= tourSections.length) return;
+step = i;
+resetVisuals();
+const s = tourSections[i];
+document.getElementById('sectionTitle').textContent = s.section;
+document.getElementById('stepInfo').textContent = `${i+1} / ${tourSections.length}`;
+delay(() => s.fn(), 200);
+}
+
+function nextStep() {
+playClick();
+if (step < tourSections.length - 1) showStep(step + 1);
+else showTransition();
+}
+function prevStep() { playClick(); if (step > 0) showStep(step - 1); }
+
+function startTour() {
+document.getElementById('welcomeScreen').classList.add('hidden');
+document.getElementById('tourWrapper').classList.add('active');
+controlBar.style.display = 'flex';
+currentTrack = 'tour';
+startMusic();
+delay(() => showStep(0), 500);
+}
+
+function showTransition() {
+resetVisuals();
+controlBar.style.display = 'none';
+document.getElementById('tourWrapper').classList.remove('active');
+document.getElementById('transitionScreen').classList.add('active');
+}
+
+document.addEventListener('keydown', e => {
+if (document.getElementById('tourWrapper').classList.contains('active')) {
+if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextStep(); }
+if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
+}
+if (currentLevel === 2 && sbKeyListening) { e.preventDefault(); handleKeyPress(e.key); }
+});
+
+// ===== SANDBOX ENGINE =====
+let sbScore = 0, sbBlocks = [], sbSpriteX = 0, sbSpriteY = 0, sbSpriteDir = 90, sbSpriteSize = 100, sbSpriteVisible = true;
+let sbRunning = false, sbRunTimeouts = [], sbCurrentSprite = 'cat', currentLevel = 0;
+let tasksCompleted = [], currentTask = 0, motionBlockCount = 0, totalBlocksUsed = 0;
+let sbKeyListening = false, keyMoveDirections = new Set();
+
+const spriteSVGs = {
+cat: `<svg viewBox="0 0 80 96" width="52" height="62"><ellipse cx="40" cy="62" rx="20" ry="22" fill="#FFAB19"/><ellipse cx="40" cy="34" rx="17" ry="16" fill="#FFAB19"/><polygon points="26,22 29,8 35,20" fill="#FFAB19"/><polygon points="54,22 51,8 45,20" fill="#FFAB19"/><ellipse cx="34" cy="32" rx="5" ry="5.5" fill="white"/><ellipse cx="46" cy="32" rx="5" ry="5.5" fill="white"/><ellipse cx="35" cy="33" rx="2.5" ry="3" fill="#333"/><ellipse cx="47" cy="33" rx="2.5" ry="3" fill="#333"/><ellipse cx="40" cy="38" rx="2" ry="1.5" fill="#B37119"/><path d="M37 40 Q40 43 43 40" fill="none" stroke="#B37119" stroke-width="1"/><ellipse cx="40" cy="64" rx="11" ry="13" fill="#FFC85C"/></svg>`,
+dog: `<svg viewBox="0 0 80 80" width="52" height="52"><ellipse cx="40" cy="50" rx="22" ry="20" fill="#8B5E3C"/><ellipse cx="40" cy="30" rx="18" ry="16" fill="#A0522D"/><ellipse cx="24" cy="20" rx="8" ry="12" fill="#6B3A1F"/><ellipse cx="56" cy="20" rx="8" ry="12" fill="#6B3A1F"/><ellipse cx="33" cy="28" rx="4" ry="5" fill="white"/><ellipse cx="47" cy="28" rx="4" ry="5" fill="white"/><circle cx="34" cy="29" r="2.5" fill="#333"/><circle cx="48" cy="29" r="2.5" fill="#333"/><ellipse cx="40" cy="36" rx="5" ry="3.5" fill="#333"/></svg>`,
+robot: `<svg viewBox="0 0 80 90" width="52" height="58"><rect x="20" y="30" width="40" height="45" rx="5" fill="#7B8794"/><rect x="25" y="10" width="30" height="25" rx="4" fill="#9AA5B4"/><circle cx="35" cy="22" r="5" fill="#4FC3F7"/><circle cx="45" cy="22" r="5" fill="#4FC3F7"/><rect x="12" y="38" width="8" height="20" rx="4" fill="#9AA5B4"/><rect x="60" y="38" width="8" height="20" rx="4" fill="#9AA5B4"/><circle cx="40" cy="3" r="3" fill="#FF5252"/></svg>`,
+rocket: `<svg viewBox="0 0 60 90" width="42" height="63"><path d="M30 5 C30 5 15 25 15 55 L45 55 C45 25 30 5 30 5Z" fill="#E53935"/><rect x="22" y="40" width="16" height="20" rx="3" fill="#FFF"/><circle cx="30" cy="48" r="5" fill="#1976D2"/><polygon points="10,65 15,55 15,70" fill="#FF9800"/><polygon points="50,65 45,55 45,70" fill="#FF9800"/><path d="M22 70 L30 85 L38 70" fill="#FF5722"/></svg>`,
+star: `<svg viewBox="0 0 80 80" width="52" height="52"><polygon points="40,5 48,30 75,30 53,47 61,73 40,57 19,73 27,47 5,30 32,30" fill="#FFC107"/><circle cx="33" cy="36" r="3" fill="#333"/><circle cx="47" cy="36" r="3" fill="#333"/><path d="M34 45 Q40 50 46 45" fill="none" stroke="#333" stroke-width="2"/></svg>`,
+dino: `<svg viewBox="0 0 80 80" width="52" height="52"><ellipse cx="40" cy="50" rx="18" ry="20" fill="#4CAF50"/><ellipse cx="40" cy="28" rx="14" ry="13" fill="#4CAF50"/><circle cx="34" cy="25" r="4" fill="white"/><circle cx="46" cy="25" r="4" fill="white"/><circle cx="35" cy="26" r="2" fill="#333"/><circle cx="47" cy="26" r="2" fill="#333"/><polygon points="30,18 33,10 36,18" fill="#8BC34A"/><polygon points="38,15 40,7 42,15" fill="#8BC34A"/><polygon points="44,18 47,10 50,18" fill="#8BC34A"/></svg>`
+};
+const backdropStyles = { white:'background:white;', sky:'background:linear-gradient(180deg,#87CEEB 0%,#E0F7FA 60%,#A5D6A7 60%,#66BB6A 100%);', space:'background:radial-gradient(ellipse at center,#1a1a4e 0%,#0a0a1a 100%);', forest:'background:linear-gradient(180deg,#81C784 0%,#388E3C 40%,#2E7D32 60%,#1B5E20 100%);', ocean:'background:linear-gradient(180deg,#E3F2FD 0%,#42A5F5 30%,#1565C0 60%,#0D47A1 100%);', sunset:'background:linear-gradient(180deg,#1A237E 0%,#E65100 30%,#FF8F00 50%,#FFC107 70%,#FF6F00 100%);' };
+
+const levels = {
+1: { title:'Level 1: First Program', desc:'Build a simple animation from scratch.', badge:'Level 1',
+blocks: [
+{title:'⚡ Events', blocks:[{type:'flag',text:'when 🏴 clicked',cat:'events'}]},
+{title:'→ Motion', blocks:[{type:'move10',text:'move 10 steps',cat:'motion'},{type:'move50',text:'move 50 steps',cat:'motion'},{type:'turnR',text:'turn ↻ 15°',cat:'motion'},{type:'turnL',text:'turn ↺ 15°',cat:'motion'},{type:'goto00',text:'go to x:0 y:0',cat:'motion'},{type:'goto100',text:'go to x:100 y:50',cat:'motion'}]},
+{title:'💬 Looks', blocks:[{type:'sayHello',text:'say "Hello!" 2s',cat:'looks'},{type:'sayWow',text:'say "Wow!" 2s',cat:'looks'},{type:'hide',text:'hide',cat:'looks'},{type:'show',text:'show',cat:'looks'}]},
+{title:'⏱ Control', blocks:[{type:'wait1',text:'wait 1 sec',cat:'control'},{type:'wait05',text:'wait 0.5 sec',cat:'control'}]}
+],
+tasks: [
+{title:'Pick a sprite',desc:'Choose any character.',check:'sprite'},
+{title:'Set a backdrop',desc:'Pick a non-blank background.',check:'backdrop'},
+{title:'Move the sprite',desc:'Change x or y and hit Set.',check:'position'},
+{title:'Change direction',desc:'Set a new angle.',check:'direction'},
+{title:'Add the trigger',desc:'Put "when 🏴 clicked" in the code.',check:'flag'},
+{title:'Add 2 motion blocks',desc:'Stack at least 2 movement blocks.',check:'motion2'},
+{title:'Add a looks block',desc:'Make it say something.',check:'looks'},
+{title:'Run it',desc:'Hit the green flag.',check:'run'},
+{title:'Stop it',desc:'Hit the red stop.',check:'stop'},
+]
+},
+2: { title:'Level 2: Keyboard Control', desc:'Make a sprite respond to keypresses.', badge:'Level 2',
+blocks: [
+{title:'⚡ Events', blocks:[{type:'flag',text:'when 🏴 clicked',cat:'events'},{type:'keyRight',text:'when → key pressed',cat:'events'},{type:'keyLeft',text:'when ← key pressed',cat:'events'},{type:'keyUp',text:'when ↑ key pressed',cat:'events'},{type:'keyDown',text:'when ↓ key pressed',cat:'events'},{type:'keySpace',text:'when space pressed',cat:'events'}]},
+{title:'→ Motion', blocks:[{type:'move10',text:'move 10 steps',cat:'motion'},{type:'changeX10',text:'change x by 10',cat:'motion'},{type:'changeXn10',text:'change x by -10',cat:'motion'},{type:'changeY10',text:'change y by 10',cat:'motion'},{type:'changeYn10',text:'change y by -10',cat:'motion'},{type:'goto00',text:'go to x:0 y:0',cat:'motion'}]},
+{title:'💬 Looks', blocks:[{type:'sayHello',text:'say "Hello!" 2s',cat:'looks'},{type:'sayNice',text:'say "Nice!" 2s',cat:'looks'},{type:'show',text:'show',cat:'looks'}]},
+{title:'⏱ Control', blocks:[{type:'wait05',text:'wait 0.5 sec',cat:'control'}]}
+],
+tasks: [
+{title:'Set up the stage',desc:'Pick a backdrop and sprite.',check:'backdrop'},
+{title:'Add a key event',desc:'Drop "when key pressed" into code.',check:'keyEvent'},
+{title:'Add movement to a key',desc:'Put motion after a key event.',check:'keyMotion'},
+{title:'Use 3+ key events',desc:'Build scripts for different keys.',check:'threeKeys'},
+{title:'Add the flag trigger',desc:'Add "when 🏴 clicked" with a greeting.',check:'flag'},
+{title:'Run and press keys',desc:'Hit 🏴 then test your arrow keys.',check:'run'},
+{title:'Move 4 directions',desc:'Use arrow keys in all directions.',check:'fourDir'},
+]
+}
+};
+
+function startSandbox(level) {
+currentLevel = level;
+document.getElementById('transitionScreen').classList.remove('active');
+document.getElementById('levelComplete').classList.remove('active');
+document.getElementById('sandbox').classList.add('active');
+sbBlocks=[]; sbSpriteX=0; sbSpriteY=0; sbSpriteDir=90; sbSpriteSize=100; sbSpriteVisible=true;
+sbRunning=false; motionBlockCount=0; totalBlocksUsed=0; sbKeyListening=false; keyMoveDirections.clear();
+document.getElementById('sbStack').innerHTML='';
+document.getElementById('sbHint').style.display='block';
+document.getElementById('sbXInput').value='0'; document.getElementById('sbYInput').value='0'; document.getElementById('sbDirInput').value='90';
+document.getElementById('sbStageBg').style.cssText='background:white;';
+document.getElementById('sbKeyListener').classList.remove('active');
+applySpriteTransform();
+document.querySelectorAll('.sb-sprite-option').forEach(el=>el.classList.toggle('selected',el.dataset.sprite==='cat'));
+document.querySelectorAll('.sb-backdrop-option').forEach(el=>el.classList.toggle('selected',el.dataset.bg==='white'));
+sbCurrentSprite='cat'; document.getElementById('sbSprite').innerHTML=spriteSVGs.cat;
+const lev=levels[level];
+document.getElementById('sbLevelBadge').textContent=lev.badge;
+document.getElementById('taskHeaderTitle').textContent=lev.title;
+document.getElementById('taskHeaderDesc').textContent=lev.desc;
+tasksCompleted=lev.tasks.map(()=>false); currentTask=0;
+renderTasks(); updateProgress(); renderPalette(lev.blocks); setupDragDrop();
+switchTrack(level===1?'level1':'level2');
+if(!musicPlaying)startMusic();
+showToast(`${lev.badge} — ${lev.desc}`, 'info', 3000);
+}
+
+function renderTasks() {
+const list=document.getElementById('taskList'); list.innerHTML='';
+levels[currentLevel].tasks.forEach((t,i)=>{
+const state=tasksCompleted[i]?'done':(i===currentTask?'active':'locked');
+const item=document.createElement('div'); item.className=`task-item ${state}`;
+item.innerHTML=`<div class="task-check">${tasksCompleted[i]?'✓':''}</div><div class="task-content"><h4>${t.title}</h4><p>${t.desc}</p></div>`;
+list.appendChild(item);
+});
+}
+function renderPalette(sections) {
+const pal=document.getElementById('sbPalette'); pal.innerHTML='';
+sections.forEach(sec=>{const ti=document.createElement('div');ti.className='sb-palette-title';ti.textContent=sec.title;pal.appendChild(ti);sec.blocks.forEach(b=>{const bl=document.createElement('div');bl.className=`sb-block ${b.cat}`;bl.dataset.type=b.type;bl.dataset.cat=b.cat;bl.textContent=b.text;bl.draggable=true;pal.appendChild(bl);});});
+}
+function updateProgress() {
+const done=tasksCompleted.filter(Boolean).length,total=tasksCompleted.length;
+document.getElementById('progressFill').style.width=(done/total*100)+'%';
+document.getElementById('progressText').textContent=`${done} / ${total}`;
+document.getElementById('sbScore').textContent=`${sbScore} pts`;
+}
+function completeTask(index) {
+if(index>=tasksCompleted.length||tasksCompleted[index])return;
+tasksCompleted[index]=true; sbScore+=20; totalBlocksUsed=sbBlocks.length;
+playSuccess(); renderTasks(); updateProgress();
+showToast(`+20 — ${levels[currentLevel].tasks[index].title} ✓`,'success');
+const next=tasksCompleted.findIndex(x=>!x); if(next!==-1){currentTask=next;renderTasks();}
+if(tasksCompleted.every(Boolean))setTimeout(showLevelComplete,1000);
+}
+function checkTask(id){levels[currentLevel].tasks.forEach((t,i)=>{if(!tasksCompleted[i]&&t.check===id)completeTask(i);});}
+
+function showLevelComplete() {
+stopMusic(); playLevelUp(); celebrate();
+document.getElementById('lcBadge').textContent=currentLevel===1?'🏅':'🏆';
+document.getElementById('lcTitle').textContent=`Level ${currentLevel} Complete!`;
+document.getElementById('lcSubtitle').textContent=currentLevel===1?'Interface basics down!':'Interactive controls unlocked!';
+document.getElementById('lcPoints').textContent=sbScore;
+document.getElementById('lcBlocks').textContent=totalBlocksUsed;
+document.getElementById('lcTasks').textContent=tasksCompleted.length;
+if(currentLevel>=2){document.getElementById('lcNextBtn').textContent='Done ✓';document.getElementById('lcNextBtn').onclick=()=>{document.getElementById('levelComplete').classList.remove('active');location.reload();};}
+else{document.getElementById('lcNextBtn').textContent='Next Level →';document.getElementById('lcNextBtn').onclick=nextLevel;}
+document.getElementById('sandbox').classList.remove('active');
+document.getElementById('levelComplete').classList.add('active');
+}
+function replayLevel(){document.getElementById('levelComplete').classList.remove('active');sbScore=Math.max(0,sbScore-tasksCompleted.length*20);startSandbox(currentLevel);}
+function nextLevel(){document.getElementById('levelComplete').classList.remove('active');startSandbox(currentLevel+1);}
+
+function selectSprite(name){if(name===sbCurrentSprite)return;sbCurrentSprite=name;document.querySelectorAll('.sb-sprite-option').forEach(el=>el.classList.toggle('selected',el.dataset.sprite===name));document.getElementById('sbSprite').innerHTML=spriteSVGs[name];playClick();checkTask('sprite');}
+function selectBackdrop(bg){document.querySelectorAll('.sb-backdrop-option').forEach(el=>el.classList.toggle('selected',el.dataset.bg===bg));document.getElementById('sbStageBg').style.cssText=backdropStyles[bg];playClick();if(bg!=='white')checkTask('backdrop');}
+function updateSpritePos(){const x=parseInt(document.getElementById('sbXInput').value)||0,y=parseInt(document.getElementById('sbYInput').value)||0;if(x!==sbSpriteX||y!==sbSpriteY){sbSpriteX=x;sbSpriteY=y;applySpriteTransform();playClick();checkTask('position');}}
+function updateSpriteDir(){const d=parseInt(document.getElementById('sbDirInput').value)||90;if(d!==sbSpriteDir){sbSpriteDir=d;applySpriteTransform();playClick();checkTask('direction');}}
+function applySpriteTransform(){const s=document.getElementById('sbSprite');const px=50+(sbSpriteX/240)*50,py=50-(sbSpriteY/180)*50;s.style.left=Math.max(5,Math.min(95,px))+'%';s.style.top=Math.max(5,Math.min(95,py))+'%';s.style.transform=`translate(-50%,-50%) rotate(${sbSpriteDir-90}deg) scale(${sbSpriteSize/100})`;s.style.display=sbSpriteVisible?'block':'none';}
+
+function setupDragDrop(){
+const pal=document.getElementById('sbPalette'),area=document.getElementById('sbScriptArea'),dz=document.getElementById('sbDropZone');
+let dragData=null;
+pal.ondragstart=(e)=>{if(e.target.classList.contains('sb-block')){dragData={type:e.target.dataset.type,text:e.target.textContent,cat:e.target.dataset.cat};e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain','');}};
+area.ondragover=(e)=>{e.preventDefault();dz.classList.add('over');};
+area.ondragleave=()=>{dz.classList.remove('over');};
+area.ondrop=(e)=>{e.preventDefault();dz.classList.remove('over');if(dragData){addBlock(dragData.type,dragData.text,dragData.cat);dragData=null;}};
+pal.onclick=(e)=>{const b=e.target.closest('.sb-block');if(b)addBlock(b.dataset.type,b.textContent,b.dataset.cat);};
+}
+
+function addBlock(type,text,cat){
+const stack=document.getElementById('sbStack');
+document.getElementById('sbHint').style.display='none';
+const el=document.createElement('div');el.className='sb-placed-block '+cat;el.dataset.type=type;el.textContent=text;
+const rm=document.createElement('span');rm.className='remove-block';rm.textContent='✕';rm.onclick=(ev)=>{ev.stopPropagation();el.remove();sbBlocks=sbBlocks.filter(b=>b.el!==el);if(cat==='motion')motionBlockCount=Math.max(0,motionBlockCount-1);if(stack.children.length===0)document.getElementById('sbHint').style.display='block';};
+el.appendChild(rm);stack.appendChild(el);sbBlocks.push({type,el,cat});totalBlocksUsed=sbBlocks.length;playSnap();
+if(type==='flag')checkTask('flag');
+if(['keyRight','keyLeft','keyUp','keyDown','keySpace'].includes(type)){checkTask('keyEvent');const ks=new Set(sbBlocks.filter(b=>['keyRight','keyLeft','keyUp','keyDown','keySpace'].includes(b.type)).map(b=>b.type));if(ks.size>=3)checkTask('threeKeys');}
+if(cat==='motion'){motionBlockCount++;if(motionBlockCount>=2)checkTask('motion2');checkKeyMotion();}
+if(cat==='looks')checkTask('looks');
+}
+function checkKeyMotion(){let ak=false;for(const b of sbBlocks){if(['keyRight','keyLeft','keyUp','keyDown','keySpace'].includes(b.type))ak=true;else if(ak&&b.cat==='motion'){checkTask('keyMotion');return;}}}
+function clearBlocks(){document.getElementById('sbStack').innerHTML='';document.getElementById('sbHint').style.display='block';sbBlocks=[];motionBlockCount=0;showToast('Cleared.','warn');}
+
+async function runSandboxCode(){
+if(sbRunning)return;if(sbBlocks.length===0){showToast('Add blocks first.','warn');return;}
+sbRunning=true;document.getElementById('sbFlagBtn').classList.add('running');checkTask('run');
+sbSpriteX=parseInt(document.getElementById('sbXInput').value)||0;sbSpriteY=parseInt(document.getElementById('sbYInput').value)||0;sbSpriteSize=100;sbSpriteVisible=true;applySpriteTransform();
+if(currentLevel===2){sbKeyListening=true;document.getElementById('sbKeyListener').classList.add('active');}
+const fi=sbBlocks.findIndex(b=>b.type==='flag');
+if(fi!==-1){for(let i=fi+1;i<sbBlocks.length;i++){if(!sbRunning)break;const b=sbBlocks[i];if(['keyRight','keyLeft','keyUp','keyDown','keySpace','flag'].includes(b.type))break;b.el.style.outline='3px solid #7c4dff';await executeBlock(b.type);b.el.style.outline='';if(!sbRunning)break;}}
+if(currentLevel!==2){sbRunning=false;document.getElementById('sbFlagBtn').classList.remove('running');}
+}
+
+function handleKeyPress(key){
+if(!sbRunning||!sbKeyListening)return;
+const km={'ArrowRight':'keyRight','ArrowLeft':'keyLeft','ArrowUp':'keyUp','ArrowDown':'keyDown',' ':'keySpace'};
+const mt=km[key];if(!mt)return;
+if(key==='ArrowRight')keyMoveDirections.add('right');if(key==='ArrowLeft')keyMoveDirections.add('left');if(key==='ArrowUp')keyMoveDirections.add('up');if(key==='ArrowDown')keyMoveDirections.add('down');
+if(keyMoveDirections.size>=4)checkTask('fourDir');
+const ki=sbBlocks.findIndex(b=>b.type===mt);if(ki===-1)return;
+for(let i=ki+1;i<sbBlocks.length;i++){const b=sbBlocks[i];if(['keyRight','keyLeft','keyUp','keyDown','keySpace','flag'].includes(b.type))break;executeBlockInstant(b.type);}
+applySpriteTransform();document.getElementById('sbXInput').value=sbSpriteX;document.getElementById('sbYInput').value=sbSpriteY;
+}
+
+function executeBlockInstant(type){
+switch(type){
+case'move10':{const r=(90-sbSpriteDir)*Math.PI/180;sbSpriteX+=Math.round(10*Math.cos(r));sbSpriteY+=Math.round(10*Math.sin(r));break;}
+case'move50':{const r=(90-sbSpriteDir)*Math.PI/180;sbSpriteX+=Math.round(50*Math.cos(r));sbSpriteY+=Math.round(50*Math.sin(r));break;}
+case'turnR':sbSpriteDir+=15;break;case'turnL':sbSpriteDir-=15;break;
+case'changeX10':sbSpriteX+=10;break;case'changeXn10':sbSpriteX-=10;break;
+case'changeY10':sbSpriteY+=10;break;case'changeYn10':sbSpriteY-=10;break;
+case'goto00':sbSpriteX=0;sbSpriteY=0;break;case'goto100':sbSpriteX=100;sbSpriteY=50;break;
+case'sayHello':case'sayNice':case'sayWow':case'sayBye':{const bb=document.getElementById('sbBubble');bb.textContent={sayHello:'Hello!',sayNice:'Nice!',sayWow:'Wow!',sayBye:'Bye!'}[type];bb.classList.add('visible');setTimeout(()=>bb.classList.remove('visible'),1500);break;}
+case'sizeBig':sbSpriteSize=150;break;case'sizeSmall':sbSpriteSize=75;break;
+case'show':sbSpriteVisible=true;break;case'hide':sbSpriteVisible=false;break;
+}
+sbSpriteX=Math.max(-240,Math.min(240,sbSpriteX));sbSpriteY=Math.max(-180,Math.min(180,sbSpriteY));
+}
+
+function executeBlock(type){
+return new Promise(resolve=>{let w=300;executeBlockInstant(type);if(type==='wait1')w=1000;if(type==='wait05')w=500;if(['sayHello','sayWow','sayBye','sayNice'].includes(type))w=1800;applySpriteTransform();document.getElementById('sbXInput').value=sbSpriteX;document.getElementById('sbYInput').value=sbSpriteY;const t=setTimeout(resolve,w);sbRunTimeouts.push(t);});
+}
+
+function stopSandboxCode(){
+sbRunning=false;sbKeyListening=false;keyMoveDirections.clear();sbRunTimeouts.forEach(t=>clearTimeout(t));sbRunTimeouts=[];
+document.getElementById('sbFlagBtn').classList.remove('running');document.getElementById('sbBubble').classList.remove('visible');document.getElementById('sbKeyListener').classList.remove('active');
+document.querySelectorAll('.sb-placed-block').forEach(el=>{el.style.outline='';});
+playClick();checkTask('stop');showToast('Stopped.','warn',1200);
+}
+
+applySpriteTransform();
+</script>
+</body>
+</html>

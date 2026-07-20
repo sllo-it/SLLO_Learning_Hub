@@ -1,0 +1,2682 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pressure Lab - Physics Interactive</title>
+  <style>
+    /* Styling System */
+    :root {
+      --primary: #0d9488;
+      --primary-hover: #0f766e;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --bg-input: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-cyan: #22d3ee;
+      --accent-green: #22c55e;
+      --accent-red: #f87171;
+      --accent-orange: #fb923c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    h1.app-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h1.app-title span {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background-color: rgba(13, 148, 136, 0.2);
+      color: var(--accent-cyan);
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(13, 148, 136, 0.4);
+    }
+
+    .main-container {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Screen layout switchers */
+    .screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* MENU SCREEN */
+    .menu-screen {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+      background: radial-gradient(circle at bottom, #1e3a8a 0%, var(--bg-dark) 80%);
+      overflow-y: auto;
+    }
+
+    .hero-section {
+      max-width: 800px;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-title {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 30%, var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(260px, 320px));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .stage-card {
+      background-color: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 1rem;
+      padding: 1.75rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stage-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent-cyan));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .stage-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(22, 163, 74, 0.2);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .stage-card:hover::before {
+      opacity: 1;
+    }
+
+    .stage-card.locked {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .stage-card.locked:hover {
+      transform: none;
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .stage-num {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    .stage-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .stage-summary {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: auto;
+    }
+
+    .stage-badge {
+      margin-top: 1.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .stage-badge.solved {
+      color: var(--accent-green);
+    }
+
+    /* LAB WORKSPACE LAYOUT */
+    .lab-screen {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+
+    .lab-screen.active {
+      display: flex;
+    }
+
+    .workspace {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    /* LEFT WORKSPACE (65%) */
+    .interactive-zone {
+      width: 65%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+    }
+
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #0b0f19;
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      background-color: #090d16;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    /* RIGHT WORKSPACE (35%) */
+    .dashboard-panel {
+      width: 35%;
+      height: 100%;
+      background-color: #111827;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      border-left: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .dashboard-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-weight: 700;
+      color: var(--text-main);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dashboard-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      flex: 1;
+    }
+
+    /* Value Display Grid cards */
+    .stat-card {
+      background-color: var(--bg-card);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-top: 0.1rem;
+    }
+
+    .stat-formula {
+      font-family: "JetBrains Mono", Courier, monospace;
+      font-size: 0.7rem;
+      color: var(--accent-cyan);
+      background-color: rgba(34, 211, 238, 0.08);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      margin-top: 0.25rem;
+      width: fit-content;
+    }
+
+    /* THEORY / THEORY TIP BUBBLE POPUPS */
+    .theory-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(15, 23, 42, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .theory-overlay.active {
+      display: flex;
+    }
+
+    .theory-box {
+      background-color: var(--bg-card);
+      border: 1px solid var(--primary);
+      border-radius: 1.25rem;
+      padding: 2.25rem;
+      max-width: 580px;
+      width: 100%;
+      height: auto;
+      text-align: left;
+      box-shadow: 0 15px 40px -10px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .theory-header {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: var(--accent-cyan);
+    }
+
+    .theory-body {
+      color: var(--text-main);
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .theory-formula-card {
+      background-color: rgba(13, 148, 136, 0.08);
+      border-left: 4px solid var(--primary);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-family: inherit;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 1rem 0;
+    }
+
+    .theory-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+
+    .theory-btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* BOTTOM CONTROLS OR BAR */
+    .bottom-bar {
+      background-color: #111827;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .slider-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .slider-box label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .slider-inputs {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .custom-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 200px;
+      height: 6px;
+      border-radius: 9999px;
+      background: var(--bg-input);
+      outline: none;
+    }
+
+    .custom-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      border: 2px solid white;
+    }
+
+    .slider-num {
+      font-family: monospace;
+      font-weight: 700;
+      min-width: 50px;
+    }
+
+    .btn {
+      padding: 0.65rem 1.25rem;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background-color: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-accent {
+      background-color: var(--accent-cyan);
+      color: #0d2a35;
+    }
+
+    .btn-accent:hover {
+      background-color: #06b6d4;
+    }
+
+    .btn-success {
+      background-color: var(--accent-green);
+      color: #042f1a;
+    }
+
+    .btn-success:hover {
+      background-color: #16a34a;
+    }
+
+    .btn-disabled {
+      opacity: 0.4;
+      cursor: not-allowed !important;
+    }
+
+    /* STATE SPECIFIC CONTROL MENUS */
+    .stage-ctrl-box {
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      background-color: var(--bg-card);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .ctrl-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 0.4rem;
+    }
+
+    .ctrl-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    /* PREDICITION PANEL */
+    .prediction-panel {
+      display: none;
+      flex-direction: column;
+      background: var(--bg-card);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      border: 1px solid rgba(255,255,255,0.06);
+      gap: 0.75rem;
+    }
+
+    .prediction-panel.active {
+      display: flex;
+    }
+
+    .choice-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
+    .choice-btn {
+      padding: 0.5rem;
+      font-weight: 700;
+      border-radius: 0.35rem;
+      border: 1px solid #4b5563;
+      background: #1f2937;
+      color: white;
+      cursor: pointer;
+    }
+
+    .choice-btn.float:hover {
+      background: rgba(34, 211, 238, 0.15);
+      border-color: var(--accent-cyan);
+    }
+
+    .choice-btn.sink:hover {
+      background: rgba(248, 113, 113, 0.15);
+      border-color: var(--accent-red);
+    }
+
+    /* HIGH-FIDELITY FREE BODY DIAGRAM PANEL */
+    .fbd-panel {
+      background-color: var(--bg-card);
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .fbd-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 140px;
+      position: relative;
+      background: #090d16;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    /* TARGET / MESSAGE CALLOUT CARD */
+    .status-callout {
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      background-color: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .status-callout.challenge {
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      background-color: rgba(245, 158, 11, 0.05);
+    }
+
+    .status-callout.success {
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #86efac;
+      background-color: rgba(34, 197, 94, 0.07);
+    }
+
+    .status-callout h4 {
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* RESULT/REVIEW SCREEN */
+    .results-screen {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+      background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+      overflow-y: auto;
+      text-align: center;
+      display: none;
+    }
+
+    .results-screen.active {
+      display: flex;
+    }
+
+    .results-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--primary);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      border-radius: 1.5rem;
+      padding: 3rem 2.5rem;
+      max-width: 650px;
+      width: 100%;
+    }
+
+    .trophy-badge {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .results-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .results-subtitle {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    .formula-review-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 2.25rem;
+      text-align: left;
+    }
+
+    .formula-review-card {
+      background-color: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+
+    .formula-review-title {
+      font-size: 0.8rem;
+      font-weight: 750;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      margin-bottom: 0.35rem;
+    }
+
+    .formula-review-equation {
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .formula-review-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .result-score {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      color: var(--accent-green);
+    }
+
+    .results-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    /* FLOATING TIPS TIP OVERLAY (CANVAS POPUPS) */
+    .tip-box {
+      background: rgba(30, 41, 59, 0.95);
+      border-left: 4px solid var(--accent-cyan);
+      box-shadow: 0 4px 6px -1px var(--bg-dark);
+      padding: 0.8rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      color: #f1f5f9;
+      line-height: 1.4;
+      display: inline-flex;
+      z-index: 50;
+    }
+
+    /* WATER MARKINGS AT WATER LINE */
+    .indicator-text {
+      color: var(--accent-cyan);
+      font-size: 11px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <h1 class="app-title" onclick="goToMainMenu()" style="cursor: pointer;">
+      <span>Pressure Lab</span> <span class="badge" style="margin-left: 0.5rem;">Rwanda S1–S2 Physics</span>
+    </h1>
+    <div class="ctrl-group">
+      <span class="indicator-text" style="opacity: 0.7;">Offline Sandbox</span>
+    </div>
+  </header>
+
+  <div class="main-container">
+
+    <!-- MAIN MENU SCREEN -->
+    <div id="screen-menu" class="screen menu-screen active">
+      <div class="hero-section">
+        <h2 class="hero-title">Welcome to Pressure Lab</h2>
+        <p class="hero-desc">An interactive virtual physics laboratory designed for Rwanda S1–S2 Secondary School. Explore how hydrostatic pressure increases with depth, learn Archimedes' theory of buoyancy, and crack the mechanical secrets of Pascal's Hydraulic Press!</p>
+      </div>
+
+      <div class="stage-grid">
+        <!-- Stage 1 Card -->
+        <div class="stage-card" id="card-stage1" onclick="startStage(1)">
+          <div class="stage-num">Stage 1</div>
+          <h3 class="stage-title">Pressure Under Water</h3>
+          <p class="stage-summary">Drag sensors inside depth zones and add metal overload blocks to observe proportional pressures. Link the fluid depth hydrostatic rule to fundamental forces.</p>
+          <div class="stage-badge" id="badge-stage1-completed">
+            <!-- Dynamic completion check -->
+          </div>
+        </div>
+
+        <!-- Stage 2 Card -->
+        <div class="stage-card" id="card-stage2" onclick="startStage(2)">
+          <div class="stage-num">Stage 2</div>
+          <h3 class="stage-title">Archimedes' Buoyancy</h3>
+          <p class="stage-summary">Suspend test cubes into a water tank using a visual spring force scale. Watch the scale tension scale compress as buoyant forces rise. Study density releases!</p>
+          <div class="stage-badge" id="badge-stage2-completed">
+            <!-- Dynamic -->
+          </div>
+        </div>
+
+        <!-- Stage 3 Card -->
+        <div class="stage-card" id="card-stage3" onclick="startStage(3)">
+          <div class="stage-num">Stage 3</div>
+          <h3 class="stage-title">Pascal's Hydraulic Jack</h3>
+          <p class="stage-summary">Build mechanical pressure transfers to multiply piston outputs. Conduct float/sink tests on floating blocks to check conditions.</p>
+          <div class="stage-badge" id="badge-stage3-completed">
+            <!-- Dynamic -->
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-accent btn-large" style="padding: 0.85rem 2rem; border-radius: 9999px; box-shadow: 0 4px 14px rgba(34, 211, 238, 0.3);" onclick="startStage(1)">
+        Begin Laboratory S1-S2
+      </button>
+    </div>
+
+    <!-- MAIN LAB SCREEN -->
+    <div id="screen-lab" class="screen lab-screen">
+      <!-- CONCEPT INTRO PANEL (THEORY OVERLAY) -->
+      <div id="theory-layer" class="theory-overlay">
+        <div class="theory-box">
+          <div class="theory-header" id="theory-title">Science Core Theory</div>
+          <div class="theory-body" id="theory-text">Theory Content...</div>
+          <button class="theory-btn" onclick="dismissTheoryLayer()">Got it, Start Lab! (<span id="theory-dismiss-timer">5</span>s)</button>
+        </div>
+      </div>
+
+      <div class="workspace">
+        <!-- LEFT SIMULATOR PORTION (65% width) -->
+        <div class="interactive-zone">
+          <div class="canvas-container">
+            <canvas id="physics-canvas" width="650" height="480"></canvas>
+          </div>
+
+          <!-- BOTTOM ACTION NAVIGATION PORTION -->
+          <div class="bottom-bar">
+            <button class="btn btn-secondary" onclick="goToMainMenu()">
+              ← Back to Menu
+            </button>
+
+            <!-- Stage-dependent specialized buttons/sliders and controls -->
+            <div class="ctrl-group">
+              <!-- Stage 1 controls -->
+              <div id="ctrl-s1" class="stage-ctrl-box" style="display: none; padding: 0.5rem 0.8rem; background: none; border: none; flex-direction: row; align-items: center; gap: 0.75rem;">
+                <button class="btn btn-primary" onclick="addStage1Weight()">＋ Put Weight Plate</button>
+                <button class="btn btn-secondary" onclick="clearStage1Weights()">Remove All Plates</button>
+                <button class="btn btn-accent" onclick="lockStage1Pressure()">SPACE to Measure</button>
+              </div>
+
+              <!-- Stage 2 controls -->
+              <div id="ctrl-s2" class="stage-ctrl-box" style="display: none; padding: 0; background: none; border: none; flex-direction: row; align-items: center; gap: 0.75rem;">
+                <!-- Pre-release custom box material picker -->
+                <div class="slider-box" id="scale-material-box">
+                  <label>Box Material Density (ρ)</label>
+                  <div class="slider-inputs">
+                    <select id="scale-material-select" style="background-color: var(--bg-input); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: 600;" onchange="changeStage2Material()">
+                      <option value="wood">Dry wood (700 kg/m³)</option>
+                      <option value="cork">Cork block (240 kg/m³)</option>
+                      <option value="aluminum">Solid Steel (7850 kg/m³)</option>
+                    </select>
+                  </div>
+                </div>
+                <button class="btn btn-primary" id="btn-scale-release" onclick="releaseStage2Box()">Release Spring</button>
+                <button class="btn btn-secondary" id="btn-scale-reset" onclick="resetStage2Box()" style="display: none;">Retether Box</button>
+              </div>
+
+              <!-- Stage 3 controls -->
+              <div id="ctrl-s3" class="stage-ctrl-box" style="display: none; padding: 0; background: none; border: none; flex-direction: row; align-items: center; gap: 0.75rem;">
+                <div class="slider-box">
+                  <label>Piston Down-Force F1 (N)</label>
+                  <div class="slider-inputs">
+                    <input type="range" min="0" max="100" value="0" step="1" class="custom-slider" id="hydraulic-force-slider" oninput="changeStage3Slider(this.value)">
+                    <span class="slider-num text-main" id="slider-val-display">0 N</span>
+                  </div>
+                </div>
+                <button class="btn btn-accent" onclick="calculateStage3Pascal()">Push calculation</button>
+              </div>
+            </div>
+
+            <button class="btn btn-success btn-disabled" id="btn-stage-next" disabled onclick="advanceStage()">
+              Next Stage →
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT METADATA DASHBOARD SYSTEM (35% width) -->
+        <div class="dashboard-panel">
+          <div class="dashboard-header">
+            <span>Stage Data & Feedback</span>
+            <span class="badge" id="lbl-dashboard-stage">Stage 1</span>
+          </div>
+
+          <div class="dashboard-body">
+            
+            <!-- Target Challenge Stat Box -->
+            <div class="status-callout challenge" id="challenge-callout-card">
+              <h4 id="challenge-hl">Target Challenge</h4>
+              <p id="challenge-text">Challenge details loading...</p>
+            </div>
+
+            <!-- Stage 1 Dashboard Statistics -->
+            <div id="dash-s1" class="stage-values-layout" style="display: none;">
+              <h3 class="ctrl-title" style="margin-bottom: 0.75rem;">Sensory Metrics</h3>
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Sensor Depth (h)</span>
+                    <span class="stat-value" id="s1-depth-disp">0.00 m</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Calculated Water Pressure</span>
+                    <span class="stat-formula">P_hydro = ρ · g · h</span>
+                    <span class="stat-value" id="s1-hydro-disp">0.00 Pa</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Total Load Weight Force</span>
+                    <span class="stat-formula">F_total = F_water + F_plates</span>
+                    <span class="stat-value" id="s1-force-disp">0.00 N</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Poles Cross-sect Area (A)</span>
+                    <span class="stat-value">0.05 m²</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Ratio Computed Pressure</span>
+                    <span class="stat-formula">P = F_total / A</span>
+                    <span class="stat-value" id="s1-ratio-disp">0.00 Pa</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stage 2 Dashboard Statistics -->
+            <div id="dash-s2" class="stage-values-layout" style="display: none;">
+              <h3 class="ctrl-title" style="margin-bottom: 0.75rem;">Archimedes Metrics</h3>
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Submerged Volume (V_sub)</span>
+                    <span class="stat-formula">Total V = 0.002 m³</span>
+                    <span class="stat-value" id="s2-vsub-disp">0.0000 m³</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Buoyancy Upward Force (Fb)</span>
+                    <span class="stat-formula">Fb = ρ · g · V_sub</span>
+                    <span class="stat-value" id="s2-fb-disp" style="color: var(--accent-cyan);">0.00 N</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Actual Gravity Weight (W)</span>
+                    <span class="stat-formula">W = m · g</span>
+                    <span class="stat-value" id="s2-w-disp" style="color: var(--accent-red);">19.60 N</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Spring Indicator Tension (T)</span>
+                    <span class="stat-formula">T = W - Fb</span>
+                    <span class="stat-value" id="s2-tension-disp" style="color: var(--accent-green);">19.60 N</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stage 3 Dashboard Statistics -->
+            <div id="dash-s3" class="stage-values-layout" style="display: none;">
+              <h3 class="ctrl-title" style="margin-bottom: 0.75rem;">Hydraulic Metrics</h3>
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Input Force Piston 1 (F1)</span>
+                    <span class="stat-value">A1: 0.01 m²</span>
+                    <span class="stat-value" id="s3-f1-disp">0.00 N</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Uniform Cylinder Pressure</span>
+                    <span class="stat-formula">P = F1 / A1</span>
+                    <span class="stat-value" id="s3-p-disp" style="color: var(--accent-cyan);">0.00 Pa</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Output Force Piston 2 (F2)</span>
+                    <span class="stat-formula">F2 = P · A2 (A2: 0.1 m²)</span>
+                    <span class="stat-value" id="s3-f2-disp" style="color: var(--accent-green);">0.00 N</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-info">
+                    <span class="stat-label">Hydraulic Mechanical Yield</span>
+                    <span class="stat-value" style="color: var(--accent-orange);">10.00× Force Gain</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Prediction Card Game Mini Dashboard -->
+              <div class="prediction-panel" id="s3-pred-hud" style="margin-top: 1rem;">
+                <h4 style="font-size: 0.8rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Prediction Mini-Game</h4>
+                <p id="pred-prompt-text" style="font-size: 0.8rem; color: var(--text-muted);">Pick an item from the top shelf of the water tank in the canvas, drag it to make a Float or Sink prediction!</p>
+                <div class="choice-group" id="pred-choices-group" style="display: none;">
+                  <button class="choice-btn float" onclick="submitPrediction(true)">Will Float</button>
+                  <button class="choice-btn sink" onclick="submitPrediction(false)">Will Sink</button>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700;">
+                  <span>Predictions Made: <span id="s3-pred-count" style="color: var(--accent-cyan);">0/5</span></span>
+                  <span>Correct: <span id="s3-pred-score" style="color: var(--accent-green);">0/5</span></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FREE BODY DIAGRAM MINI VIEWBOARD -->
+            <div class="fbd-panel">
+              <h3 class="ctrl-title">Active Dynamics (FBD)</h3>
+              <div class="fbd-wrapper">
+                <canvas id="fbd-canvas" width="220" height="140" style="background: transparent; box-shadow: none; border-radius: 0;"></canvas>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINAL RESULTS CONTAINER -->
+    <div id="screen-results" class="screen results-screen">
+      <div class="results-card">
+        <div class="trophy-badge">🏆</div>
+        <h2 class="results-title">Physics Lab Complete!</h2>
+        <p class="results-subtitle">Rwanda S1–S2 Pressure & Buoyancy Exploration Course Certificate of Merit</p>
+
+        <div class="formula-review-grid">
+          <div class="formula-review-card">
+            <div class="formula-review-title">Pressure</div>
+            <div class="formula-review-equation">P = F / A</div>
+            <div class="formula-review-desc">Pressure is forced concentrated over a local cross section area, measured in Pascals (Pa).</div>
+          </div>
+          <div class="formula-review-card">
+            <div class="formula-review-title">Hydro Depth</div>
+            <div class="formula-review-equation font-mono">P = ρ · g · h</div>
+            <div class="formula-review-desc">Hydrostatic water pressure is directly proportional to depth height, water density and gravity.</div>
+          </div>
+          <div class="formula-review-card">
+            <div class="formula-review-title">Buoyancy</div>
+            <div class="formula-review-equation">Fb = ρ · g · V_sub</div>
+            <div class="formula-review-desc">Buoyancy force matches the exact gravity weight of the liquid displaced (Archimedes).</div>
+          </div>
+          <div class="formula-review-card">
+            <div class="formula-review-title">Pascal's Law</div>
+            <div class="formula-review-equation">F1/A1 = F2/A2</div>
+            <div class="formula-review-desc">Confined force distributes uniform pressure. Modest inlet forces lift immense heavy vehicles.</div>
+          </div>
+        </div>
+
+        <div class="result-score" id="results-score-text">
+          Challenges Checked: 3 / 3
+        </div>
+
+        <div class="results-actions">
+          <button class="btn btn-accent" style="padding: 0.8rem 1.75rem;" onclick="restartAllStages()">Play Again</button>
+          <button class="btn btn-secondary" style="padding: 0.8rem 1.5rem;" onclick="goToMainMenu()">Back to Menu</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* =========================================================================
+       GLOBAL APP SYSTEMS & SETUP
+       ========================================================================= */
+    const STAGE_1 = "Stage 1";
+    const STAGE_2 = "Stage 2";
+    const STAGE_3 = "Stage 3";
+
+    let currentStageNum = 1;
+    let unlockedStageNum = 1;
+    let isStageCompleted = false;
+
+    // Simulation timing / state
+    let animationFrameId = null;
+    let clockTime = 0;
+
+    // Stage introductory text config
+    const TheoryData = {
+      1: {
+        title: "Stage 1: Pressure Under Water (P = ρgh & P = F/A)",
+        text: "In S1-S2 physics, we learn that standard <b>Pressure (P)</b> equals force distributed per unit area (<b>P = F / A</b>). Inside liquid columns, a column of water above exerts vertical downward cylinder weight. Thus, hydrostatic pressure scales proportionally to depth (h), water density (ρ), and gravitational acceleration (g), defining: <div class='theory-formula-card'>P_hydro = ρ · g · h</div><br><b>Your Challenge:</b> Drag the flat sensory disk vertically to matching depths to sample target physical pressures! Press Space bar or click 'SPACE to Measure' when you are happy with the values!"
+      },
+      2: {
+        title: "Stage 2: Archimedes' Principle (Fb = ρ · g · V_sub)",
+        text: "Archimedes' law dictates that any body immersed in fluid experiences an upward <b>Buoyant Force (Fb)</b> equal to the gravity weight of the fluid that was displaced by the object. Apparent weight is decreased accordingly: <div class='theory-formula-card'>Fb = ρ · g · V_submerged<br>Apparent Tension (T) = Actual Weight (W) - Buoyant Force (Fb)</div><br><b>Your Challenge:</b> Lower the metallic scale cube into the water tank to submerge exactly <b>50.00%</b> of the body volume! When you meet the target, click <b>Release Spring</b> to test floating bobs!"
+      },
+      3: {
+        title: "Stage 3: Pascal's Law & Hydraulic Advantage",
+        text: "Pascal's principle states that a pressure change applied to any part of an enclosed fluid is transmitted without loss throughout the entire fluid. Thus, equal pressures on small area (A1) and large area (A2) create immense mechanical gain: <div class='theory-formula-card'>P = F1 / A1 = F2 / A2  ⟹  F2 = F1 · (A2 / A1)</div>We will also predict whether test items float or sink depending on their densities relative to water (1000 kg/m³).<br><b>Your Challenge:</b> Press down on the small piston by adjusting the Slider Force. Reach the exact threshold needed to lift the <b>800 N payload car</b>! Also, drag all 5 items from the shelf, predict their states, and drop them to test your prediction score!"
+      }
+    };
+
+    let theoryCountdownSec = 5;
+    let theoryTimerInterval = null;
+    let screenStageCleared = { 1: false, 2: false, 3: false };
+
+    /* =========================================================================
+       CANVAS ELEMENTS & EVENT BINDINGS
+       ========================================================================= */
+    const mainCanvas = document.getElementById('physics-canvas');
+    const mCtx = mainCanvas.getContext('2d');
+    const fbdCanvas = document.getElementById('fbd-canvas');
+    const fCtx = fbdCanvas.getContext('2d');
+
+    // High resolution display padding logic
+    const dpr = window.devicePixelRatio || 1;
+    function resizeCanvases() {
+      const rect1 = mainCanvas.getBoundingClientRect();
+      mainCanvas.width = rect1.width * dpr;
+      mainCanvas.height = rect1.height * dpr;
+      mCtx.setTransform(1, 0, 0, 1, 0, 0);
+      mCtx.scale(dpr, dpr);
+
+      const rect2 = fbdCanvas.getBoundingClientRect();
+      fbdCanvas.width = rect2.width * dpr;
+      fbdCanvas.height = rect2.height * dpr;
+      fCtx.setTransform(1, 0, 0, 1, 0, 0);
+      fCtx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resizeCanvases);
+
+    // Event system variables
+    let mouse = { x: 0, y: 0, isDown: false, dragging: null, dragOffset: { x: 0, y: 0 } };
+
+    // Floating particles & wave effects setup
+    let particles = [];
+    let wavesOffset = 0;
+
+    function getMousePos(canvasElement, evt) {
+      const rect = canvasElement.getBoundingClientRect();
+      return {
+        x: (evt.clientX - rect.left) * (canvasElement.width / (rect.width * dpr)),
+        y: (evt.clientY - rect.top) * (canvasElement.height / (rect.height * dpr))
+      };
+    }
+
+    // Trigger handle bindings
+    mainCanvas.addEventListener('mousedown', (e) => {
+      const pos = getMousePos(mainCanvas, e);
+      mouse.x = pos.x;
+      mouse.y = pos.y;
+      mouse.isDown = true;
+      handleCanvasMouseDown(pos.x, pos.y);
+    });
+
+    mainCanvas.addEventListener('mousemove', (e) => {
+      const pos = getMousePos(mainCanvas, e);
+      mouse.x = pos.x;
+      mouse.y = pos.y;
+      handleCanvasMouseMove(pos.x, pos.y);
+    });
+
+    window.addEventListener('mouseup', () => {
+      mouse.isDown = false;
+      handleCanvasMouseUp();
+    });
+
+    // Arrow keys listener
+    window.addEventListener('keydown', (e) => {
+      if (document.getElementById('screen-lab').classList.contains('active')) {
+        let deltaY = 0;
+        if (e.key === 'ArrowUp' || e.key === 'Up') deltaY = -5;
+        if (e.key === 'ArrowDown' || e.key === 'Down') deltaY = 5;
+
+        if (deltaY !== 0) {
+          e.preventDefault();
+          handleArrowKeysMove(deltaY);
+        }
+
+        if (e.key === ' ' || e.code === 'Space') {
+          e.preventDefault();
+          if (currentStageNum === 1) {
+            lockStage1Pressure();
+          }
+        }
+      }
+    });
+
+    /* =========================================================================
+       STAGE 1 PHYSICS VARIABLES & PARAMS
+       ========================================================================= */
+    let s1SensorY = 220; // 160 is water line surface, 380 limits
+    let s1WeightsCount = 0;
+    const s1A = 0.05; // area m2
+    const s1G = 9.8;
+    const s1Rho = 1000;
+    let s1TargetMet = false;
+    let s1MeasureLocked = false;
+
+    /* =========================================================================
+       STAGE 2 PHYSICS VARIABLES & PARAMS
+       ========================================================================= */
+    let s2BoxY = 100; // top ceiling hanging
+    const s2BoxWidth = 80;
+    const s2BoxHeight = 110;
+    const s2Vol = 0.002; // total m3
+    const s2Rho = 1000;
+    const s2G = 9.8;
+    let s2BoxDensity = 700; // material config density (wood default)
+    let s2BoxMass = 1.4; // kg
+    let s2Status = "tethered"; // "tethered", "free-fall"
+    let s2Velocity = 0;
+    let s2IsSuccess = false;
+
+    /* =========================================================================
+       STAGE 3 PHYSICS VARIABLES & PARAMS
+       ========================================================================= */
+    let s3SliderF1 = 0; // N force slider
+    const s3A1 = 0.01; // small cylinder area
+    const s3A2 = 0.10; // big area
+    let s3PascalCarLifted = false;
+
+    // SINK AND FLOAT predictions list
+    let s3Predictions = [
+      { id: 0, name: 'Wood Block', density: 700, size: 30, color: '#b45309', predicted: null, correct: null, status: 'dock', initialX: 380, initialY: 65, x: 380, y: 65, vy: 0, angle: 0 },
+      { id: 1, name: 'Steel Cube', density: 7850, size: 24, color: '#64748b', predicted: null, correct: null, status: 'dock', initialX: 435, initialY: 65, x: 435, y: 65, vy: 0, angle: 0 },
+      { id: 2, name: 'Rubber Duck', density: 550, size: 26, color: '#fbbf24', predicted: null, correct: null, status: 'dock', initialX: 485, initialY: 65, x: 485, y: 65, vy: 0, angle: 0 },
+      { id: 3, name: 'Ice Cube', density: 920, size: 28, color: '#93c5fd', predicted: null, correct: null, status: 'dock', initialX: 535, initialY: 65, x: 535, y: 65, vy: 0, angle: 0 },
+      { id: 4, name: 'Plastic Bottle', density: 250, size: 28, color: '#34d399', predicted: null, correct: null, status: 'dock', initialX: 585, initialY: 65, x: 585, y: 65, vy: 0, angle: 0 }
+    ];
+    let s3TrayLabel = "Prediction Items Store";
+
+    /* =========================================================================
+       PARTICLE SYSTEMS (WAVE SPLASHES etc)
+       ========================================================================= */
+    function spawnSplash(x, y, count = 10, color = "#22d3ee") {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 5,
+          vy: -Math.random() * 4 - 1,
+          size: Math.random() * 4 + 2,
+          color: color,
+          alpha: 1,
+          life: 0,
+          maxLife: Math.random() * 30 + 15
+        });
+      }
+    }
+
+    function updateParticles() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.12; // gravity inside sandbox
+        p.life++;
+        p.alpha = 1 - (p.life / p.maxLife);
+        if (p.life >= p.maxLife) {
+          particles.splice(i, 1);
+        }
+      }
+    }
+
+    /* =========================================================================
+       APP NAVIGATION & SCREEN FLOWS
+       ========================================================================= */
+    function goToMainMenu() {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+      document.getElementById('screen-lab').classList.remove('active');
+      document.getElementById('screen-results').classList.remove('active');
+      document.getElementById('screen-menu').classList.add('active');
+
+      // Update completion visual states
+      for (let s = 1; s <= 3; s++) {
+        const bd = document.getElementById(`badge-stage${s}-completed`);
+        if (screenStageCleared[s]) {
+          bd.innerHTML = "✅ Well Done Challenge Done!";
+          bd.className = "stage-badge solved";
+          document.getElementById(`card-stage${s}`).classList.remove('locked');
+        } else {
+          if (s <= unlockedStageNum) {
+            bd.innerHTML = "🔓 Active Physics Module";
+            bd.className = "stage-badge";
+            bd.style.color = "var(--accent-cyan)";
+            document.getElementById(`card-stage${s}`).classList.remove('locked');
+          } else {
+            bd.innerHTML = "🔒 Module Locked";
+            bd.className = "stage-badge";
+            bd.style.color = "var(--text-muted)";
+            document.getElementById(`card-stage${s}`).classList.add('locked');
+          }
+        }
+      }
+    }
+
+    function startStage(stageId) {
+      if (stageId > unlockedStageNum && !screenStageCleared[stageId - 1]) {
+        alert("Unlock this stage by completing the preceding physics challenges first!");
+        return;
+      }
+
+      currentStageNum = stageId;
+      document.getElementById('screen-menu').classList.remove('active');
+      document.getElementById('screen-lab').classList.add('active');
+
+      // Setup labels inside dashboard
+      document.getElementById('lbl-dashboard-stage').innerText = `Stage ${stageId}`;
+
+      // Show stage-dependent DOM blocks
+      document.getElementById('dash-s1').style.display = stageId === 1 ? 'block' : 'none';
+      document.getElementById('ctrl-s1').style.display = stageId === 1 ? 'flex' : 'none';
+
+      document.getElementById('dash-s2').style.display = stageId === 2 ? 'block' : 'none';
+      document.getElementById('ctrl-s2').style.display = stageId === 2 ? 'flex' : 'none';
+
+      document.getElementById('dash-s3').style.display = stageId === 3 ? 'block' : 'none';
+      document.getElementById('ctrl-s3').style.display = stageId === 3 ? 'flex' : 'none';
+
+      // Setup specific parameters
+      isStageCompleted = false;
+      resetStageParameters(stageId);
+      updateDashboardStats();
+
+      // Trigger high definition viewport resize
+      setTimeout(() => {
+        resizeCanvases();
+        // Show core theory overlays
+        showTheoryLayer(stageId);
+      }, 50);
+
+      // Launch physics loop
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(physicsPulse);
+    }
+
+    function showTheoryLayer(stageId) {
+      const layer = document.getElementById('theory-layer');
+      document.getElementById('theory-title').innerHTML = TheoryData[stageId].title;
+      document.getElementById('theory-text').innerHTML = TheoryData[stageId].text;
+      layer.classList.add('active');
+
+      theoryCountdownSec = 5;
+      document.getElementById('theory-dismiss-timer').innerText = theoryCountdownSec;
+
+      clearInterval(theoryTimerInterval);
+      theoryTimerInterval = setInterval(() => {
+        theoryCountdownSec--;
+        if (theoryCountdownSec <= 0) {
+          dismissTheoryLayer();
+        } else {
+          document.getElementById('theory-dismiss-timer').innerText = theoryCountdownSec;
+        }
+      }, 1000);
+    }
+
+    function dismissTheoryLayer() {
+      clearInterval(theoryTimerInterval);
+      document.getElementById('theory-layer').classList.remove('active');
+    }
+
+    function resetStageParameters(stageId) {
+      document.getElementById('btn-stage-next').classList.add('btn-disabled');
+      document.getElementById('btn-stage-next').disabled = true;
+
+      if (stageId === 1) {
+        s1SensorY = 220; // reset depth
+        s1WeightsCount = 0;
+        s1TargetMet = false;
+        s1MeasureLocked = false;
+        document.getElementById('challenge-text').innerText = "Target Pressure: 4,900.00 Pa. Slide sensor to matching depth or put weight plates on top. Use SPACE bar to lock measurement sensor at perfect alignment!";
+        document.getElementById('challenge-callout-card').className = "status-callout challenge";
+      } else if (stageId === 2) {
+        s2BoxY = 100;
+        s2Status = "tethered";
+        s2Velocity = 0;
+        s2IsSuccess = false;
+        document.getElementById('scale-material-box').style.display = 'flex';
+        document.getElementById('btn-scale-release').style.display = 'inline-flex';
+        document.getElementById('btn-scale-reset').style.display = 'none';
+        document.getElementById('challenge-text').innerText = "Submerge exactly half (50.00%) of the copper scale box. The volumetric waterline is marked with a dashed yellow line on the box!";
+        document.getElementById('challenge-callout-card').className = "status-callout challenge";
+      } else if (stageId === 3) {
+        s3SliderF1 = 0;
+        document.getElementById('hydraulic-force-slider').value = 0;
+        document.getElementById('slider-val-display').innerText = "0 N";
+        s3PascalCarLifted = false;
+
+        // Reset object predicts coordinates
+        s3Predictions.forEach(p => {
+          p.x = p.initialX;
+          p.y = p.initialY;
+          p.status = 'dock';
+          p.predicted = null;
+          p.correct = null;
+          p.vy = 0;
+          p.angle = 0;
+        });
+
+        document.getElementById('challenge-text').innerText = "Goal 1: Lift the car (weight = 800 N). Drag the Force slider to find the inlet force required!\nGoal 2: Predict and drop all 5 tray cubes inside the water chamber successfully!";
+        document.getElementById('challenge-callout-card').className = "status-callout challenge";
+        document.getElementById('s3-pred-score').innerText = "0/5";
+        document.getElementById('s3-pred-count').innerText = "0/5";
+      }
+    }
+
+    function advanceStage() {
+      if (currentStageNum < 3) {
+        currentStageNum++;
+        if (currentStageNum > unlockedStageNum) {
+          unlockedStageNum = currentStageNum;
+        }
+        startStage(currentStageNum);
+      } else {
+        // Results overview
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        document.getElementById('screen-lab').classList.remove('active');
+        document.getElementById('screen-results').classList.add('active');
+
+        // Score formulation
+        let totalScore = 0;
+        if (screenStageCleared[1]) totalScore++;
+        if (screenStageCleared[2]) totalScore++;
+        if (screenStageCleared[3]) totalScore++;
+
+        document.getElementById('results-score-text').innerText = `Stage Tasks Checked: ${totalScore} / 3 Complete`;
+      }
+    }
+
+    function restartAllStages() {
+      unlockedStageNum = 1;
+      screenStageCleared = { 1: false, 2: false, 3: false };
+      startStage(1);
+    }
+
+    /* =========================================================================
+       STAGE 1 IMPLEMENTATION: PRESSURE UNDER WATER
+       ========================================================================= */
+    function addStage1Weight() {
+      if (s1WeightsCount < 3) {
+        s1WeightsCount++;
+        spawnSplash(170, 160, 5, "#64748b");
+        s1MeasureLocked = false;
+        updateDashboardStats();
+      } else {
+        alert("Maximum 3 extra weights can be placed on the platform sensor!");
+      }
+    }
+
+    function clearStage1Weights() {
+      s1WeightsCount = 0;
+      s1MeasureLocked = false;
+      updateDashboardStats();
+    }
+
+    function lockStage1Pressure() {
+      // Calculate current pressure
+      const depthM = Math.max(0, (s1SensorY - 160) / 220); // max 220px represents 1.0m
+      const pressureHydro = s1Rho * s1G * depthM;
+      // Extra weight pressure load: F = m·g; Area is 0.05m2. Each weight mass = 10kg, so Weight = 98N.
+      // 1 weights pressure contribution = 98N / 0.05m2 = 1960 Pa.
+      const extraPressure = (s1WeightsCount * 98) / s1A;
+      const totalPressure = pressureHydro + extraPressure;
+
+      const tolerance = 4900 * 0.05; // 5% tolerance
+      const diff = Math.abs(totalPressure - 4900);
+
+      s1MeasureLocked = true;
+
+      if (diff <= tolerance) {
+        s1TargetMet = true;
+        isStageCompleted = true;
+        screenStageCleared[1] = true;
+        document.getElementById('challenge-text').innerText = `✓ Target Matched! P_hydro = ${totalPressure.toFixed(2)} Pa (Limit: 4900 Pa ± 5%). You solved the water depth law perfectly!`;
+        document.getElementById('challenge-callout-card').className = "status-callout success";
+
+        // Unlock next
+        document.getElementById('btn-stage-next').classList.remove('btn-disabled');
+        document.getElementById('btn-stage-next').disabled = false;
+        spawnSplash(240, s1SensorY, 15, varHex('accent-green'));
+      } else {
+        s1TargetMet = false;
+        alert(`Sensor Locked at ${totalPressure.toFixed(2)} Pa. Target is 4900 Pa. Adjust your depth h or add/remove weight plates and try again!`);
+      }
+    }
+
+    /* =========================================================================
+       STAGE 2 IMPLEMENTATION: ARCHIMEDES' PRINCIPLE
+       ========================================================================= */
+    function changeStage2Material() {
+      const selection = document.getElementById('scale-material-select').value;
+      if (selection === 'wood') {
+        s2BoxDensity = 700;
+        s2BoxMass = 1.4; // 0.002m3 * 700
+      } else if (selection === 'cork') {
+        s2BoxDensity = 240;
+        s2BoxMass = 0.48; // 0.002 * 240
+      } else if (selection === 'aluminum') {
+        s2BoxDensity = 7850;
+        s2BoxMass = 15.7; // 0.002 * 7850
+      }
+      s2IsSuccess = false;
+      updateDashboardStats();
+    }
+
+    function releaseStage2Box() {
+      s2Status = "free-fall";
+      document.getElementById('scale-material-box').style.display = 'none';
+      document.getElementById('btn-scale-release').style.display = 'none';
+      document.getElementById('btn-scale-reset').style.display = 'inline-flex';
+      spawnSplash(240, s2BoxY + s2BoxHeight, 10, "#38bdf8");
+    }
+
+    function resetStage2Box() {
+      s2Status = "tethered";
+      s2BoxY = 100;
+      s2Velocity = 0;
+      s2IsSuccess = false;
+      document.getElementById('scale-material-box').style.display = 'flex';
+      document.getElementById('btn-scale-release').style.display = 'inline-flex';
+      document.getElementById('btn-scale-reset').style.display = 'none';
+      resetStageParameters(2);
+      updateDashboardStats();
+    }
+
+    /* =========================================================================
+       STAGE 3 IMPLEMENTATION: PASCAL'S LAW & FLOATS
+       ========================================================================= */
+    function changeStage3Slider(val) {
+      s3SliderF1 = parseFloat(val);
+      document.getElementById('slider-val-display').innerText = `${s3SliderF1} N`;
+      updateDashboardStats();
+    }
+
+    function calculateStage3Pascal() {
+      const outputF2 = s3SliderF1 * (s3A2 / s3A1); // 10x multiplier
+      const requiredF2 = 800; // car mass gravity load threshold
+
+      if (outputF2 >= requiredF2) {
+        s3PascalCarLifted = true;
+        checkStage3OverallCompletion();
+      } else {
+        alert(`Calculated output Force F2 is ${outputF2.toFixed(1)} N under uniform system pressure of ${(s3SliderF1/s3A1).toFixed(1)} Pa.\n\nRequired to lift the car: 800 N. Apply more inlet Force F1!`);
+      }
+    }
+
+    function handlePredictionDragStart(item, x, y) {
+      mouse.dragging = item;
+      mouse.dragOffset.x = x - item.x;
+      mouse.dragOffset.y = y - item.y;
+    }
+
+    function openPredictionModal(item) {
+      mouse.dragging = null; // suspend standard dragging operations
+      document.getElementById('s3-pred-hud').className = "prediction-panel active";
+      document.getElementById('pred-prompt-text').innerHTML = `<b>Prediction Challenge!</b><br>Will the <b>${item.name}</b> (density: ${item.density} kg/m³) Float or Sink when dropped in water (density: 1000 kg/m³)?`;
+      document.getElementById('pred-choices-group').style.display = 'grid';
+      window.activePredictionItem = item;
+    }
+
+    function submitPrediction(userPredictsFloat) {
+      const item = window.activePredictionItem;
+      if (!item) return;
+
+      item.predicted = userPredictsFloat ? 'float' : 'sink';
+      const actuallyFloats = item.density < 1000;
+
+      item.correct = (actuallyFloats === userPredictsFloat);
+      item.status = 'released'; // activate physics bobbing/gravity drop drop
+
+      // Spawn splash visual at local prediction tank
+      spawnSplash(500, 220, 8, actuallyFloats ? "#38bdf8" : "#94a3b8");
+
+      // Hide custom prediction overlay Hud
+      document.getElementById('pred-choices-group').style.display = 'none';
+      document.getElementById('pred-prompt-text').innerHTML = `Prediction submitted! Dropped of ${item.name}.`;
+
+      // Update scorecard live
+      let predictionsCompleted = 0;
+      let predictionsCorrect = 0;
+      s3Predictions.forEach(p => {
+        if (p.predicted !== null) {
+          predictionsCompleted++;
+          if (p.correct) predictionsCorrect++;
+        }
+      });
+
+      document.getElementById('s3-pred-count').innerText = `${predictionsCompleted}/5`;
+      document.getElementById('s3-pred-score').innerText = `${predictionsCorrect}/5`;
+
+      window.activePredictionItem = null;
+      checkStage3OverallCompletion();
+    }
+
+    function checkStage3OverallCompletion() {
+      let predictionsCompleted = 0;
+      let predictionsCorrect = 0;
+      s3Predictions.forEach(p => {
+        if (p.predicted !== null) {
+          predictionsCompleted++;
+          if (p.correct) predictionsCorrect++;
+        }
+      });
+
+      const requiredF2 = s3SliderF1 * (s3A2 / s3A1);
+      const isPascalDone = requiredF2 >= 800;
+      const isPredictionFinished = predictionsCompleted === 5;
+
+      if (isPascalDone && isPredictionFinished) {
+        isStageCompleted = true;
+        screenStageCleared[3] = true;
+        document.getElementById('challenge-text').innerText = `✓ Dual Physics Mastered! Piston Pascal lifts car (F2 = ${requiredF2.toFixed(1)} N) and Floating densities checked correctly (${predictionsCorrect}/5 correct predicts)! S1-S2 Lab Course successfully completed!`;
+        document.getElementById('challenge-callout-card').className = "status-callout success";
+
+        document.getElementById('btn-stage-next').classList.remove('btn-disabled');
+        document.getElementById('btn-stage-next').disabled = false;
+        spawnSplash(160, 250, 15, "#10b981");
+      } else {
+        // partial status report details
+        let txt = "Progress:\n";
+        txt += isPascalDone ? "✓ Piston hydraulic pressure solved (Output >= 800 N).\n" : "❌ Hydraulic lift incomplete. Output is less than 800 N.\n";
+        txt += isPredictionFinished ? `✓ Submerged predict complete (${predictionsCorrect}/5 correct).\n` : `❌ Predict remaining: ${predictionsCompleted}/5 completed. Drop more tray elements!`;
+        document.getElementById('challenge-text').innerText = txt;
+      }
+    }
+
+    /* =========================================================================
+       CANVAS MATH DRAWING & INTERACTIVE VECTOR SCHEMAS
+       ========================================================================= */
+    function clearMainCanvas() {
+      mCtx.clearRect(0, 0, 650, 480);
+    }
+
+    function drawStageBackgrounds(stageId) {
+      // Gentle grid layout lines for tech schematic feel
+      mCtx.strokeStyle = "rgba(255, 255, 255, 0.02)";
+      mCtx.lineWidth = 1;
+      for (let x = 0; x < 650; x += 40) {
+        mCtx.beginPath();
+        mCtx.moveTo(x, 0);
+        mCtx.lineTo(x, 480);
+        mCtx.stroke();
+      }
+      for (let y = 0; y < 480; y += 40) {
+        mCtx.beginPath();
+        mCtx.moveTo(0, y);
+        mCtx.lineTo(650, y);
+        mCtx.stroke();
+      }
+    }
+
+    function drawStage1Scene() {
+      // Draw water tank frame
+      mCtx.strokeStyle = "#475569";
+      mCtx.lineWidth = 6;
+      mCtx.lineCap = "round";
+
+      // Tank dimensions: left 100, right 340, ceiling 380, floor line
+      mCtx.beginPath();
+      mCtx.moveTo(100, 140);
+      mCtx.lineTo(100, 380);
+      mCtx.lineTo(340, 380);
+      mCtx.lineTo(340, 140);
+      mCtx.stroke();
+
+      // Fluid shading coordinates surface Y = 160 px; Bottom tank Y = 380 px
+      // Calculate depth live: total water space = 220px represents 1.0 m
+      const surfaceY = 160;
+      wavesOffset += 0.04;
+
+      // Draw semi-translucent liquid overlay
+      mCtx.fillStyle = "rgba(14, 116, 144, 0.35)";
+      mCtx.beginPath();
+      mCtx.moveTo(100, surfaceY);
+      // animated liquid surface wave
+      for (let x = 100; x <= 340; x += 10) {
+        const waveH = Math.sin(wavesOffset + x * 0.03) * 4;
+        mCtx.lineTo(x, surfaceY + waveH);
+      }
+      mCtx.lineTo(340, 380);
+      mCtx.lineTo(100, 380);
+      mCtx.closePath();
+      mCtx.fill();
+
+      // Draw horizontal scale depth lines
+      mCtx.strokeStyle = "rgba(34, 211, 238, 0.2)";
+      mCtx.lineWidth = 1;
+      mCtx.font = "10px monospace";
+      mCtx.fillStyle = varHex('text-muted');
+
+      for (let d = 0; d <= 5; d++) {
+        const hY = surfaceY + (d * 44); // 44px corresponds to 0.2m
+        mCtx.beginPath();
+        mCtx.moveTo(70, hY);
+        mCtx.lineTo(340, hY);
+        mCtx.stroke();
+        mCtx.fillText(`${(d * 0.2).toFixed(1)} m`, 35, hY + 3);
+      }
+
+      // Draw active sensor plate disk
+      const sensorWidth = 120;
+      const sensorHeight = 12; // visual compression
+      const pressureRatio = Math.max(0, (s1SensorY - surfaceY) / 220);
+      const totalPress = s1Rho * s1G * pressureRatio + (s1WeightsCount * 98) / s1A;
+      // compress height visually to represent pressure elastic feeling
+      const compressionDelta = Math.min(6, totalPress * 0.0004);
+      const drawH = sensorHeight - compressionDelta;
+
+      // Clickable sensor hover bounding highlight
+      mCtx.fillStyle = mouse.dragging === 'sensor' ? "rgba(13, 148, 136, 0.5)" : "rgba(30, 41, 59, 1)";
+      mCtx.strokeStyle = varHex('primary');
+      mCtx.lineWidth = 2;
+      mCtx.beginPath();
+      mCtx.roundRect(160, s1SensorY - drawH / 2, sensorWidth, drawH, 4);
+      mCtx.fill();
+      mCtx.stroke();
+
+      // Draw vertical rod handle up past water line
+      mCtx.strokeStyle = "#94a3b8";
+      mCtx.lineWidth = 5;
+      mCtx.beginPath();
+      mCtx.moveTo(220, s1SensorY - drawH / 2);
+      mCtx.lineTo(220, 110);
+      mCtx.stroke();
+
+      // Draw top cross bar handles for dragging
+      mCtx.strokeStyle = varHex('accent-cyan');
+      mCtx.lineWidth = 4;
+      mCtx.beginPath();
+      mCtx.moveTo(200, 110);
+      mCtx.lineTo(240, 110);
+      mCtx.stroke();
+
+      // Draw weight plate blocks on top bar
+      for (let i = 0; i < s1WeightsCount; i++) {
+        mCtx.fillStyle = "#4b5563";
+        mCtx.strokeStyle = "#f3f4f6";
+        mCtx.lineWidth = 1;
+        mCtx.beginPath();
+        mCtx.rect(195, 105 - (i * 10), 50, 9);
+        mCtx.fill();
+        mCtx.stroke();
+        mCtx.fillStyle = "white";
+        mCtx.font = "bold 8px Arial";
+        mCtx.fillText("98 N", 212, 113 - (i * 10));
+      }
+
+      // Draw simple instruction prompt overlay inside canvas
+      mCtx.font = "bold 13px sans-serif";
+      mCtx.fillStyle = "white";
+      mCtx.fillText("WATER TANK EXPLORER", 100, 80);
+
+      mCtx.font = "11px monospace";
+      mCtx.fillStyle = varHex('accent-cyan');
+      mCtx.fillText("Drag Cross Anchor or Arrow keys to change Depth", 100, 395);
+
+      // Render physical guidelines for target alignment
+      const targetY = surfaceY + (4900 / 9800) * 220; // 4900 Pa corresponding depth is 0.5m (110px) in zero weight!
+      // Draw dotted target line indicator
+      mCtx.strokeStyle = "rgba(251, 191, 36, 0.5)";
+      mCtx.lineWidth = 2;
+      mCtx.setLineDash([5, 5]);
+      mCtx.beginPath();
+      const currentTheoreticalTargetY = surfaceY + ((4900 - (s1WeightsCount * 1960)) / 9800) * 220;
+      mCtx.moveTo(100, currentTheoreticalTargetY);
+      mCtx.lineTo(340, currentTheoreticalTargetY);
+      mCtx.stroke();
+      mCtx.setLineDash([]); // clear dash
+
+      mCtx.fillStyle = "rgba(251, 191, 36, 0.8)";
+      mCtx.font = "9px sans-serif";
+      mCtx.fillText("Target Goal Line", 345, currentTheoreticalTargetY + 3);
+
+      // Render sensor force dynamic text
+      mCtx.fillStyle = "white";
+      mCtx.font = "11.5px monospace";
+      mCtx.fillText(`h = ${pressureRatio.toFixed(2)} m`, 115, s1SensorY - 12);
+      mCtx.fillText(`P_water = ${(totalPress).toFixed(0)} Pa`, 245, s1SensorY - 12);
+
+      // FBD Drawing Overlay inside main canvas directly on the plate
+      const scaleF = 0.15; // force scaling factor
+      const arrowX = 220;
+
+      // 1. Up pressure vector
+      const upwardW = totalPress * s1A;
+      drawVectorArrow(arrowX, s1SensorY + drawH/2, arrowX, s1SensorY + drawH/2 + Math.min(45, upwardW * scaleF), varHex('accent-green'), "P·A Upward", true);
+
+      // 2. Down gravity load pressure column
+      const downwardW = (s1Rho * s1G * pressureRatio * s1A) + (s1WeightsCount * 98);
+      drawVectorArrow(arrowX, s1SensorY - drawH/2, arrowX, s1SensorY - drawH/2 - Math.min(45, downwardW * scaleF), varHex('accent-blue'), "Downward Load", false);
+    }
+
+    function drawStage2Scene() {
+      // Submersed liquid chamber frame
+      mCtx.strokeStyle = "#475569";
+      mCtx.lineWidth = 6;
+      mCtx.lineCap = "round";
+      mCtx.beginPath();
+      mCtx.moveTo(100, 240);
+      mCtx.lineTo(100, 440);
+      mCtx.lineTo(340, 440);
+      mCtx.lineTo(340, 240);
+      mCtx.stroke();
+
+      // Fluid water overlay surface level at Y = 280 px; Depth water volume
+      const surfaceY = 280;
+      wavesOffset += 0.04;
+
+      mCtx.fillStyle = "rgba(14, 116, 144, 0.3)";
+      mCtx.beginPath();
+      mCtx.moveTo(100, surfaceY);
+      // animated wavy motion
+      for (let x = 100; x <= 340; x += 10) {
+        const waveH = Math.sin(wavesOffset + x * 0.035) * 5;
+        mCtx.lineTo(x, surfaceY + waveH);
+      }
+      mCtx.lineTo(340, 440);
+      mCtx.lineTo(100, 440);
+      mCtx.closePath();
+      mCtx.fill();
+
+      // Spring canister base platform frame
+      mCtx.strokeStyle = "#64748b";
+      mCtx.lineWidth = 4;
+      mCtx.beginPath();
+      mCtx.moveTo(220, 30);
+      mCtx.lineTo(220, 50);
+      mCtx.stroke();
+
+      // Draw spring scale visual ruler housing
+      mCtx.fillStyle = "#1e293b";
+      mCtx.strokeStyle = "#475569";
+      mCtx.lineWidth = 2;
+      mCtx.beginPath();
+      mCtx.roundRect(200, 50, 40, 80, 4);
+      mCtx.fill();
+      mCtx.stroke();
+
+      // Scale tick lines
+      mCtx.strokeStyle = "#94a3b8";
+      mCtx.lineWidth = 1;
+      for (let idx = 0; idx < 10; idx++) {
+        mCtx.beginPath();
+        mCtx.moveTo(204, 60 + idx * 7);
+        mCtx.lineTo(212, 60 + idx * 7);
+        mCtx.stroke();
+      }
+
+      // Live metrics calculations for scaling
+      // Box top starting point at s2BoxY
+      const boxBottomY = s2BoxY + s2BoxHeight;
+      let subHeight = 0;
+      if (boxBottomY >= surfaceY) {
+        subHeight = Math.min(s2BoxHeight, boxBottomY - surfaceY);
+      }
+      const vSub = s2Vol * (subHeight / s2BoxHeight);
+      const fb = s2Rho * s2G * vSub;
+      const actualW = s2BoxMass * s2G;
+      const scaleTension = s2Status === "tethered" ? Math.max(0, actualW - fb) : 0;
+
+      // Draw red scale tension level pointer
+      const pointerTargetY = 60 + (scaleTension / 19.60) * 60; // scale limits
+      mCtx.strokeStyle = "#ef4444";
+      mCtx.lineWidth = 2;
+      mCtx.beginPath();
+      mCtx.moveTo(201, pointerTargetY);
+      mCtx.lineTo(218, pointerTargetY);
+      mCtx.stroke();
+
+      mCtx.fillStyle = "#ef4444";
+      mCtx.font = "9px monospace";
+      mCtx.fillText(`${scaleTension.toFixed(1)}N`, 220, pointerTargetY + 3);
+
+      // Spring dynamic coil stretch calculation: canister outlet is at Y=130; Box hooks is at Y=s2BoxY
+      const springBottomY = s2BoxY;
+      const coilCount = 12;
+      const stepY = (springBottomY - 130) / coilCount;
+      mCtx.strokeStyle = "#cbd5e1";
+      mCtx.lineWidth = 2.5;
+      mCtx.beginPath();
+      mCtx.moveTo(220, 130);
+      if (s2Status === "tethered") {
+        for (let i = 0; i < coilCount; i++) {
+          const cy = 130 + (i + 0.5) * stepY;
+          mCtx.lineTo(220 + (i % 2 === 0 ? 10 : -10), cy);
+        }
+        mCtx.lineTo(220, springBottomY);
+        mCtx.stroke();
+      } else {
+        // broken/released snapped spring state
+        for (let i = 0; i < 4; i++) {
+          const cy = 130 + (i + 0.5) * 8;
+          mCtx.lineTo(220 + (i % 2 === 0 ? 6 : -6), cy);
+        }
+        mCtx.stroke();
+      }
+
+      // Draw metallic rectangular sample box
+      mCtx.fillStyle = mouse.dragging === 'box' ? "rgba(224, 242, 254, 0.4)" : "#334155";
+      mCtx.strokeStyle = "#0ea5e9";
+      mCtx.lineWidth = 3;
+      mCtx.beginPath();
+      mCtx.roundRect(180, s2BoxY, s2BoxWidth, s2BoxHeight, 5);
+      mCtx.fill();
+      mCtx.stroke();
+
+      // Highlight the submerged glassware overlay portion in beautiful bright transparent blue
+      if (subHeight > 0) {
+        mCtx.fillStyle = "rgba(6, 182, 212, 0.45)";
+        mCtx.beginPath();
+        mCtx.roundRect(180, surfaceY, s2BoxWidth, subHeight, { bottomLeft: 5, bottomRight: 5 });
+        mCtx.fill();
+
+        // Wave interface line inside the container box
+        mCtx.strokeStyle = varHex('accent-cyan');
+        mCtx.lineWidth = 2;
+        mCtx.beginPath();
+        mCtx.moveTo(180, surfaceY);
+        mCtx.lineTo(180 + s2BoxWidth, surfaceY);
+        mCtx.stroke();
+      }
+
+      // Draw hook attachments loops
+      mCtx.strokeStyle = "#94a3b8";
+      mCtx.lineWidth = 3;
+      mCtx.beginPath();
+      mCtx.arc(220, s2BoxY, 4, 0, Math.PI * 2);
+      mCtx.stroke();
+
+      // Display 50% dotted water target level limit
+      const targetSubmersionY = surfaceY - s2BoxHeight / 2;
+      mCtx.strokeStyle = "rgba(251, 191, 36, 0.5)";
+      mCtx.lineWidth = 1.5;
+      mCtx.setLineDash([6, 4]);
+      mCtx.beginPath();
+      mCtx.moveTo(100, targetSubmersionY);
+      mCtx.lineTo(340, targetSubmersionY);
+      mCtx.stroke();
+      mCtx.setLineDash([]); // clear dash
+
+      mCtx.fillStyle = "rgba(251, 191, 36, 0.8)";
+      mCtx.font = "9px monospace";
+      mCtx.fillText("50% WATER LEVEL", 345, targetSubmersionY + 3);
+
+      // Status notifications overlay text
+      mCtx.font = "bold 13px sans-serif";
+      mCtx.fillStyle = "white";
+      mCtx.fillText("ARCHIMEDES BUOYANCY STAND", 100, 200);
+
+      mCtx.font = "11px monospace";
+      mCtx.fillStyle = varHex('accent-cyan');
+      mCtx.fillText("Drag Steel Box or Arrow keys down to submerge", 100, 455);
+
+      // Trigger target checking
+      const currentSubPercent = (subHeight / s2BoxHeight) * 100;
+      if (Math.abs(currentSubPercent - 50) < 2) {
+        s2IsSuccess = true;
+        // Turn on Release visual controls triggering S1-S2 release sequence
+        document.getElementById('challenge-text').innerText = `✓ Target Reached! Fb = ${fb.toFixed(1)} N (exactly half the gravity weight of Box!). Apparent Tension is reduced to ${(actualW - fb).toFixed(1)} N! Now click 'Release Spring' to test buoyancy bobs!`;
+        document.getElementById('challenge-callout-card').className = "status-callout success";
+        screenStageCleared[2] = true;
+        document.getElementById('btn-stage-next').classList.remove('btn-disabled');
+        document.getElementById('btn-stage-next').disabled = false;
+        mCtx.fillStyle = varHex('accent-cyan');
+        mCtx.fillText("✓ TARGET LEVEL MATCHED!", 110, 222);
+      }
+    }
+
+    function drawStage3Scene() {
+      // Divide canvas: Left is Hydraulic jack, Right is Floating mini-dashboard
+      const splitX = 350;
+
+      // Draw separating boundary pane
+      mCtx.strokeStyle = "rgba(255,255,255,0.08)";
+      mCtx.lineWidth = 1.5;
+      mCtx.beginPath();
+      mCtx.moveTo(splitX, 0);
+      mCtx.lineTo(splitX, 480);
+      mCtx.stroke();
+
+      // Draw Section Title Texts
+      mCtx.fillStyle = "white";
+      mCtx.font = "bold 11px sans-serif";
+      mCtx.fillText("PASCAL HYDRAULIC JACK", 40, 25);
+      mCtx.fillText("DENSITY COMPARISON TEST", splitX + 25, 25);
+
+      /* ==========================================
+         A1/A2 HYDRAULIC PRESS DRAWS
+         ========================================== */
+      // Piston heights offsets
+      // Let's map small piston stroke: F1 range [0, 100] gives stroke displacement y-offset [0, 80]px.
+      const strokeLeft = (s3SliderF1 / 100) * 80;
+      // Large piston strokes upward displacement in volume parity = 1/10th of stroke left
+      const strokeRight = strokeLeft / 10;
+
+      const p1X = 50;
+      const p1W = 40;
+      const p1YStart = 120; // top resting point
+
+      const p2X = 140;
+      const p2W = 160;
+      const p2YStart = 180; // top platform large
+
+      // 1. Draw connecting tank fluid reservoir pipes at bottom base
+      mCtx.fillStyle = "rgba(185, 28, 28, 0.4)"; // mechanical fluid red
+      mCtx.beginPath();
+      mCtx.rect(p1X, p1YStart + strokeLeft + 15, p1W, 200 - (strokeLeft + 15));
+      mCtx.rect(p2X - 5, 210, p2W + 10, 110);
+      // connecting canal pipe
+      mCtx.rect(p1X + p1W, 300, p2X - (p1X + p1W), 20);
+      mCtx.fill();
+
+      // Fluid bounding cylinders line frame overlays
+      mCtx.strokeStyle = "#475569";
+      mCtx.lineWidth = 4;
+      mCtx.lineCap = "round";
+
+      mCtx.beginPath();
+      // left narrow tube
+      mCtx.moveTo(p1X, p1YStart);
+      mCtx.lineTo(p1X, 320);
+      mCtx.lineTo(p2X, 320);
+      mCtx.moveTo(p1X + p1W, p1YStart);
+      mCtx.lineTo(p1X + p1W, 300);
+      mCtx.lineTo(p2X, 300);
+      mCtx.stroke();
+
+      mCtx.beginPath();
+      // right ultra-wide tube
+      mCtx.moveTo(p2X, p2YStart);
+      mCtx.lineTo(p2X, 320);
+      mCtx.lineTo(p2X + p2W, 320);
+      mCtx.lineTo(p2X + p2W, p2YStart);
+      mCtx.stroke();
+
+      // 2. Draw Pistons platforms details
+      // Left slender input block
+      mCtx.fillStyle = "#64748b";
+      mCtx.strokeStyle = "#cbd5e1";
+      mCtx.lineWidth = 2;
+      mCtx.beginPath();
+      mCtx.rect(p1X + 2, p1YStart + strokeLeft, p1W - 4, 15);
+      mCtx.fill();
+      mCtx.stroke();
+
+      // Small piston vertical anchor connection rods
+      mCtx.strokeStyle = "#cbd5e1";
+      mCtx.lineWidth = 4;
+      mCtx.beginPath();
+      mCtx.moveTo(p1X + p1W / 2, p1YStart + strokeLeft);
+      mCtx.lineTo(p1X + p1W / 2, p1YStart + strokeLeft - 40);
+      mCtx.stroke();
+
+      // Large platform lifting block
+      const rightPistonActiveY = p2YStart - strokeRight;
+      mCtx.fillStyle = "#4b5563";
+      mCtx.strokeStyle = "#cbd5e1";
+      mCtx.beginPath();
+      mCtx.rect(p2X + 2, rightPistonActiveY, p2W - 4, 30);
+      mCtx.fill();
+      mCtx.stroke();
+
+      // Large piston metallic shaft support stem
+      mCtx.lineWidth = 8;
+      mCtx.beginPath();
+      mCtx.moveTo(p2X + p2W / 2, rightPistonActiveY + 30);
+      mCtx.lineTo(p2X + p2W / 2, 300);
+      mCtx.stroke();
+
+      // 3. Draw heavy car payload on the output piston platform!
+      const carHeight = 44;
+      const carWidth = 96;
+      const carX = p2X + p2W / 2 - carWidth / 2;
+      const carY = rightPistonActiveY - carHeight;
+
+      drawVectorCar(carX, carY, carWidth, carHeight);
+
+      // Force Vectors overlays directly on the hydraulic cylinders
+      // Small force F1 arrow pointing down
+      if (s3SliderF1 > 2) {
+        drawVectorArrow(p1X + p1W / 2, p1YStart + strokeLeft - 60, p1X + p1W / 2, p1YStart + strokeLeft - 10, varHex('accent-red'), `F1 = ${s3SliderF1.toFixed(0)} N`, false);
+      }
+
+      // Large Output force F2 arrow pointing up matching output
+      const calculatedF2Output = s3SliderF1 * 10;
+      if (calculatedF2Output > 5) {
+        drawVectorArrow(p2X + p2W / 2, rightPistonActiveY + 15, p2X + p2W / 2, rightPistonActiveY - 50, varHex('accent-green'), `F2 = ${calculatedF2Output.toFixed(0)} N`, true);
+      }
+
+      /* ==========================================
+         DENSITY FLOATING CUBES EXPERIMENTS
+         ========================================== */
+      // Draw Floating prediction tank section
+      const predTankX = splitX + 40;
+      const predTankW = 200;
+      const predTankY = 180;
+      const predTankH = 260;
+      const predWaterY = 240;
+
+      mCtx.strokeStyle = "#475569";
+      mCtx.lineWidth = 5;
+      mCtx.beginPath();
+      mCtx.moveTo(predTankX, predTankY);
+      mCtx.lineTo(predTankX, predTankY + predTankH);
+      mCtx.lineTo(predTankX + predTankW, predTankY + predTankH);
+      mCtx.lineTo(predTankX + predTankW, predTankY);
+      mCtx.stroke();
+
+      // Draw semi transparent prediction water space Y = 240 to floor
+      // waves Offset synced
+      mCtx.fillStyle = "rgba(6, 182, 212, 0.25)";
+      mCtx.beginPath();
+      mCtx.moveTo(predTankX, predWaterY);
+      for (let x = predTankX; x <= predTankX + predTankW; x += 10) {
+        const waveH = Math.sin(wavesOffset + x * 0.04) * 3;
+        mCtx.lineTo(x, predWaterY + waveH);
+      }
+      mCtx.lineTo(predTankX + predTankW, predTankY + predTankH);
+      mCtx.lineTo(predTankX, predTankY + predTankH);
+      mCtx.closePath();
+      mCtx.fill();
+
+      // Draw prediction items wooden tray baseboard
+      mCtx.fillStyle = "#1e293b";
+      mCtx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      mCtx.lineWidth = 1.5;
+      mCtx.beginPath();
+      mCtx.roundRect(splitX + 15, 35, 270, 95, 6);
+      mCtx.fill();
+      mCtx.stroke();
+
+      mCtx.font = "bold 9px monospace";
+      mCtx.fillStyle = varHex('accent-cyan');
+      mCtx.fillText(s3TrayLabel, splitX + 25, 50);
+
+      // Render predicts elements icons
+      s3Predictions.forEach(item => {
+        // Draw selection highlight bounding
+        if (mouse.dragging === item) {
+          mCtx.strokeStyle = varHex('accent-cyan');
+          mCtx.lineWidth = 2.5;
+        } else {
+          mCtx.strokeStyle = "rgba(255,255,255,0.4)";
+          mCtx.lineWidth = 1;
+        }
+
+        mCtx.fillStyle = item.color;
+        mCtx.beginPath();
+        mCtx.roundRect(item.x - item.size / 2, item.y - item.size / 2, item.size, item.size, 3);
+        mCtx.fill();
+        mCtx.stroke();
+
+        // Label first letters index initials
+        mCtx.fillStyle = "#ffffff";
+        mCtx.font = "9px Arial";
+        mCtx.textAlign = "center";
+        mCtx.fillText(item.name[0] + item.name.split(' ').slice(-1)[0][0], item.x, item.y + 3);
+        mCtx.textAlign = "left"; // restore default
+
+        // Check overlay visual badges if prediction was locked in
+        if (item.predicted !== null) {
+          mCtx.fillStyle = item.correct ? varHex('accent-green') : varHex('accent-red');
+          mCtx.font = "bold 8.5px Arial";
+          mCtx.fillText(item.correct ? "✓" : "✗", item.x - 4, item.y - item.size / 2 - 4);
+        }
+      });
+    }
+
+    function drawVectorCar(x, y, w, h) {
+      mCtx.save();
+      // Draw cute cartoonish vectors sedan hatchback on platform
+      mCtx.fillStyle = "#fbbf24"; // vibrant gold color hatchback
+      mCtx.strokeStyle = "#451a03";
+      mCtx.lineWidth = 2;
+
+      // wheel base chassis
+      mCtx.beginPath();
+      mCtx.roundRect(x + 5, y + h - 18, w - 10, 10, 3);
+      mCtx.fill();
+      mCtx.stroke();
+
+      // Core passenger cabin bubble
+      mCtx.beginPath();
+      mCtx.moveTo(x + 20, y + h - 18);
+      mCtx.lineTo(x + 35, y + 8);
+      mCtx.lineTo(x + w - 35, y + 8);
+      mCtx.lineTo(x + w - 16, y + h - 18);
+      mCtx.closePath();
+      mCtx.fill();
+      mCtx.stroke();
+
+      // windows
+      mCtx.fillStyle = "rgba(34, 211, 238, 0.45)";
+      mCtx.beginPath();
+      mCtx.moveTo(x + 24, y + h - 18);
+      mCtx.lineTo(x + 37, y + 12);
+      mCtx.lineTo(x + 50, y + 12);
+      mCtx.lineTo(x + 50, y + h - 18);
+      mCtx.closePath();
+      mCtx.fill();
+      mCtx.stroke();
+
+      mCtx.beginPath();
+      mCtx.moveTo(x + 53, y + h - 18);
+      mCtx.lineTo(x + 53, y + 12);
+      mCtx.lineTo(x + w - 38, y + 12);
+      mCtx.lineTo(x + w - 24, y + h - 18);
+      mCtx.closePath();
+      mCtx.fill();
+      mCtx.stroke();
+
+      // Front bumper hood curve
+      mCtx.fillStyle = "#f59e0b";
+      mCtx.beginPath();
+      mCtx.roundRect(x, y + h - 22, w, 12, 4);
+      mCtx.fill();
+      mCtx.stroke();
+
+      // cute heavy cargo box on trunk
+      mCtx.fillStyle = "#b45309";
+      mCtx.strokeStyle = "#000000";
+      mCtx.lineWidth = 1;
+      mCtx.fillRect(x + w/2 - 12, y + h - 34, 24, 12);
+      mCtx.strokeRect(x + w/2 - 12, y + h - 34, 24, 12);
+
+      // wheels
+      mCtx.fillStyle = "#1e293b";
+      mCtx.beginPath();
+      mCtx.arc(x + 24, y + h - 6, 9, 0, Math.PI * 2);
+      mCtx.arc(x + w - 24, y + h - 6, 9, 0, Math.PI * 2);
+      mCtx.fill();
+      mCtx.stroke();
+
+      // wheel caps
+      mCtx.fillStyle = "#f1f5f9";
+      mCtx.beginPath();
+      mCtx.arc(x + 24, y + h - 6, 4, 0, Math.PI * 2);
+      mCtx.arc(x + w - 24, y + h - 6, 4, 0, Math.PI * 2);
+      mCtx.fill();
+
+      mCtx.restore();
+    }
+
+    function drawVectorArrow(x1, y1, x2, y2, color, labelText, arrowFacingUp = true) {
+      mCtx.save();
+      mCtx.strokeStyle = color;
+      mCtx.fillStyle = color;
+      mCtx.lineWidth = 2.5;
+
+      mCtx.beginPath();
+      mCtx.moveTo(x1, y1);
+      mCtx.lineTo(x2, y2);
+      mCtx.stroke();
+
+      // draw arrow heads in facing direction
+      const headL = 7;
+      const arrowTiltY = arrowFacingUp ? headL : -headL;
+      mCtx.beginPath();
+      mCtx.moveTo(x2, y2);
+      mCtx.lineTo(x2 - 5, y2 + arrowTiltY);
+      mCtx.lineTo(x2 + 5, y2 + arrowTiltY);
+      mCtx.closePath();
+      mCtx.fill();
+
+      // Text Labels alongside vectors
+      mCtx.font = "bold 9.5px monospace";
+      mCtx.fillStyle = "#ffffff";
+      mCtx.fillText(labelText, x2 + 8, (y1 + y2) / 2 + 4);
+
+      mCtx.restore();
+    }
+
+    /* =========================================================================
+       DYNAMIC HIGH FIDELITY FREE BODY DIAGRAM (FBD)
+       ========================================================================= */
+    function drawActiveFBD() {
+      fCtx.clearRect(0, 0, 220, 140);
+
+      // Centered representative active sample cube
+      const cx = 110;
+      const cy = 70;
+      const cubeSize = 38;
+
+      fCtx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      fCtx.fillStyle = "rgba(30, 41, 59, 1)";
+      fCtx.lineWidth = 2;
+      fCtx.beginPath();
+      fCtx.roundRect(cx - cubeSize / 2, cy - cubeSize / 2, cubeSize, cubeSize, 4);
+      fCtx.fill();
+      fCtx.stroke();
+
+      // Render tiny central mass point particles dot
+      fCtx.fillStyle = "#ef4444";
+      fCtx.beginPath();
+      fCtx.arc(cx, cy, 3, 0, Math.PI * 2);
+      fCtx.fill();
+
+      if (currentStageNum === 1) {
+        // Stage 1 Forces: Down columns hydrostatic weight + Up boundaries fluid pressure
+        const depthRatio = Math.max(0, (s1SensorY - 160) / 220);
+        const hydroP = s1Rho * s1G * depthRatio + (s1WeightsCount * 98) / 0.05;
+        const downF = hydroP * s1A;
+
+        // Visual arrow ratios
+        const vectorLen = Math.min(44, 20 + (downF * 0.035));
+
+        // 1. Up Hydro pressure force vector
+        drawFBDArrow(cx, cy + cubeSize/2, cx, cy + cubeSize/2 + vectorLen, varHex('accent-green'), "F_up (P·A)");
+        // 2. Down gravity load weight columns
+        drawFBDArrow(cx, cy - cubeSize/2, cx, cy - cubeSize/2 - vectorLen, varHex('accent-red'), "W_load");
+
+      } else if (currentStageNum === 2) {
+        // Stage 2 Forces: Up buoyant buoyancy, Down static gravity cylinder weight, Up spring scale limits Appapparent tension
+        const boxBot = s2BoxY + s2BoxHeight;
+        let subH = 0;
+        if (boxBot >= 280) {
+          subH = Math.min(s2BoxHeight, boxBot - 280);
+        }
+        const vS = s2Vol * (subH / s2BoxHeight);
+        const fb = s2Rho * s2G * vS;
+        const totalGrav = s2BoxMass * s2G;
+        const scaleTension = s2Status === "tethered" ? Math.max(0, totalGrav - fb) : 0;
+
+        // Normalize sizes (19.6 N max scale load equivalent)
+        const scaleW = 40;
+        const fbArrow = (fb / 19.6) * scaleW;
+        const gravArrow = (totalGrav / 19.6) * scaleW;
+        const tensionArrow = (scaleTension / 19.6) * scaleW;
+
+        // 1. Downward gravity
+        if (gravArrow > 2) {
+          drawFBDArrow(cx - 8, cy + cubeSize/2, cx - 8, cy + cubeSize/2 + gravArrow, varHex('accent-red'), "W", false);
+        }
+        // 2. Upward buoyant Fb
+        if (fbArrow > 2) {
+          drawFBDArrow(cx + 8, cy - cubeSize/2, cx + 8, cy - cubeSize/2 - fbArrow, varHex('accent-cyan'), "Fb", true);
+        }
+        // 3. Upward scale Tension
+        if (tensionArrow > 2 && s2Status === "tethered") {
+          drawFBDArrow(cx - 8, cy - cubeSize/2, cx - 8, cy - cubeSize/2 - tensionArrow, varHex('accent-green'), "Tension (T)", true);
+        }
+
+      } else if (currentStageNum === 3) {
+        // Stage 3 forces: Pascal inputs vs Pascal output lifting actions
+        const pressMult = 10;
+        const inputF = s3SliderF1;
+        const outputF = inputF * pressMult;
+
+        const maxArrowH = 45;
+        const f1Len = Math.max(10, (inputF / 100) * maxArrowH);
+        const f2Len = Math.min(maxArrowH + 10, f1Len * 1.5); // logarithmic visual representation
+
+        // Draw side-by-side pistons in mini FBD for comparison!
+        fCtx.fillStyle = "#334155";
+        fCtx.fillRect(cx - 35, cy - 10, 15, 20); // narrow A1
+        fCtx.fillRect(cx + 10, cy - 10, 30, 20); // wide A2
+
+        // F1 pushing down
+        drawFBDArrow(cx - 28, cy - 10, cx - 28, cy - 10 - f1Len, varHex('accent-red'), "F1", false);
+        // F2 lifting up
+        drawFBDArrow(cx + 25, cy + 10, cx + 25, cy + 10 - f2Len, varHex('accent-green'), "F2", true);
+
+        fCtx.font = "8px monospace";
+        fCtx.fillStyle = varHex('accent-cyan');
+        fCtx.fillText("Unif. P", cx - 18, cy + 25);
+      }
+    }
+
+    function drawFBDArrow(x1, y1, x2, y2, color, textLabel, faceUp = true) {
+      fCtx.strokeStyle = color;
+      fCtx.fillStyle = color;
+      fCtx.lineWidth = 2;
+
+      fCtx.beginPath();
+      fCtx.moveTo(x1, y1);
+      fCtx.lineTo(x2, y2);
+      fCtx.stroke();
+
+      // head offset
+      const headS = 5;
+      const orientation = faceUp ? -headS : headS;
+      fCtx.beginPath();
+      fCtx.moveTo(x2, y2);
+      fCtx.lineTo(x2 - 3, y2 + orientation);
+      fCtx.lineTo(x2 + 3, y2 + orientation);
+      fCtx.closePath();
+      fCtx.fill();
+
+      // Tiny labels beside arrows
+      fCtx.fillStyle = "white";
+      fCtx.font = "bold 8px system-ui";
+      fCtx.fillText(textLabel, x2 + 5, (y1 + y2) / 2 + 3);
+    }
+
+    /* =========================================================================
+       CORE SIMULATOR PULSE AND PHYSICS COMPILERS (60fps updates)
+       ========================================================================= */
+    function physicsPulse() {
+      clockTime++;
+      clearMainCanvas();
+      drawStageBackgrounds(currentStageNum);
+
+      // Perform physics updates & animate
+      if (currentStageNum === 1) {
+        drawStage1Scene();
+      } else if (currentStageNum === 2) {
+        // Conduct local spring mechanics physical evaluations
+        if (s2Status === "free-fall") {
+          // free dynamic release sequence calculation integrating buoyancy!
+          const waterlvlY = 280;
+          const boxBottomY = s2BoxY + s2BoxHeight;
+          let subH = 0;
+          if (boxBottomY >= waterlvlY) {
+            subH = Math.min(s2BoxHeight, boxBottomY - waterlvlY);
+          }
+          const activeVolSub = s2Vol * (subH / s2BoxHeight);
+          const buoyancyFb = s2Rho * s2G * activeVolSub;
+          const actualWeightW = s2BoxMass * s2G;
+
+          // net accelerations
+          const netForce = buoyancyFb - actualWeightW;
+          const accel = netForce / s2BoxMass;
+
+          // integrate
+          s2Velocity += accel * 0.08;
+          s2Velocity *= 0.96; // apply mechanical hydrodynamic drag dampings!
+          s2BoxY -= s2Velocity; // negative on velocity space since canvas y goes down!
+
+          // Boundary checks inside water chamber
+          const chamberFloorLimY = 440 - s2BoxHeight;
+          if (s2BoxY >= chamberFloorLimY) {
+            s2BoxY = chamberFloorLimY;
+            s2Velocity = -s2Velocity * 0.2; // slight elastic floor bounce!
+            if (activeVolSub <= 0) s2Velocity = 0;
+          }
+          // Upper ceiling bound limit checking
+          const skyCapY = 20;
+          if (s2BoxY <= skyCapY) {
+            s2BoxY = skyCapY;
+            s2Velocity = 0;
+          }
+        }
+        drawStage2Scene();
+      } else if (currentStageNum === 3) {
+        // predictions simulation updates
+        s3Predictions.forEach(p => {
+          if (p.status === 'released') {
+            const predWaterY = 240;
+            const predTankFloorY = 440 - p.size / 2;
+
+            if (p.density < 1000) {
+              // FLOAT physics: item floats bobbing at the surface waterline!
+              const targetFloatY = predWaterY + (p.density / 1000) * p.size / 3 - p.size / 2;
+
+              // simple spring dampening motion towards target float level!
+              const diffY = targetFloatY - p.y;
+              p.vy += diffY * 0.08; // spring pull
+              p.vy *= 0.88; // viscous liquid friction
+              p.y += p.vy;
+
+              // add gentle sinusoidal bobbing
+              p.y += Math.sin(clockTime * 0.08 + p.id) * 0.15;
+            } else {
+              // SINK physics: item sinks directly to tank seabed floor!
+              p.vy += 0.25; // gravity pull
+              p.y += p.vy;
+
+              if (p.y >= predTankFloorY) {
+                p.y = predTankFloorY;
+                p.vy = 0;
+              }
+            }
+          }
+        });
+
+        drawStage3Scene();
+      }
+
+      // Update particle physics Visual explosions
+      updateParticles();
+      // Draw standard particles on top layer
+      particles.forEach(p => {
+        mCtx.save();
+        mCtx.globalAlpha = p.alpha;
+        mCtx.fillStyle = p.color;
+        mCtx.beginPath();
+        mCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        mCtx.fill();
+        mCtx.restore();
+      });
+
+      // Maintain right side FBD arrows live update
+      drawActiveFBD();
+
+      // Repeat animation pulses
+      animationFrameId = requestAnimationFrame(physicsPulse);
+    }
+
+    function updateDashboardStats() {
+      if (currentStageNum === 1) {
+        const depthM = Math.max(0, (s1SensorY - 160) / 220);
+        document.getElementById('s1-depth-disp').innerText = `${depthM.toFixed(2)} m`;
+
+        const p_h = s1Rho * s1G * depthM;
+        document.getElementById('s1-hydro-disp').innerText = `${p_h.toFixed(1)} Pa`;
+
+        // Total force: vertical column load weight plus metal plate masses
+        const sensorDownwardForce = (p_h * s1A) + (s1WeightsCount * 98);
+        document.getElementById('s1-force-disp').innerText = `${sensorDownwardForce.toFixed(1)} N`;
+
+        const pressRatio = sensorDownwardForce / s1A;
+        document.getElementById('s1-ratio-disp').innerText = `${pressRatio.toFixed(1)} Pa`;
+
+      } else if (currentStageNum === 2) {
+        const boxBot = s2BoxY + s2BoxHeight;
+        let subH = 0;
+        if (boxBot >= 280) {
+          subH = Math.min(s2BoxHeight, boxBot - 280);
+        }
+        const vS = s2Vol * (subH / s2BoxHeight);
+        document.getElementById('s2-vsub-disp').innerText = `${vS.toFixed(5)} m³`;
+
+        const fb = s2Rho * s2G * vS;
+        document.getElementById('s2-fb-disp').innerText = `${fb.toFixed(2)} N`;
+
+        const totalW = s2BoxMass * s2G;
+        document.getElementById('s2-w-disp').innerText = `${totalW.toFixed(2)} N`;
+
+        const scaleTension = s2Status === "tethered" ? Math.max(0, totalW - fb) : 0;
+        document.getElementById('s2-tension-disp').innerText = `${scaleTension.toFixed(2)} N`;
+
+      } else if (currentStageNum === 3) {
+        document.getElementById('s3-f1-disp').innerText = `${s3SliderF1.toFixed(1)} N`;
+
+        const pressTransmitted = s3SliderF1 / s3A1;
+        document.getElementById('s3-p-disp').innerText = `${pressTransmitted.toFixed(1)} Pa`;
+
+        const outputF2 = pressTransmitted * s3A2;
+        document.getElementById('s3-f2-disp').innerText = `${outputF2.toFixed(1)} N`;
+      }
+    }
+
+    /* =========================================================================
+       INTERACTION POINTERS & MOUSE DRAGGING SYSTEMS
+       ========================================================================= */
+    function handleCanvasMouseDown(mx, my) {
+      if (currentStageNum === 1) {
+        // Stage 1 drag sensor plate
+        // Sensor area bounds rectangle: x: 160, width 120, y: s1SensorY, height 12px
+        if (mx >= 130 && mx <= 250 && my >= s1SensorY - 40 && my <= s1SensorY + 20) {
+          mouse.dragging = 'sensor';
+          mouse.dragOffset.y = my - s1SensorY;
+        }
+      } else if (currentStageNum === 2) {
+        // Stage 2 drag brass scale box
+        // Box bounds: x: 180, width 80; y: s2BoxY, height 110
+        if (s2Status === "tethered") {
+          if (mx >= 180 && mx <= 260 && my >= s2BoxY - 15 && my <= s2BoxY + s2BoxHeight + 15) {
+            mouse.dragging = 'box';
+            mouse.dragOffset.y = my - s2BoxY;
+          }
+        }
+      } else if (currentStageNum === 3) {
+        // Stage 3 drag floating cubes from trayshelf
+        // predictions array item coordinates bounds checking
+        for (let i = s3Predictions.length - 1; i >= 0; i--) {
+          const item = s3Predictions[i];
+          if (item.status === 'dock' || item.status === 'reposition') {
+            const dist = Math.hypot(mx - item.x, my - item.y);
+            if (dist <= item.size / 2 + 10) {
+              handlePredictionDragStart(item, mx, my);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    function handleCanvasMouseMove(mx, my) {
+      if (!mouse.isDown || !mouse.dragging) return;
+
+      if (currentStageNum === 1 && mouse.dragging === 'sensor') {
+        const targetY = my - mouse.dragOffset.y;
+        // Limit sensor vertical heights: water surface is at 160, bottom plate tank is at 380 px
+        s1SensorY = Math.max(160, Math.min(385, targetY));
+        s1MeasureLocked = false;
+        updateDashboardStats();
+      } else if (currentStageNum === 2 && mouse.dragging === 'box') {
+        const targetY = my - mouse.dragOffset.y;
+        // Tether limits spring hook ranges: spring hook is at top ceiling canester outlet 130 max depth
+        s2BoxY = Math.max(105, Math.min(270, targetY)); // capped before hitting water tank basement floor fully tethered
+        updateDashboardStats();
+      } else if (currentStageNum === 3) {
+        const item = mouse.dragging;
+        if (item && typeof item === 'object') {
+          // Standard dragging of float items
+          item.x = mx - mouse.dragOffset.x;
+          item.y = my - mouse.dragOffset.y;
+          item.status = 'reposition';
+
+          // Visual highlighting of water hover bounds
+          const predTankX = 390;
+          const predTankW = 200;
+          const predWaterY = 240;
+
+          if (item.x >= predTankX && item.x <= predTankX + predTankW && item.y >= 140) {
+            s3TrayLabel = "Release cube inside water tank!";
+          } else {
+            s3TrayLabel = "Predicting Items Store";
+          }
+        }
+      }
+    }
+
+    function handleCanvasMouseUp() {
+      if (!mouse.dragging) return;
+
+      if (currentStageNum === 3) {
+        const item = mouse.dragging;
+        if (item && typeof item === 'object') {
+          // Check if item is inside water tank boundaries
+          const predTankX = 390;
+          const predTankW = 200;
+          const predWaterY = 240;
+
+          if (item.x >= predTankX && item.x <= predTankX + predTankW && item.y >= 140) {
+            // Trigger customized Float or Sink prompt box overlay
+            openPredictionModal(item);
+          } else {
+            // Drop outside, restore back safely to tray cupboard shelf bounds
+            item.x = item.initialX;
+            item.y = item.initialY;
+            item.status = 'dock';
+            s3TrayLabel = "Predicting Items Store";
+          }
+        }
+      }
+
+      mouse.dragging = null;
+    }
+
+    function handleArrowKeysMove(deltaY) {
+      if (currentStageNum === 1) {
+        s1SensorY = Math.max(160, Math.min(385, s1SensorY + deltaY));
+        s1MeasureLocked = false;
+        updateDashboardStats();
+      } else if (currentStageNum === 2 && s2Status === "tethered") {
+        s2BoxY = Math.max(105, Math.min(270, s2BoxY + deltaY));
+        updateDashboardStats();
+      }
+    }
+
+    /* =========================================================================
+       HELPER VALUE CONVERTOR UTILITIES
+       ========================================================================= */
+    function varHex(cssVarStringName) {
+      const styles = getComputedStyle(document.documentElement);
+      return styles.getPropertyValue(`--${cssVarStringName}`).trim();
+    }
+
+    // Launch Application
+    goToMainMenu();
+  </script>
+</body>
+</html>

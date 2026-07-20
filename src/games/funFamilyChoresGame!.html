@@ -1,0 +1,1275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Primary 2 English Match-Up Game</title>
+  <!-- Load Playful Font Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Load Tailwind CSS v4 -->
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  
+  <style>
+    body {
+      font-family: "Fredoka", ui-sans-serif, system-ui, sans-serif;
+      background-color: #FAF9F5;
+      background-image: radial-gradient(#e5e7eb 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+    }
+    .mono {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+    }
+    /* Custom spring and shake feedback classes */
+    .shake-error {
+      animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-3px, 0, 0); }
+      20%, 80% { transform: translate3d(5px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 61% { transform: translate3d(6px, 0, 0); }
+    }
+    .pulse-glow {
+      animation: pulse-border 1.2s infinite;
+    }
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(15, 23, 42, 1); box-shadow: 4px 4px 0px 0px rgba(15,23,42,1); }
+      50% { border-color: rgba(16, 185, 129, 1); box-shadow: 6px 6px 0px 0px rgba(16, 185, 129, 1); }
+    }
+    /* Custom Neo-Brutalist scrollbars */
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: #f2f1ec; border-left: 3px solid #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #0f172a; border-radius: 4px; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-900 overflow-x-hidden select-none p-3 md:p-6">
+
+  <!-- Main Container -->
+  <div class="max-w-4xl mx-auto py-2">
+    
+    <!-- WELCOME / HOME SCREEN (BENTO GRID STYLE CONTAINER) -->
+    <div id="welcome-screen" class="bg-[#F2F1EC] border-4 border-slate-900 rounded-3xl p-5 md:p-8 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] max-w-2xl mx-auto flex flex-col gap-6 relative transition-all duration-300">
+      
+      <!-- Top Badges decoration -->
+      <div class="flex justify-center flex-wrap gap-2 mt-1">
+        <span class="bg-[#0284C7] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">Primary 2</span>
+        <span class="bg-[#F59E0B] text-slate-950 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">English</span>
+        <span class="bg-[#10B981] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">Rwanda</span>
+      </div>
+
+      <div class="bg-[#FFF1F2] border-4 border-slate-900 rounded-2xl p-5 md:p-6 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] text-center relative overflow-hidden">
+        <h1 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-none mb-2">
+          English Match-Up! 🎒
+        </h1>
+        <p class="text-[#059669] text-base md:text-lg font-bold">
+          Amateka n'Imirimo: Fun Family & Chores Game!
+        </p>
+      </div>
+
+      <!-- Instructions Panel -->
+      <div class="bg-[#FEF9C3] rounded-2xl p-4 border-4 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] text-left">
+        <h3 class="font-extrabold text-slate-900 text-lg mb-2 flex items-center gap-1.5">
+          ⭐ Let's Learn English:
+        </h3>
+        <ul class="space-y-2 text-slate-800 font-medium text-sm md:text-base">
+          <li class="flex items-start gap-2">
+            <span class="text-amber-500">▶</span>
+            <span>English names for your <strong>Family Members</strong> (like Mother, Father, Brother, Sister).</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-amber-500">▶</span>
+            <span>Words for helping with <strong>Household Chores</strong> (like Fetching Water, Sweeping, or Milking the Cow!).</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-amber-500">▶</span>
+            <span>Drag a colorful line to connect the word on the left to the correct drawing on the right!</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Categories Selector -->
+      <div class="bg-[#E0F2FE] border-4 border-slate-900 rounded-2xl p-4 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+        <p class="text-slate-700 font-bold mb-3 uppercase text-xs tracking-wider text-center">Select a Game Category:</p>
+        <div class="grid grid-cols-3 gap-2.5">
+          <button onclick="setWelcomeCategory('mix')" id="cat-mix" class="py-3 px-2 rounded-xl font-bold text-sm transition-all flex flex-col items-center justify-center gap-1 border-3 bg-[#3B82F6] text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] scale-[1.02]">
+            <span class="text-lg">🌟</span>
+            <span>All Mixed</span>
+          </button>
+          <button onclick="setWelcomeCategory('family')" id="cat-family" class="py-3 px-2 rounded-xl font-bold text-sm transition-all flex flex-col items-center justify-center gap-1 border-3 bg-white text-slate-800 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] hover:bg-slate-50">
+            <span class="text-lg">👪</span>
+            <span>My Family</span>
+          </button>
+          <button onclick="setWelcomeCategory('chore')" id="cat-chore" class="py-3 px-2 rounded-xl font-bold text-sm transition-all flex flex-col items-center justify-center gap-1 border-3 bg-white text-slate-800 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] hover:bg-slate-50">
+            <span class="text-lg">🧹</span>
+            <span>Duties</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Start Triggers -->
+      <button onclick="launchMatchGame()" class="w-full bg-[#E11D48] hover:bg-[#F43F5E] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] text-white text-xl md:text-2xl font-black py-4 px-6 rounded-2xl transition-all shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] flex items-center justify-center gap-2 border-4 border-slate-900 cursor-pointer">
+        Play Game! 🎯
+      </button>
+
+    </div>
+
+    <!-- MAIN GAME SCREEN (HIDDEN BY DEFAULT) -->
+    <div id="game-screen" class="hidden relative transition-all duration-300">
+      
+      <!-- Celebrations Fireworks Canvas Layer -->
+      <canvas id="fireworks-canvas" class="absolute inset-0 pointer-events-none z-50 w-full h-full rounded-3xl" style="display: none;"></canvas>
+
+      <!-- Dashboard Status Header -->
+      <div class="mb-5 bg-[#F2F1EC] border-4 border-slate-900 rounded-3xl p-4 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] flex flex-col gap-4">
+        
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          
+          <div class="bg-[#E0F2FE] border-3 border-slate-900 rounded-2xl p-2.5 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] flex items-center gap-2">
+            <span class="text-2xl pt-0.5">📚</span>
+            <div>
+              <h2 class="text-base md:text-lg font-black text-slate-950 leading-tight">Match-Up</h2>
+              <p class="text-[11px] font-bold text-slate-705">
+                Category: <span class="capitalize text-[#E11D48]" id="active-category-indicator">Mixed</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Round Level Score details -->
+          <div class="bg-[#FEF9C3] border-3 border-slate-900 rounded-2xl p-2 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] flex items-center gap-2 md:gap-3 flex-wrap">
+            <span id="label-round" class="bg-white text-slate-950 font-black px-2.5 py-1 rounded-lg border-2 border-slate-900 text-xs md:text-sm">
+              Round 1
+            </span>
+            <span class="bg-[#DEF7EC] text-emerald-950 font-black px-2.5 py-1 rounded-lg border-2 border-slate-900 text-xs md:text-sm flex items-center gap-1">
+              Score: <span id="label-score" class="text-emerald-600 font-extrabold">0</span>
+            </span>
+            
+            <!-- Stars Count animation panel -->
+            <div id="stars-display" class="flex items-center bg-white px-2.5 py-1 rounded-lg border-2 border-slate-900 gap-0.5 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)]">
+              <!-- Dynamically populated stars -->
+              <span class="text-[#FBBF24]">⭐</span>
+              <span class="text-[#FBBF24]">⭐</span>
+              <span class="text-[#FBBF24]">⭐</span>
+            </div>
+          </div>
+
+          <!-- Mute / Sound Settings controls -->
+          <div class="bg-white border-3 border-slate-900 rounded-2xl p-1.5 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] flex items-center gap-1.5">
+            <button onclick="toggleAudio()" id="btn-audio-state" title="Toggle Sound Feedback" class="p-1.5 rounded-lg border-2 border-slate-900 bg-[#DEF7EC] hover:bg-slate-55 active:scale-90 text-sm font-bold cursor-pointer transition-all">
+              🔊 Sound
+            </button>
+            <button onclick="quitToMenu()" class="p-1.5 px-3 rounded-lg border-2 border-slate-900 bg-[#FFF1F2] hover:bg-[#FFE4E6] text-slate-900 text-xs font-black cursor-pointer shadow-[1.5px_1.5px_0px_0px_rgba(15,23,42,1)] active:translate-y-[0.5px]">
+              Menu
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Teacher's guide prompt text panel with Speak assistant -->
+        <div class="bg-[#F5F3FF] border-3 border-slate-900 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[2.5px_2.5px_0px_0px_rgba(15,23,42,1)]">
+          <div class="flex items-start gap-2.5 w-full">
+            <span class="text-2xl shrink-0 p-1 bg-white border-2 border-slate-900 rounded-xl leading-none">💡</span>
+            <div>
+              <p class="text-[10px] text-indigo-950 uppercase tracking-widest font-black leading-none mb-1">Teacher's Guide (Amateka):</p>
+              <p id="label-sentence-prompt" class="text-sm md:text-base font-extrabold text-slate-800 leading-tight">
+                Connect the words on the left with the correct drawing picture on the right!
+              </p>
+            </div>
+          </div>
+          <button onclick="speakTeacherText()" class="w-full sm:w-auto p-2 px-4 bg-white hover:bg-slate-50 active:translate-y-[1px] text-slate-950 font-extrabold rounded-xl shrink-0 flex items-center justify-center gap-1.5 text-xs border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] transition-all cursor-pointer">
+            🔊 Listen
+          </button>
+        </div>
+
+      </div>
+
+      <!-- MAIN GAME BOARD CANVAS HOLDER -->
+      <div id="game-board-canvas-holder" class="relative bg-white border-4 border-slate-900 rounded-3xl p-4 md:p-6 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] mb-5 select-none touch-none overflow-visible" style="min-height: 480px;">
+        
+        <!-- Live Connected Bezier path layer -->
+        <svg id="draw-svg-canvas" class="absolute inset-0 pointer-events-none w-full h-full" style="z-index: 10;">
+          <g id="svg-matches-group"></g>
+          <g id="svg-active-drag-group"></g>
+        </svg>
+
+        <!-- Dynamic Two Column Matching Board -->
+        <div class="grid grid-cols-2 gap-x-12 gap-y-5 relative h-full z-20">
+          
+          <!-- LEFT STREAM: CHORE/FAMILY SINGLE WORDS -->
+          <div id="container-left-words" class="flex flex-col justify-between gap-4">
+            <!-- Dynamically populated via JS -->
+          </div>
+
+          <!-- RIGHT STREAM: CHORE/FAMILY CUSTOM ILLUSTRIONS -->
+          <div id="container-right-pictures" class="flex flex-col justify-between gap-4">
+            <!-- Dynamically populated via JS -->
+          </div>
+
+        </div>
+
+        <!-- Floating praise bubble popups container -->
+        <div id="praise-popups-layer" class="absolute inset-0 pointer-events-none z-40 overflow-hidden"></div>
+
+      </div>
+
+      <!-- FOOTER UTILS TOOLBAR -->
+      <div class="flex flex-wrap md:flex-nowrap justify-between items-center bg-[#F2F1EC] border-4 border-slate-900 rounded-2xl p-4 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] gap-4">
+        
+        <button onclick="shuffleLevelAndStart()" class="bg-white hover:bg-slate-50 hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(15,23,42,1)] text-[#E11D48] font-black py-2.5 px-4 rounded-xl transition-all shadow-[2.5px_2.5px_0px_0px_rgba(15,23,42,1)] flex items-center gap-1.5 border-3 border-slate-900 text-sm cursor-pointer shrink-0">
+          🔄 Shuffle Cards
+        </button>
+
+        <div class="text-center hidden md:block bg-white border-3 border-slate-900 rounded-xl px-4 py-1.5 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
+          <p class="text-[9px] font-black text-stone-500 tracking-widest uppercase leading-none mb-1">Progress</p>
+          <div id="indicator-tracker-dots" class="flex items-center gap-2 justify-center">
+            <div class="w-3.5 h-3.5 rounded-full border-2 border-slate-900 bg-slate-100"></div>
+            <div class="w-3.5 h-3.5 rounded-full border-2 border-slate-900 bg-slate-100"></div>
+            <div class="w-3.5 h-3.5 rounded-full border-2 border-slate-900 bg-slate-100"></div>
+            <div class="w-3.5 h-3.5 rounded-full border-2 border-slate-900 bg-slate-100"></div>
+          </div>
+        </div>
+
+        <div class="flex gap-2 w-full md:w-auto justify-end">
+          <button onclick="speakHelperTip()" class="p-2 py-2.5 bg-[#E0F2FE] hover:bg-sky-100 text-slate-900 rounded-xl font-bold flex items-center gap-1 text-xs border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:translate-y-[0.5px] cursor-pointer">
+            💡 Tap Help
+          </button>
+          <button onclick="quitToMenu()" class="p-2 py-2.5 bg-[#FEF3C7] hover:bg-amber-100 text-slate-900 rounded-xl font-bold flex items-center gap-1 text-xs border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:translate-y-[0.5px] cursor-pointer">
+            🏠 Back Menu
+          </button>
+        </div>
+
+      </div>
+
+      <!-- SUCCESS MODAL DIALOG ON THEME COMPLETE -->
+      <div id="win-overlay" class="absolute inset-0 bg-slate-950/70 backdrop-blur-xs hidden items-center justify-center p-4 z-50 rounded-3xl" style="display: none;">
+        <div class="bg-white border-6 border-slate-900 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center shadow-[10px_10px_0px_0px_#10B981] relative overflow-hidden flex flex-col items-center gap-4 transition-all duration-300">
+          
+          <div class="w-16 h-16 bg-[#EF4444] rounded-full flex items-center justify-center border-4 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] animate-bounce">
+            <span class="text-3xl">🏆</span>
+          </div>
+
+          <div>
+            <h2 class="text-3xl md:text-4xl font-black text-[#10B981] tracking-tight leading-none mb-1">
+              YOU WIN! 🎉
+            </h2>
+            <span class="text-sm md:text-base font-black text-slate-800 uppercase tracking-wide">
+              Urashoboye! (Well Done!)
+            </span>
+          </div>
+
+          <div class="bg-[#DEF7EC] border-3 border-slate-900 rounded-2xl p-4 w-full shadow-[3px_3px_0px_0px_rgba(15,23,42,1)]">
+            <div class="grid grid-cols-2 gap-2 divide-x-2 divide-slate-900">
+              <div>
+                <span class="block text-slate-800 text-[10px] uppercase font-bold tracking-wider leading-none mb-1">Bonus</span>
+                <span class="text-2xl font-black text-[#10B981]">+650</span>
+              </div>
+              <div>
+                <span class="block text-slate-800 text-[10px] uppercase font-bold tracking-wider leading-none mb-1">Grand Stars</span>
+                <span id="label-stars-count" class="text-2xl font-black text-[#F59E0B] flex items-center justify-center gap-0.5 leading-none">
+                  ⭐3
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-700 font-semibold leading-relaxed">
+            Fantastic English chores and family items matching! Ready for another level adventure?
+          </p>
+
+          <button onclick="playNextRoundLevel()" class="w-full bg-[#10B981] hover:bg-[#0E9F6E] text-white text-lg font-black py-3.5 px-6 rounded-2xl transition-all shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex items-center justify-center gap-1 border-3 border-slate-900 hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_0px_rgba(15,23,42,1)] active:translate-y-[1px] cursor-pointer">
+            Next Level Round Play ➔
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- GAME SCRIPT ENGINE BLOCK -->
+  <script>
+    // 14 curriculum vocab elements
+    const ALL_VOCAB = [
+      { id: 'v1', word: 'Mother', category: 'family', sentence: 'Mother hugs me with a warm smile.', illustratorId: 'mother' },
+      { id: 'v2', word: 'Father', category: 'family', sentence: 'Father teaches me to read books.', illustratorId: 'father' },
+      { id: 'v3', word: 'Brother', category: 'family', sentence: 'Brother helps collect juicy sweet mangoes.', illustratorId: 'brother' },
+      { id: 'v4', word: 'Sister', category: 'family', sentence: 'Sister sweeps the floor very clean.', illustratorId: 'sister' },
+      { id: 'v5', word: 'Grandmother', category: 'family', sentence: 'Grandmother tells us stories around the fire.', illustratorId: 'grandmother' },
+      { id: 'v6', word: 'Grandfather', category: 'family', sentence: 'Grandfather has walking sticks and wise eyes.', illustratorId: 'grandfather' },
+      { id: 'v7', word: 'Cook Food', category: 'chore', sentence: 'We cook food together on a warm stove.', illustratorId: 'cooking' },
+      { id: 'v8', word: 'Fetch Water', category: 'chore', sentence: 'Fetch water with a yellow jerrycan.', illustratorId: 'fetch-water' },
+      { id: 'v9', word: 'Sweep Room', category: 'chore', sentence: 'Sweep the room to keep the dust away.', illustratorId: 'sweep' },
+      { id: 'v10', word: 'Wash Dishes', category: 'chore', sentence: 'Wash dishes after eating sweet potatoes.', illustratorId: 'wash-dishes' },
+      { id: 'v11', word: 'Work in Garden', category: 'chore', sentence: 'Work in garden to grow healthy cabbages.', illustratorId: 'garden' },
+      { id: 'v12', word: 'Make Beds', category: 'chore', sentence: 'Make beds nicely in the morning.', illustratorId: 'make-beds' },
+      { id: 'v13', word: 'Milk the Cow', category: 'chore', sentence: 'Milk the cow to get fresh creamy milk.', illustratorId: 'milk' },
+      { id: 'v14', word: 'Collect Firewood', category: 'chore', sentence: 'Collect firewood so we can make delicious soup.', illustratorId: 'collect-firewood' }
+    ];
+
+    const PRAISES = ['Excellent!', 'Superb!', 'Fantastic!', 'Good Job!', 'Correct Match!', 'Awesome!', 'Wonderful!', 'Perfect!'];
+
+    // 14 Beautiful SVG definitions, optimized to save generation token length, high contrast, child-friendly colors
+    const ILLUSTRATIONS = {
+      mother: `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#FFEAE9" />
+        <circle cx="100" cy="100" r="75" fill="#FFD1CF" opacity="0.6" />
+        <path d="M55 70 C 55 35, 145 35, 145 70 Z" fill="#E11D48" />
+        <path d="M85 110 L115 110 L115 140 L85 140 Z" fill="#8C5C3A" />
+        <circle cx="100" cy="85" r="38" fill="#A16B47" />
+        <path d="M62 65 C 80 50, 120 50, 138 65 L135 55 Z" fill="#FBBF24" />
+        <ellipse cx="86" cy="82" rx="4" ry="5" fill="#1E293B" /><ellipse cx="114" cy="82" rx="4" ry="5" fill="#1E293B" />
+        <ellipse cx="78" cy="90" rx="4" ry="2" fill="#E11D48" opacity="0.4" /><ellipse cx="122" cy="90" rx="4" ry="2" fill="#E11D48" opacity="0.4" />
+        <path d="M88 95 C 88 108, 112 108, 112 95" fill="none" stroke="#1E293B" stroke-width="3" stroke-linecap="round" />
+        <path d="M50 140 C 50 125, 150 125, 150 140 L145 180 L55 180 Z" fill="#059669" />
+      </svg>`,
+      father: `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#E0F2FE" />
+        <circle cx="100" cy="100" r="75" fill="#BAE6FD" opacity="0.6" />
+        <path d="M60 70 C 60 30, 140 30, 140 70" fill="none" stroke="#1E293B" stroke-width="12" stroke-linecap="round" />
+        <path d="M85 115 L115 115 L115 145 L85 145 Z" fill="#784B2B" />
+        <circle cx="100" cy="85" r="38" fill="#8F5A34" />
+        <path d="M64 70 C 64 45, 136 45, 136 70 Z" fill="#1E293B" />
+        <ellipse cx="86" cy="80" rx="4" ry="5" fill="#1E293B" /><ellipse cx="114" cy="80" rx="4" ry="5" fill="#1E293B" />
+        <path d="M66 90 C 70 124, 130 124, 134 90 Z" fill="#1E293B" />
+        <path d="M86 95 C 86 108, 114 108, 114 95" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+        <path d="M50 145 C 50 128, 150 128, 150 145 L145 180 L55 180 Z" fill="#0284C7" />
+      </svg>`,
+      brother: `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#F0FDF4" />
+        <circle cx="100" cy="100" r="75" fill="#DCFCE7" opacity="0.6" />
+        <path d="M88 115 L112 115 L112 140 L88 140 Z" fill="#8C5C3A" />
+        <circle cx="100" cy="85" r="34" fill="#A16B47" />
+        <circle cx="100" cy="52" r="12" fill="#1E293B" /><circle cx="85" cy="56" r="10" fill="#1E293B" /><circle cx="115" cy="56" r="10" fill="#1E293B" />
+        <circle cx="88" cy="82" r="4" fill="#1E293B" /><circle cx="112" cy="82" r="4" fill="#1E293B" />
+        <path d="M86 94 C 86 106, 114 106, 114 94" fill="none" stroke="#1E293B" stroke-width="3" stroke-linecap="round" />
+        <path d="M55 140 C 55 125, 145 125, 145 140 L140 180 L60 180 Z" fill="#F59E0B" />
+      </svg>`,
+      sister: `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#FAF5FF" />
+        <circle cx="100" cy="100" r="75" fill="#F3E8FF" opacity="0.6" />
+        <rect x="70" y="45" width="8" height="25" rx="4" fill="#1E293B" /><rect x="96" y="40" width="8" height="25" rx="4" fill="#1E293B" /><rect x="122" y="45" width="8" height="25" rx="4" fill="#1E293B" />
+        <path d="M88 116 L112 116 L112 140 L88 140 Z" fill="#8C5C3A" />
+        <circle cx="100" cy="88" r="32" fill="#A16B47" />
+        <circle cx="88" cy="85" r="4.5" fill="#1E293B" /><circle cx="112" cy="85" r="4.5" fill="#1E293B" />
+        <path d="M88 98 C 88 110, 112 110, 112 98 Z" fill="#EF4444" />
+        <path d="M60 138 C 60 120, 140 120, 140 138 L135 180 L65 180 Z" fill="#EC4899" />
+      </svg>`,
+      grandmother: `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#FFFBEB" />
+        <circle cx="100" cy="100" r="75" fill="#FEF3C7" opacity="0.6" />
+        <circle cx="100" cy="40" r="18" fill="#CBD5E1" />
+        <path d="M50 78 C 50 40, 150 40, 150 78 Z" fill="#8B5CF6" />
+        <path d="M86 115 L114 115 L114 140 L86 140 Z" fill="#784B2B" />
+        <circle cx="100" cy="86" r="35" fill="#8F5A34" />
+        <circle cx="84" cy="84" r="11" fill="none" stroke="#FBBF24" stroke-width="3" /><circle cx="116" cy="84" r="11" fill="none" stroke="#FBBF24" stroke-width="3" />
+        <circle cx="84" cy="84" r="3" fill="#1E293B" /><circle cx="116" cy="84" r="3" fill="#1E293B" />
+        <path d="M86 100 C 86 112, 114 112, 114 100" fill="none" stroke="#1E293B" stroke-width="3" stroke-linecap="round" />
+        <path d="M52 140 C 52 122, 148 122, 148 140 L142 180 L58 180 Z" fill="#6D28D9" />
+      </svg>`,
+      grandfather: `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#F1F5F9" />
+        <circle cx="100" cy="100" r="75" fill="#E2E8F0" opacity="0.6" />
+        <path d="M58 85 C 55 50, 145 50, 142 85" fill="none" stroke="#CBD5E1" stroke-width="12" stroke-linecap="round" />
+        <path d="M86 115 L114 115 L114 145 L86 145 Z" fill="#784B2B" />
+        <circle cx="100" cy="85" r="35" fill="#8F5A34" />
+        <circle cx="86" cy="78" r="4" fill="#1E293B" /><circle cx="114" cy="78" r="4" fill="#1E293B" />
+        <path d="M68 88 C 72 122, 128 122, 132 88" fill="none" stroke="#E2E8F0" stroke-width="6" stroke-linecap="round" />
+        <path d="M52 145 C 52 128, 148 128, 148 145 L142 180 L58 180 Z" fill="#BE123C" />
+      </svg>`,
+      cooking: `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#FFEAE9" />
+        <rect x="60" y="145" width="80" height="15" rx="4" transform="rotate(10 100 152.5)" fill="#78350F" />
+        <path d="M75 150 C 70 120, 130 120, 122 150 Z" fill="#EF4444" />
+        <path d="M85 150 C 82 130, 118 130, 112 150 Z" fill="#F59E0B" />
+        <path d="M60 90 L140 90 C 145 125, 140 142, 100 142 C 60 142, 55 125, 60 90 Z" fill="#64748B" />
+        <ellipse cx="100" cy="90" rx="40" ry="10" fill="#475569" />
+        <path d="M110 105 L145 55 L155 62 L120 112" fill="#D97706" />
+      </svg>`,
+      'fetch-water': `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#E0F2FE" />
+        <circle cx="100" cy="100" r="75" fill="#BAE6FD" opacity="0.6" />
+        <rect x="70" y="65" width="60" height="85" rx="8" fill="#FBBF24" stroke="#D97706" stroke-width="2" />
+        <rect x="85" y="80" width="30" height="55" rx="4" fill="#FBBF24" stroke="#F59E0B" stroke-width="4" />
+        <line x1="100" y1="88" x2="100" y2="128" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />
+        <rect x="110" y="55" width="12" height="10" rx="2" fill="#EF4444" />
+        <path d="M78 65 L78 54 C 78 50, 107 50, 107 54 L107 65" fill="none" stroke="#1E293B" stroke-width="6.5" />
+        <path d="M55 44 C 55 60, 116 52, 116 60" fill="none" stroke="#38BDF8" stroke-width="5.5" stroke-linecap="round" />
+      </svg>`,
+      sweep: `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#FFFBEB" />
+        <line x1="140" y1="50" x2="85" y2="120" stroke="#78350F" stroke-width="7" stroke-linecap="round" />
+        <path d="M85 120 L55 158 Q 50 162, 52 148 L80 116" fill="none" stroke="#F59E0B" stroke-width="6" stroke-linecap="round" />
+        <path d="M85 120 L45 148 Q 42 153, 45 138 L78 114" fill="none" stroke="#D97706" stroke-width="5" stroke-linecap="round" />
+        <path d="M75 124 L85 116" stroke="#EF4444" stroke-width="8" stroke-linecap="round" />
+      </svg>`,
+      'wash-dishes': `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#F0FDF4" />
+        <path d="M50 110 L150 110 C 145 145, 135 155, 100 155 C 65 155, 55 145, 50 110 Z" fill="#0284C7" />
+        <ellipse cx="100" cy="110" rx="50" ry="10" fill="#0EA5E9" />
+        <ellipse cx="100" cy="110" rx="44" ry="7" fill="#F1F5F9" />
+        <ellipse cx="100" cy="90" rx="28" ry="24" fill="#E2E8F0" stroke="#CBD5E1" stroke-width="2" />
+        <ellipse cx="100" cy="90" rx="20" ry="17" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1.5" />
+        <rect x="110" y="80" width="22" height="14" rx="3" fill="#FBBF24" />
+      </svg>`,
+      garden: `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#ECFDF5" />
+        <path d="M45 130 C 50 120, 150 120, 155 130 L150 155 C 140 160, 60 160, 50 155 Z" fill="#78350F" />
+        <path d="M75 130 L75 110" stroke="#10B981" stroke-width="3" stroke-linecap="round" />
+        <path d="M75 115 Q 65 110, 68 102 Q 74 105, 75 115" fill="#10B981" />
+        <path d="M100 130 L100 102" stroke="#10B981" stroke-width="4" stroke-linecap="round" />
+        <path d="M125 130 L125 112" stroke="#10B981" stroke-width="3" stroke-linecap="round" />
+        <rect x="110" y="55" width="40" height="30" rx="5" fill="#F43F5E" />
+        <path d="M120 55 C 120 42, 140 42, 140 55" fill="none" stroke="#E11D48" stroke-width="4" />
+        <line x1="110" y1="75" x2="80" y2="60" stroke="#BD1C40" stroke-width="6" stroke-linecap="round" />
+      </svg>`,
+      'make-beds': `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#F5F3FF" />
+        <rect x="35" y="80" width="10" height="85" rx="3" fill="#B45309" />
+        <rect x="155" y="105" width="10" height="60" rx="3" fill="#B45309" />
+        <rect x="40" y="90" width="120" height="15" rx="2" fill="#92400E" />
+        <rect x="42" y="115" width="115" height="40" rx="4" fill="#E2E8F0" />
+        <rect x="45" y="110" width="110" height="35" rx="2" fill="#3B82F6" />
+        <path d="M45 110 L110 110 L90 135 L45 135 Z" fill="#2563EB" />
+        <rect x="52" y="100" width="30" height="16" rx="4" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2" />
+      </svg>`,
+      milk: `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#EFF6FF" />
+        <rect x="70" y="55" width="60" height="60" rx="15" fill="#FFFFFF" stroke="#94A3B8" stroke-width="3" />
+        <ellipse cx="60" cy="65" rx="15" ry="8" fill="#EEF2F6" />
+        <ellipse cx="140" cy="65" rx="15" ry="8" fill="#EEF2F6" />
+        <rect x="70" y="90" width="60" height="30" rx="10" fill="#F472B6" />
+        <circle cx="85" cy="78" r="4.5" fill="#1E293B" /><circle cx="115" cy="78" r="4.5" fill="#1E293B" />
+        <path d="M85 145 L115 145 L120 178 L80 178 Z" fill="#94A3B8" />
+        <line x1="100" y1="118" x2="100" y2="143" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" />
+      </svg>`,
+      'collect-firewood': `<svg viewBox="0 0 200 200" class="w-full h-full">
+        <circle cx="100" cy="100" r="85" fill="#FFFBEB" />
+        <rect x="52" y="85" width="95" height="15" rx="3" transform="rotate(-8 100 92.5)" fill="#78350F" />
+        <rect x="55" y="100" width="90" height="16" rx="3" transform="rotate(7 100 108)" fill="#92400E" />
+        <rect x="48" y="92" width="102" height="15" rx="3" transform="rotate(2 100 99.5)" fill="#541C03" />
+        <rect x="94" y="78" width="12" height="42" rx="4" fill="#D97706" opacity="0.9" stroke="#78350F" stroke-width="1.5" />
+      </svg>`
+    };
+
+    // Game variables
+    let gameMode = 'mix'; // mix, family, chore
+    let currentLevel = 1;
+    let totalScore = 0;
+    let goldenStars = 5;
+    let activeItems = [];
+    let randomizedWords = [];
+    let randomizedPictures = [];
+    let matches = []; // { wordId, pictureId, color }
+    let soundEnabled = true;
+    let activeSentence = "Connect standard Rwandan curriculum vocabulary pairs!";
+
+    // Pointer state
+    let draggingWordId = null;
+    let activeHoveredPicId = null;
+    let cursorPos = { x: 0, y: 0 };
+    let startNodePos = { x: 0, y: 0 };
+
+    // --- SOUND SYNTHESIS ENGINE (Web Audio API - Fully Offline) ---
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playCorrectSound() {
+      if (!soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(523.25, now);
+      osc1.frequency.exponentialRampToValueAtTime(880.00, now + 0.1);
+      osc1.frequency.exponentialRampToValueAtTime(1200.00, now + 0.3);
+
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(261.63, now);
+      osc2.frequency.setValueAtTime(440.00, now + 0.1);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.15, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.4);
+      osc2.stop(now + 0.4);
+    }
+
+    function playWrongSound() {
+      if (!soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.linearRampToValueAtTime(80, now + 0.25);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, now);
+      filter.frequency.exponentialRampToValueAtTime(150, now + 0.25);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.3);
+    }
+
+    function playWinSound() {
+      if (!soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+      
+      notes.forEach((freq, idx) => {
+        const time = now + idx * 0.07;
+        const o = ctx.createOscillator();
+        const sub = ctx.createOscillator();
+        const g = ctx.createGain();
+
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(freq, time);
+
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(freq * 2, time);
+
+        g.gain.setValueAtTime(0, time);
+        g.gain.linearRampToValueAtTime(0.06, time + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.001, time + 0.35);
+
+        o.connect(g);
+        sub.connect(g);
+        g.connect(ctx.destination);
+
+        o.start(time);
+        sub.start(time);
+        o.stop(time + 0.35);
+        sub.stop(time + 0.35);
+      });
+    }
+
+    // --- SPEECH SYNTHESIS ENGINE (SpeechSynthesis - Offline) ---
+    function speakText(text) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voices = window.speechSynthesis.getVoices();
+      const englishVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural'))) || voices.find(v => v.lang.startsWith('en'));
+      
+      if (englishVoice) utterance.voice = englishVoice;
+      utterance.rate = 0.82; // helpful slow rate for Rwanda Primary 2 learners
+      utterance.pitch = 1.15;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // --- GAME ACTIONS & SCREEN CONTROLLER ---
+    function setWelcomeCategory(category) {
+      gameMode = category;
+      ['mix', 'family', 'chore'].forEach(cat => {
+        const btn = document.getElementById('cat-' + cat);
+        if (cat === category) {
+          btn.className = "py-3 px-2 rounded-xl font-bold text-sm transition-all flex flex-col items-center justify-center gap-1 border-3 bg-[#3B82F6] text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] scale-[1.02]";
+        } else {
+          btn.className = "py-3 px-2 rounded-xl font-bold text-sm transition-all flex flex-col items-center justify-center gap-1 border-3 bg-white text-slate-800 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] hover:bg-slate-50";
+        }
+      });
+    }
+
+    function toggleAudio() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('btn-audio-state');
+      if (soundEnabled) {
+        btn.textContent = "🔊 Sound On";
+        btn.className = "p-1.5 rounded-lg border-2 border-slate-900 bg-[#DEF7EC] hover:bg-slate-50 active:scale-90 text-sm font-bold cursor-pointer transition-all";
+      } else {
+        btn.textContent = "🔇 Mute";
+        btn.className = "p-1.5 rounded-lg border-2 border-slate-900 bg-[#FFF1F2] hover:bg-slate-50 active:scale-90 text-sm font-bold cursor-pointer transition-all";
+      }
+    }
+
+    function speakTeacherText() {
+      speakText(activeSentence);
+    }
+
+    function speakHelperTip() {
+      speakText("Let's connect spelling words on the left into their drawings on the right! You can drag a line with your finger or mouse starting from the round node.");
+    }
+
+    function quitToMenu() {
+      document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('welcome-screen').classList.remove('hidden');
+    }
+
+    function launchMatchGame() {
+      document.getElementById('welcome-screen').classList.add('hidden');
+      document.getElementById('game-screen').classList.remove('hidden');
+      startNewLevel();
+    }
+
+    // Load active Level cards
+    function startNewLevel() {
+      matches = [];
+      draggingWordId = null;
+      activeHoveredPicId = null;
+      document.getElementById('win-overlay').style.display = 'none';
+      stopCelebrationFireworks();
+
+      // Set category indicator
+      let categoryFullLabel = "All Family & Chores";
+      if (gameMode === 'family') categoryFullLabel = "Family Members 👪";
+      if (gameMode === 'chore') categoryFullLabel = "Home Duties 🧹";
+      document.getElementById('active-category-indicator').textContent = categoryFullLabel;
+
+      // Filter level items
+      let filtered = ALL_VOCAB;
+      if (gameMode === 'family') {
+        filtered = ALL_VOCAB.filter(v => v.category === 'family');
+      } else if (gameMode === 'chore') {
+        filtered = ALL_VOCAB.filter(v => v.category === 'chore');
+      }
+
+      // Read random 4
+      const shuffledPool = [...filtered].sort(() => 0.5 - Math.random());
+      activeItems = shuffledPool.slice(0, 4);
+
+      randomizedWords = [...activeItems].sort(() => 0.5 - Math.random());
+      randomizedPictures = [...activeItems].sort(() => 0.5 - Math.random());
+
+      activeSentence = "Connect family name words and home chore tasks with their illustrations!";
+      document.getElementById('label-round').textContent = `Round ${currentLevel}`;
+      document.getElementById('label-score').textContent = totalScore;
+      document.getElementById('label-sentence-prompt').textContent = activeSentence;
+
+      // Draw score stars
+      renderStars();
+
+      // Render items lists
+      renderWordsColumn();
+      renderPicturesColumn();
+
+      // Clear drawing layer and dots
+      drawLines();
+      updateTrackerDots();
+
+      // Speak help indicator
+      speakText("Play Round " + currentLevel + "! Drag nodes to connect the matching drawings.");
+    }
+
+    function renderStars() {
+      const starsDisplay = document.getElementById('stars-display');
+      starsDisplay.innerHTML = '';
+      const loopCount = Math.min(6, goldenStars);
+      for (let i = 0; i < loopCount; i++) {
+        const star = document.createElement('span');
+        star.textContent = '⭐';
+        star.className = "inline-block animate-bounce";
+        star.style.animationDelay = `${i * 150}ms`;
+        star.style.animationDuration = '2.5s';
+        starsDisplay.appendChild(star);
+      }
+    }
+
+    function updateTrackerDots() {
+      const dotsContainer = document.getElementById('indicator-tracker-dots');
+      dotsContainer.innerHTML = '';
+      for (let j = 0; j < 4; j++) {
+        const dot = document.createElement('div');
+        dot.className = `w-3.5 h-3.5 rounded-full border-2 border-slate-900 transition-colors ${
+          j < matches.length ? 'bg-[#10B981]' : 'bg-slate-100'
+        }`;
+        dotsContainer.appendChild(dot);
+      }
+    }
+
+    function renderWordsColumn() {
+      const container = document.getElementById('container-left-words');
+      container.innerHTML = `
+        <p class="text-center font-black text-slate-900 text-xs md:text-sm uppercase tracking-wider bg-[#E4E3DE] py-1.5 px-3 rounded-lg border-2 border-slate-900 shadow-[1.5px_1.5px_0px_0px_rgba(15,23,42,1)]">
+          1. Words (Amagambo) 📝
+        </p>
+      `;
+
+      randomizedWords.forEach((item, idx) => {
+        const isMatched = matches.some(m => m.wordId === item.id);
+        const cardBgColors = ['bg-[#F0F9FF]', 'bg-[#FDF2F8]', 'bg-[#F0FDF4]', 'bg-[#FFF7ED]'];
+        const cardBg = cardBgColors[idx % 4];
+
+        const card = document.createElement('div');
+        card.id = `word-card-${item.id}`;
+        card.className = `relative border-3 rounded-xl flex items-center justify-between p-2.5 min-h-[85px] transition-all bg-white border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)]`;
+        if (isMatched) {
+          card.className = "relative border-3 rounded-xl flex items-center justify-between p-2.5 min-h-[85px] transition-all bg-[#DCFCE7] border-emerald-600 text-emerald-950 shadow-[2px_2px_0px_0px_rgba(16,185,129,1)]";
+        } else {
+          card.classList.add(...cardBg.split(' '));
+        }
+
+        // Card Speak Trigger
+        const speakBtn = document.createElement('button');
+        speakBtn.className = isMatched 
+          ? "p-2 rounded-lg border-2 border-emerald-500 bg-[#A7F3D0] text-emerald-800 cursor-pointer" 
+          : "p-2 rounded-lg border-2 border-slate-900 bg-white hover:bg-slate-100 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)] cursor-pointer active:scale-90 transition-all";
+        speakBtn.innerHTML = "🔊";
+        speakBtn.onclick = (e) => {
+          e.stopPropagation();
+          speakText(item.word);
+          activeSentence = `Spelling: "${item.word}" - ${item.category === 'family' ? 'Family member names' : 'Home helpful activity'}`;
+          document.getElementById('label-sentence-prompt').textContent = activeSentence;
+        };
+
+        const textWrapper = document.createElement('div');
+        textWrapper.className = "text-center flex-1 pr-1.5 select-none";
+        textWrapper.innerHTML = `
+          <span class="text-lg md:text-xl font-black block tracking-tight text-slate-950 leading-none">${item.word}</span>
+          <span class="text-[9px] font-bold text-stone-500 mt-1 block uppercase leading-none">${item.category === 'chore' ? 'Duties' : 'Family'}</span>
+        `;
+
+        // Interactive Handle Connection Knob circle
+        const knobNode = document.createElement('div');
+        knobNode.id = `left-node-${item.id}`;
+        knobNode.className = isMatched 
+          ? "w-8 h-8 rounded-full border-2 border-slate-900 bg-[#10B981] flex items-center justify-center text-white shrink-0 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)]" 
+          : "w-8 h-8 rounded-full border-2 border-slate-900 bg-white hover:scale-110 active:scale-125 flex items-center justify-center text-slate-800 shrink-0 cursor-pointer shadow-[1.5px_1.5px_0px_0px_rgba(15,23,42,1)] transition-transform touch-none";
+        knobNode.innerHTML = isMatched ? "✓" : "⚫";
+        
+        // Touch or Mouse triggers for connection rules
+        if (!isMatched) {
+          knobNode.addEventListener('pointerdown', (e) => handleDragLineStart(item.id, e));
+        }
+
+        card.appendChild(speakBtn);
+        card.appendChild(textWrapper);
+        card.appendChild(knobNode);
+        container.appendChild(card);
+      });
+    }
+
+    function renderPicturesColumn() {
+      const container = document.getElementById('container-right-pictures');
+      container.innerHTML = `
+        <p class="text-center font-black text-slate-900 text-xs md:text-sm uppercase tracking-wider bg-[#F2EBCE] py-1.5 px-3 rounded-lg border-2 border-slate-900 shadow-[1.5px_1.5px_0px_0px_rgba(15,23,42,1)]">
+          2. Drawings (Ibikoresho) 🎨
+        </p>
+      `;
+
+      randomizedPictures.forEach((item, idx) => {
+        const isMatched = matches.some(m => m.pictureId === item.id);
+        const cardBgColors = ['bg-[#FFFBEB]', 'bg-[#FAF5FF]', 'bg-[#EEF2FF]', 'bg-[#F9FAF1]'];
+        const cardBg = cardBgColors[idx % 4];
+
+        const card = document.createElement('div');
+        card.id = `picture-card-${item.id}`;
+        card.className = `relative border-3 rounded-xl flex items-center p-2 min-h-[85px] transition-all bg-white border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)]`;
+        if (isMatched) {
+          card.className = "relative border-3 rounded-xl flex items-center p-2 min-h-[85px] transition-all bg-[#DCFCE7] border-emerald-600 shadow-[2px_2px_0px_0px_rgba(16,185,129,1)]";
+        } else {
+          card.classList.add(...cardBg.split(' '));
+        }
+
+        // Target Drag Handle circle node
+        const knobNode = document.createElement('div');
+        knobNode.id = `right-node-${item.id}`;
+        knobNode.className = isMatched 
+          ? "w-8 h-8 rounded-full border-2 border-slate-900 bg-[#10B981] flex items-center justify-center text-white shrink-0 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)]" 
+          : "w-8 h-8 rounded-full border-2 border-slate-900 bg-white flex items-center justify-center text-stone-500 shrink-0 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)]";
+        knobNode.style.marginLeft = "-20px";
+        knobNode.style.marginRight = "10px";
+        knobNode.innerHTML = isMatched ? "✓" : "";
+
+        // Custom illustrations Vector
+        const illustrationBox = document.createElement('button');
+        illustrationBox.className = "w-14 h-14 bg-white rounded-lg border-2 border-slate-900 overflow-hidden flex items-center justify-center p-1 shrink-0 shadow-[1.5px_1.5px_0px_0px_rgba(15,23,42,1)] transition-transform active:scale-90 hover:bg-slate-50 cursor-pointer";
+        illustrationBox.innerHTML = ILLUSTRATIONS[item.illustratorId] || ILLUSTRATIONS.mother;
+        illustrationBox.onclick = () => {
+          speakText(item.sentence);
+          activeSentence = item.sentence;
+          document.getElementById('label-sentence-prompt').textContent = activeSentence;
+        };
+
+        const clueWrapper = document.createElement('div');
+        clueWrapper.className = "flex-1 pl-2 min-w-0 text-left";
+        if (isMatched) {
+          clueWrapper.innerHTML = `
+            <span class="font-extrabold text-[#059669] text-xs uppercase leading-none block">Success! 🎉</span>
+            <span class="text-[11px] font-semibold text-slate-800 leading-tight block truncate mt-1">${item.sentence}</span>
+          `;
+        } else {
+          clueWrapper.innerHTML = `
+            <span class="text-stone-500 text-[10px] italic leading-none block mb-1">Clue sound?</span>
+            <button class="text-[10px] py-1 px-1.5 font-bold bg-white text-[#D97706] hover:bg-amber-50 active:translate-y-[0.5px] border-2 border-slate-900 rounded-lg shadow-[1px_1px_0px_0px_rgba(15,23,42,1)] leading-none cursor-pointer">
+              Clue Assistant 🔊
+            </button>
+          `;
+          clueWrapper.querySelector('button').onclick = () => {
+            speakText(`${item.word}! ${item.sentence}`);
+            activeSentence = `Rwandan Chore: "${item.word}" - ${item.sentence}`;
+            document.getElementById('label-sentence-prompt').textContent = activeSentence;
+          };
+        }
+
+        card.appendChild(knobNode);
+        card.appendChild(illustrationBox);
+        card.appendChild(clueWrapper);
+        container.appendChild(card);
+      });
+    }
+
+    // --- COORDS CALCULATING & SVG DRAW LINING HANDLERS ---
+    function getNodeCoords(nodeId) {
+      const container = document.getElementById('game-board-canvas-holder');
+      const node = document.getElementById(nodeId);
+      if (!container || !node) return { x: 0, y: 0 };
+      const containerRect = container.getBoundingClientRect();
+      const nodeRect = node.getBoundingClientRect();
+      return {
+        x: (nodeRect.left + nodeRect.width / 2) - containerRect.left,
+        y: (nodeRect.top + nodeRect.height / 2) - containerRect.top
+      };
+    }
+
+    function drawLines() {
+      const matchesGroup = document.getElementById('svg-matches-group');
+      const activeDragGroup = document.getElementById('svg-active-drag-group');
+      
+      matchesGroup.innerHTML = '';
+      activeDragGroup.innerHTML = '';
+
+      // 1. Draw solid matched connections
+      matches.forEach(m => {
+        const from = getNodeCoords(`left-node-${m.wordId}`);
+        const to = getNodeCoords(`right-node-${m.pictureId}`);
+        if (from.x === 0 || to.x === 0) return;
+
+        const dx = Math.abs(to.x - from.x);
+        const cp1x = from.x + dx * 0.45;
+        const cp1y = from.y;
+        const cp2x = to.x - dx * 0.45;
+        const cp2y = to.y;
+
+        // Visual curve path
+        const pathLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathLine.setAttribute('d', `M ${from.x} ${from.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${to.x} ${to.y}`);
+        pathLine.setAttribute('fill', 'none');
+        pathLine.setAttribute('stroke', '#10B981');
+        pathLine.setAttribute('stroke-width', '5');
+        pathLine.setAttribute('stroke-linecap', 'round');
+
+        const pathGlow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathGlow.setAttribute('d', `M ${from.x} ${from.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${to.x} ${to.y}`);
+        pathGlow.setAttribute('fill', 'none');
+        pathGlow.setAttribute('stroke', '#10B981');
+        pathGlow.setAttribute('stroke-width', '11');
+        pathGlow.setAttribute('stroke-linecap', 'round');
+        pathGlow.setAttribute('opacity', '0.25');
+
+        // Central visual bubble joiner
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', (from.x + to.x) / 2);
+        circle.setAttribute('cy', (from.y + to.y) / 2);
+        circle.setAttribute('r', '9');
+        circle.setAttribute('fill', '#10B981');
+        circle.setAttribute('stroke', '#0F172A');
+        circle.setAttribute('stroke-width', '2');
+
+        matchesGroup.appendChild(pathGlow);
+        matchesGroup.appendChild(pathLine);
+        matchesGroup.appendChild(circle);
+      });
+
+      // 2. Clear dragging elastic string line
+      if (draggingWordId) {
+        const from = getNodeCoords(`left-node-${draggingWordId}`);
+        const to = cursorPos;
+
+        const dx = Math.abs(to.x - from.x);
+        const cp1x = from.x + dx * 0.45;
+        const cp1y = from.y;
+        const cp2x = to.x - dx * 0.45;
+        const cp2y = to.y;
+
+        const color = activeHoveredPicId ? '#10B981' : '#2563EB';
+
+        const pathGlow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathGlow.setAttribute('d', `M ${from.x} ${from.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${to.x} ${to.y}`);
+        pathGlow.setAttribute('fill', 'none');
+        pathGlow.setAttribute('stroke', color);
+        pathGlow.setAttribute('stroke-width', '8');
+        pathGlow.setAttribute('stroke-linecap', 'round');
+        pathGlow.setAttribute('opacity', '0.2');
+
+        const pathDash = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathDash.setAttribute('d', `M ${from.x} ${from.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${to.x} ${to.y}`);
+        pathDash.setAttribute('fill', 'none');
+        pathDash.setAttribute('stroke', color);
+        pathDash.setAttribute('stroke-width', '4');
+        pathDash.setAttribute('stroke-dasharray', '6,4');
+        pathDash.setAttribute('stroke-linecap', 'round');
+
+        const pointerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        pointerCircle.setAttribute('cx', to.x);
+        pointerCircle.setAttribute('cy', to.y);
+        pointerCircle.setAttribute('r', '6');
+        pointerCircle.setAttribute('fill', color);
+        pointerCircle.setAttribute('stroke', '#0F172A');
+        pointerCircle.setAttribute('stroke-width', '2');
+
+        activeDragGroup.appendChild(pathGlow);
+        activeDragGroup.appendChild(pathDash);
+        activeDragGroup.appendChild(pointerCircle);
+      }
+    }
+
+    // --- DRAG LINE EVENT LISTENERS AND LOGIC RULES ---
+    function handleDragLineStart(wordId, event) {
+      event.preventDefault();
+      const container = document.getElementById('game-board-canvas-holder');
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+
+      draggingWordId = wordId;
+      cursorPos = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+
+      const wordItem = activeItems.find(i => i.id === wordId);
+      if (wordItem) {
+        activeSentence = `Dragging: "${wordItem.word}". Find the matching illustration drawing on the right!`;
+        document.getElementById('label-sentence-prompt').textContent = activeSentence;
+        speakText(wordItem.word);
+      }
+
+      // Add trailing move listeners
+      window.addEventListener('pointermove', handleDragLineMove);
+      window.addEventListener('pointerup', handleDragLineUp);
+    }
+
+    function handleDragLineMove(event) {
+      if (!draggingWordId) return;
+      const container = document.getElementById('game-board-canvas-holder');
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      
+      const curX = event.clientX - rect.left;
+      const curY = event.clientY - rect.top;
+      cursorPos = { x: curX, y: curY };
+
+      // Calculate distance proximity over picture targets
+      let foundHoverId = null;
+      const thresholdSq = 55 * 55; // 55 px radius range
+
+      for (const pic of randomizedPictures) {
+        if (matches.some(m => m.pictureId === pic.id)) continue;
+        
+        const nodeCoords = getNodeCoords(`right-node-${pic.id}`);
+        const dx = curX - nodeCoords.x;
+        const dy = curY - nodeCoords.y;
+        if ((dx * dx + dy * dy) < thresholdSq) {
+          foundHoverId = pic.id;
+          break;
+        }
+      }
+
+      // Highlight target card
+      if (foundHoverId !== activeHoveredPicId) {
+        if (activeHoveredPicId) {
+          document.getElementById(`picture-card-${activeHoveredPicId}`).classList.remove('pulse-glow');
+        }
+        if (foundHoverId) {
+          document.getElementById(`picture-card-${foundHoverId}`).classList.add('pulse-glow');
+        }
+        activeHoveredPicId = foundHoverId;
+      }
+
+      drawLines();
+    }
+
+    function handleDragLineUp(event) {
+      if (!draggingWordId) return;
+      const container = document.getElementById('game-board-canvas-holder');
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const dropX = event.clientX - rect.left;
+      const dropY = event.clientY - rect.top;
+
+      let matchedPicId = null;
+      const thresholdSq = 60 * 60; // 60px snap range on pointer release
+
+      for (const pic of randomizedPictures) {
+        if (matches.some(m => m.pictureId === pic.id)) continue;
+        const nodeCoords = getNodeCoords(`right-node-${pic.id}`);
+        const dx = dropX - nodeCoords.x;
+        const dy = dropY - nodeCoords.y;
+        if ((dx * dx + dy * dy) < thresholdSq) {
+          matchedPicId = pic.id;
+          break;
+        }
+      }
+
+      // Evaluate match decision
+      if (matchedPicId) {
+        if (draggingWordId === matchedPicId) {
+          // CORRECT MATCH 🎉
+          const matchedItem = activeItems.find(i => i.id === draggingWordId);
+          const praiseWord = PRAISES[Math.floor(Math.random() * PRAISES.length)];
+          
+          matches.push({
+            wordId: draggingWordId,
+            pictureId: matchedPicId,
+            color: '#10B981'
+          });
+
+          totalScore += 150;
+          goldenStars += 1;
+          
+          // Render floating motivation alert
+          const fromCoords = getNodeCoords(`left-node-${draggingWordId}`);
+          const toCoords = getNodeCoords(`right-node-${matchedPicId}`);
+          spawnMotivationalPraise(praiseWord, (fromCoords.x + toCoords.x) / 2, (fromCoords.y + toCoords.y) / 2 - 20);
+
+          activeSentence = `"${matchedItem.word}" is correct! ${matchedItem.sentence}`;
+          document.getElementById('label-sentence-prompt').textContent = activeSentence;
+
+          playCorrectSound();
+          speakText(`${praiseWord}! ${matchedItem.word}. ${matchedItem.sentence}`);
+
+          // Rebuild lists to lock cards
+          renderWordsColumn();
+          renderPicturesColumn();
+          updateTrackerDots();
+          renderStars();
+
+          // Evaluate level win completion
+          if (matches.length === 4) {
+            triggerLevelWinScreen();
+          }
+        } else {
+          // INCORRECT MATCH ❌
+          playWrongSound();
+          const wrongCard = document.getElementById(`word-card-${draggingWordId}`);
+          if (wrongCard) {
+            wrongCard.classList.add('shake-error');
+            setTimeout(() => wrongCard.classList.remove('shake-error'), 500);
+          }
+
+          const wrongWordItem = activeItems.find(i => i.id === draggingWordId);
+          activeSentence = `Let's try again! Can you find what matches "${wrongWordItem ? wrongWordItem.word : 'this'}"?`;
+          document.getElementById('label-sentence-prompt').textContent = activeSentence;
+          speakText(`Try again! Match ${wrongWordItem ? wrongWordItem.word : 'this word'}.`);
+        }
+      }
+
+      // Clear highlights
+      if (activeHoveredPicId) {
+        document.getElementById(`picture-card-${activeHoveredPicId}`).classList.remove('pulse-glow');
+      }
+
+      draggingWordId = null;
+      activeHoveredPicId = null;
+      drawLines();
+
+      window.removeEventListener('pointermove', handleDragLineMove);
+      window.removeEventListener('pointerup', handleDragLineUp);
+    }
+
+    function spawnMotivationalPraise(text, x, y) {
+      const parent = document.getElementById('praise-popups-layer');
+      const pop = document.createElement('div');
+      pop.className = "absolute font-black text-lg md:text-2xl uppercase text-slate-900 bg-[#DCFCE7] border-3 border-slate-900 px-4 py-1.5 rounded-xl z-50 text-center shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] transition-all duration-1000 rotate-[-4deg]";
+      pop.textContent = `🎉 ${text}`;
+      pop.style.left = `${x - 60}px`;
+      pop.style.top = `${y}px`;
+      
+      parent.appendChild(pop);
+      
+      // Floating animation bubble
+      setTimeout(() => {
+        pop.style.transform = "translateY(-80px) scale(1.15)";
+        pop.style.opacity = "0";
+      }, 50);
+
+      setTimeout(() => pop.remove(), 1200);
+    }
+
+    // --- GRAND LEVEL WON MODAL TRANSITIONAL RULES ---
+    function triggerLevelWinScreen() {
+      totalScore += 500; // completion bonus points
+      document.getElementById('label-score').textContent = totalScore;
+      document.getElementById('label-stars-count').textContent = `⭐ ${goldenStars}`;
+      
+      const overlay = document.getElementById('win-overlay');
+      overlay.style.display = 'flex';
+      overlay.classList.remove('hidden');
+
+      activeSentence = "CONGRATULATIONS! You connected all cards! Learn next words by tapping Next Level!";
+      document.getElementById('label-sentence-prompt').textContent = activeSentence;
+
+      // Unlocks gorgeous confetti
+      startCelebrationFireworks();
+      speakText("Wonderful work! Urashoboye! You correctly matched all of them. Press Next Level for more!");
+      setTimeout(() => playWinSound(), 350);
+    }
+
+    function playNextRoundLevel() {
+      currentLevel += 1;
+      startNewLevel();
+    }
+
+    function shuffleLevelAndStart() {
+      startNewLevel();
+    }
+
+    // --- CANVAS CELEBRATION Confetti/Fireworks Engine ---
+    let fireworksAnimFrame = null;
+    let fireworksInterval = null;
+    let rockets = [];
+    let particles = [];
+    const fireworksColors = ['#E11D48', '#FFCC00', '#06B6D4', '#10B981', '#D946EF', '#FFFFFF', '#6366F1'];
+
+    function startCelebrationFireworks() {
+      const canvas = document.getElementById('fireworks-canvas');
+      canvas.style.display = 'block';
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      rockets = [];
+      particles = [];
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * (window.devicePixelRatio || 1);
+        canvas.height = rect.height * (window.devicePixelRatio || 1);
+        ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      function spawn() {
+        const x = 40 + Math.random() * (canvas.width / (window.devicePixelRatio || 1) - 80);
+        const y = canvas.height / (window.devicePixelRatio || 1);
+        const targetY = 30 + Math.random() * (canvas.height / (window.devicePixelRatio || 1) * 0.45);
+        const angle = -Math.PI / 2 + (Math.random() * 0.22 - 0.11);
+        const sp = 5 + Math.random() * 4.5;
+
+        rockets.push({
+          x, y, targetY,
+          vx: Math.cos(angle) * sp,
+          vy: Math.sin(angle) * sp,
+          color: fireworksColors[Math.floor(Math.random() * fireworksColors.length)]
+        });
+      }
+
+      spawn();
+      setTimeout(spawn, 300);
+      setTimeout(spawn, 600);
+
+      fireworksInterval = setInterval(() => {
+        if (rockets.length < 3) spawn();
+      }, 1000);
+
+      function explode(x, y, color) {
+        const amount = 65 + Math.floor(Math.random() * 30);
+        for (let k = 0; k < amount; k++) {
+          const ang = Math.random() * Math.PI * 2;
+          const velocity = 1.2 + Math.random() * 6;
+          particles.push({
+            x, y,
+            vx: Math.cos(ang) * velocity,
+            vy: Math.sin(ang) * velocity,
+            color: color,
+            radius: 2 + Math.random() * 2,
+            alpha: 1,
+            decay: 0.009 + Math.random() * 0.012,
+            gravity: 0.07 + Math.random() * 0.05
+          });
+        }
+      }
+
+      function updateAndRender() {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalCompositeOperation = 'source-over';
+
+        // Draw Rockets
+        rockets = rockets.filter(r => {
+          ctx.beginPath();
+          ctx.arc(r.x, r.y, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = r.color;
+          ctx.fill();
+
+          r.x += r.vx;
+          r.y += r.vy;
+
+          if (r.y <= r.targetY || r.vy >= 0) {
+            explode(r.x, r.y, r.color);
+            return false;
+          }
+          return true;
+        });
+
+        // Draw Exploded Sparks
+        particles = particles.filter(p => {
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+          ctx.restore();
+
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.vx *= 0.985;
+          p.vy *= 0.985;
+          p.alpha -= p.decay;
+
+          return p.alpha > 0;
+        });
+
+        fireworksAnimFrame = requestAnimationFrame(updateAndRender);
+      }
+
+      updateAndRender();
+    }
+
+    function stopCelebrationFireworks() {
+      const canvas = document.getElementById('fireworks-canvas');
+      canvas.style.display = 'none';
+      if (fireworksInterval) clearInterval(fireworksInterval);
+      if (fireworksAnimFrame) cancelAnimationFrame(fireworksAnimFrame);
+    }
+
+    // Adapt to layout resize
+    window.addEventListener('resize', drawLines);
+
+  </script>
+</body>
+</html>
