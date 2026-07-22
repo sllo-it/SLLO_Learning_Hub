@@ -7,6 +7,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "adm-zip": "^0.5.17",
     "express": "^4.19.2",
     "multer": "^2.1.1",
     "xlsx": "^0.18.5"
