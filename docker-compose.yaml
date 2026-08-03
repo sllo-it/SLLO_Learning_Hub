@@ -3,7 +3,7 @@ version: '3.8'
 services:
   gamehub:
     build: .
-    container_name: school_game_hub
+    container_name: sllo_game_hub
     restart: unless-stopped
     # Environmental variable configuration
     environment:
