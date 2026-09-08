@@ -1,5 +1,5 @@
 // BUMP THIS VERSION NUMBER whenever you make changes to force a cache reset
-const CACHE_NAME = 'game-hub-v2'; 
+const CACHE_NAME = 'sllo-ai-learning-hub'; 
 
 const ASSETS = [
   './',

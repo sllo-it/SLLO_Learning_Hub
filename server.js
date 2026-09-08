@@ -6,7 +6,7 @@ const xlsx = require('xlsx');
 const AdmZip = require('adm-zip');
 
 const app = express();
-const PORT = process.env.PORT || 8082;
+const PORT = process.env.PORT || 3003;
 
 app.use(express.json());
 app.use(express.static(__dirname));
@@ -68,7 +68,7 @@ const excelStorage = multer.diskStorage({
 const uploadExcel = multer({ storage: excelStorage });
 
 // 1 & 2. API to Save/Modify Game with File Uploads
-app.post('/api/save-game-form', upload.fields([
+app.post('api/save-game-form', upload.fields([
   { name: 'gameFile', maxCount: 1 },
   { name: 'iconFile', maxCount: 1 },
   { name: 'previewFile', maxCount: 1 }
@@ -147,7 +147,7 @@ const getVal = (row, searchKeywords) => {
 };
 
 // The Refined Route
-app.post('/api/import-excel', uploadExcel.single('excelFile'), (req, res) => {
+app.post('api/import-excel', uploadExcel.single('excelFile'), (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
 
   try {
@@ -218,7 +218,7 @@ app.post('/api/import-excel', uploadExcel.single('excelFile'), (req, res) => {
 });
 
 // Upload zip file and extract to src/games
-app.post('/api/upload-zip', uploadZip.single('zipFile'), (req, res) => {
+app.post('api/upload-zip', uploadZip.single('zipFile'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No ZIP file uploaded.' });
   }
@@ -262,7 +262,7 @@ app.post('/api/upload-zip', uploadZip.single('zipFile'), (req, res) => {
 });
 
 // 4. Complete System Erasure API (Games & Directory Storage deletion)
-app.delete('/api/delete-game/:id', (req, res) => {
+app.delete('api/delete-game/:id', (req, res) => {
   const gameId = req.params.id;
   let allGames = readGamesJSON();
   

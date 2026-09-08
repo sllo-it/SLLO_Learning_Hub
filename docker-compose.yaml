@@ -3,15 +3,15 @@ version: '3.8'
 services:
   gamehub:
     build: .
-    container_name: sllo_game_hub
+    container_name: sllo_ai_learning_hub
     restart: unless-stopped
     # Environmental variable configuration
     environment:
       - NODE_ENV=production
-      - PORT=8082
+      - PORT=3003
     # Map port 8028 on your Synology NAS to port 8028 inside the Docker container
     ports:
-      - "8082:8082"
+      - "3003:3003"
     # Mount your files so your upload/delete scripts permanently write to the NAS hard drive
     volumes:
       - .:/usr/src/app

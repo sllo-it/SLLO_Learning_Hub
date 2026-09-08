@@ -12,7 +12,7 @@ RUN npm install
 COPY . .
 
 # Expose port 8028 to match your server.js and docker-compose settings
-EXPOSE 8082
+EXPOSE 3003
 
 # Command to start the server
 CMD ["npm", "start"]
