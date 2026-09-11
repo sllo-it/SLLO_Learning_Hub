@@ -11,6 +11,21 @@ const PORT = process.env.PORT || 3003;
 app.use(express.json());
 app.use(express.static(__dirname));
 
+// Store the password in an environment variable or define it securely on the server
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+app.post(['/api/verify-admin', '/api/verify-admin/'], (req, res) => {
+  const { password } = req.body;
+  if (!password) {
+    return res.status(400).json({ success: false, message: 'Password is required' })
+  }
+  if (password === ADMIN_PASSWORD) {
+    // Return a session flag or authorization token
+    return res.json({ success: true });
+  }
+  return res.status(401).json({ success: false, message: 'Incorrect password' });
+});
+
 // Utility functions to read/write games.json safely
 const getGamesPath = () => path.join(__dirname, 'games.json');
 const readGamesJSON = () => {
@@ -24,6 +39,11 @@ const readGamesJSON = () => {
 const writeGamesJSON = (data) => {
   fs.writeFileSync(getGamesPath(), JSON.stringify(data, null, 2), 'utf8');
 };
+
+function toLowerCase(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
 function toCamelCase(str) {
   return str
     .toLowerCase()
@@ -68,7 +88,7 @@ const excelStorage = multer.diskStorage({
 const uploadExcel = multer({ storage: excelStorage });
 
 // 1 & 2. API to Save/Modify Game with File Uploads
-app.post('api/save-game-form', upload.fields([
+app.post(['/api/save-game-form', '/api/save-game-form/'], upload.fields([
   { name: 'gameFile', maxCount: 1 },
   { name: 'iconFile', maxCount: 1 },
   { name: 'previewFile', maxCount: 1 }
@@ -92,7 +112,7 @@ app.post('api/save-game-form', upload.fields([
     unit: req.body.unit || '',
     level: req.body.level || 'Beginner',
     outcomes: req.body.outcomes || '',
-    path: `src/games/${gameName}`,
+    path: `src/games/${gameName}.html`,
     icon: req.files['iconFile'] ? `src/pictures/${gameName}_icon.png` : (oldGame ? oldGame.icon : ''),
     preview: req.files['previewFile'] ? `src/pictures/${gameName}_preview.png` : (oldGame ? oldGame.preview : '')
   };
@@ -147,7 +167,7 @@ const getVal = (row, searchKeywords) => {
 };
 
 // The Refined Route
-app.post('api/import-excel', uploadExcel.single('excelFile'), (req, res) => {
+app.post(['/api/import-excel', '/api/import-excel/'], uploadExcel.single('excelFile'), (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
 
   try {
@@ -218,7 +238,7 @@ app.post('api/import-excel', uploadExcel.single('excelFile'), (req, res) => {
 });
 
 // Upload zip file and extract to src/games
-app.post('api/upload-zip', uploadZip.single('zipFile'), (req, res) => {
+app.post(['/api/upload-zip', '/api/upload-zip/'], uploadZip.single('zipFile'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No ZIP file uploaded.' });
   }
@@ -262,7 +282,7 @@ app.post('api/upload-zip', uploadZip.single('zipFile'), (req, res) => {
 });
 
 // 4. Complete System Erasure API (Games & Directory Storage deletion)
-app.delete('api/delete-game/:id', (req, res) => {
+app.delete(['/api/delete-game/:id', '/api/delete-game/:id/'], (req, res) => {
   const gameId = req.params.id;
   let allGames = readGamesJSON();
   

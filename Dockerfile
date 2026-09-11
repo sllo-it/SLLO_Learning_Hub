@@ -2,7 +2,7 @@
 FROM node:18-alpine
 
 # Set the working directory inside the container
-WORKDIR /app
+WORKDIR /usr/src/app/learning-hub
 
 # Copy package.json to install dependencies first
 COPY package*.json ./
@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 3003
 
 # Command to start the server
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

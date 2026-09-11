@@ -182,7 +182,7 @@
     <!-- Login Entry -->
     <div id="sec-login" class="admin-section">
       <div class="form-group"><input type="password" id="admin-pwd" placeholder="Enter Password"></div>
-      <button class="btn-basic btn-play" style="width:100%" onclick="attemptLogin()">Login</button>
+      <button class="btn-basic btn-play" style="width:100%" onclick="attemptLogin(event)">Login</button>
     </div>
 
     <!-- Dashboard Grid options -->
@@ -356,15 +356,38 @@
   function showAdminLogin() { document.getElementById('settings-title').textContent = 'Admin Sign-In'; document.getElementById('btn-admin-entry').style.display = 'none'; switchAdminSection('sec-login'); }
   function handleAdminLogout() { isAdminAuthenticated = false; document.getElementById('settings-title').textContent = 'Settings'; document.getElementById('btn-admin-entry').style.display = 'block'; document.getElementById('btn-admin-logout').style.display = 'none'; document.getElementById('admin-pwd').value = ''; switchAdminSection('sec-general'); }
 
-  function attemptLogin() {
-    if(document.getElementById('admin-pwd').value === 'polyusllo') {
-      isAdminAuthenticated = true; 
-      document.getElementById('settings-title').textContent = 'Admin Space';
-      document.getElementById('btn-admin-logout').style.display = 'block';
-      switchAdminSection('sec-dashboard');
-      showAdminList();
-    } else { 
-      alert('Access Denied'); 
+  async function attemptLogin(e) {
+    if (e) e.preventDefault();
+    const pwdInput = document.getElementById('admin-pwd');
+    const password = pwdInput ? pwdInput.value : '';
+    if (!password) {
+      alert('Please enter a password.');
+      return;
+    }
+    try {
+      const response = await fetch('api/verify-admin/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password: password })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        isAdminAuthenticated = true;
+        document.getElementById('settings-title').textContent = 'Admin Space';
+        document.getElementById('btn-admin-logout').style.display = 'block';
+        switchAdminSection('sec-dashboard');
+        showAdminList();
+        // Clear password input field for safety
+        if (pwdInput) pwdInput.value = '';
+      } else {
+        alert(data.message || 'Access Denied');
+        if (pwdInput) pwdInput.value = '';
+      }
+    } catch (error) {
+      console.error('Login verification error:', error);
+      alert('Network error verifying credentials. Please check your connection.');
     }
   }
 
@@ -422,7 +445,7 @@
     if (!confirm('Confirm edits and write execution parameters directly to the server?')) return;
     const formData = new FormData(document.getElementById('game-upload-form'));
     
-    const res = await fetch('/api/save-game-form', { method: 'POST', body: formData });
+    const res = await fetch('api/save-game-form/', { method: 'POST', body: formData });
     const data = await res.json();
     if(data.success) {
       alert('Changes saved permanently.');
@@ -461,7 +484,7 @@
     const formData = new FormData();
     formData.append('excelFile', fileInput.files[0]);
 
-    const res = await fetch('/api/import-excel', { method: 'POST', body: formData });
+    const res = await fetch('api/import-excel/', { method: 'POST', body: formData });
     const data = await res.json();
     if(data.success) {
       let msg = `Successfully loaded ${data.addedCount} new modules!`;
@@ -489,7 +512,7 @@
     formData.append('zipFile', fileInput.files[0]);
     
     try {
-      const res = await fetch('/api/upload-zip', { method: 'POST', body: formData });
+      const res = await fetch('api/upload-zip/', { method: 'POST', body: formData });
       const data = await res.json();
       
       if(data.success) {
@@ -510,7 +533,7 @@
 
   async function deleteGame(id) {
     if(!confirm('🚨 Warning: This permanently removes the configuration entry and completely deletes the game from the server disk. Proceed?')) return;
-    const res = await fetch(`/api/delete-game/${id}`, { method: 'DELETE' });
+    const res = await fetch(`api/delete-game/${id}/`, { method: 'DELETE' });
     const data = await res.json();
     if(data.success) { alert(data.message); await loadGames(); showAdminList(); }
   }
